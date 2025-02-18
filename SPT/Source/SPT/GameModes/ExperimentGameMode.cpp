@@ -2,4 +2,11 @@
 
 
 #include "ExperimentGameMode.h"
+#include "SPTPlayerCharacter.h"
+#include "SPTPlayerController.h"
 
+AExperimentGameMode::AExperimentGameMode()
+{
+	PlayerControllerClass = ASPTPlayerController::StaticClass();
+	DefaultPawnClass = ASPTPlayerCharacter::StaticClass();
+}

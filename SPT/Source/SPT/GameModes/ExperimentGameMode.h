@@ -14,4 +14,6 @@ class SPT_API AExperimentGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	
+public:
+	AExperimentGameMode();
 };
