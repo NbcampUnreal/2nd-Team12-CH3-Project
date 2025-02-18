@@ -6,6 +6,9 @@
 #include "GameFramework/Character.h"
 #include "SPTPlayerCharacter.generated.h"
 
+class USpringArmComponent;
+class UCameraComponent;
+
 UCLASS()
 class SPT_API ASPTPlayerCharacter : public ACharacter
 {
@@ -22,4 +25,11 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+private:
+	// 카메라 관련 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = true))
+	TObjectPtr<USpringArmComponent> SpringArmComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UCameraComponent> CameraComp;
 };
