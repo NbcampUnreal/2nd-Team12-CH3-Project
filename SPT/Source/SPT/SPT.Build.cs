@@ -13,8 +13,9 @@ public class SPT : ModuleRules
 		PublicIncludePaths.AddRange(new string[] {
 			Path.Combine(ModuleDirectory, "Characters"), 
 			Path.Combine(ModuleDirectory, "Controllers"), 
-			Path.Combine(ModuleDirectory, "GameModes")
-		});
+			Path.Combine(ModuleDirectory, "GameModes"),
+			Path.Combine(ModuleDirectory, "AnimInstances")
+        });
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
 
