@@ -4,6 +4,7 @@
 #include "SPTPlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
@@ -16,6 +17,11 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 	SpringArmComp->SetupAttachment(RootComponent);
     // 컨트롤러 회전에 따라 스프링 암도 회전하도록 설정
     SpringArmComp->bUsePawnControlRotation = true;
+    // 앉기 시 카메라가 자연스럽게 이동하도록 카메라 렉 설정 및 설정 값
+    SpringArmComp->bEnableCameraLag = true;
+    SpringArmComp->CameraLagSpeed = 20.f;
+    SpringArmComp->bEnableCameraRotationLag = true;
+    SpringArmComp->CameraRotationLagSpeed = 20.f;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
@@ -25,6 +31,10 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
     SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 
     GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+    // 앉기 기능 설정
+    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+    // 앉기 시 현재 앉기 애니메이션에 맞는 절반 높이 설정
+    GetCharacterMovement()->SetCrouchedHalfHeight(65.f);
 }
 
 void ASPTPlayerCharacter::BeginPlay()
@@ -68,6 +78,12 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
             {
                 EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartSprint);
                 EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopSprint);
+            }
+
+            if (PlayerController->CrouchAction)
+            {
+                EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartCrouch);
+                EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopCrouch);
             }
         }
     }
@@ -130,6 +146,22 @@ void ASPTPlayerCharacter::StopSprint(const FInputActionValue& value)
     if (GetCharacterMovement())
     {
         GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+    }
+}
+
+void ASPTPlayerCharacter::StartCrouch(const FInputActionValue& value)
+{
+    if (value.Get<bool>())
+    {
+        Crouch();
+    }
+}
+
+void ASPTPlayerCharacter::StopCrouch(const FInputActionValue& value)
+{
+    if (!value.Get<bool>())
+    {
+        UnCrouch();
     }
 }
 
