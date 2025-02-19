@@ -1,5 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+using System.Collections.Generic;
+using System.IO;
 using UnrealBuildTool;
 
 public class SPT : ModuleRules
@@ -7,8 +9,14 @@ public class SPT : ModuleRules
 	public SPT(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+
+		PublicIncludePaths.AddRange(new string[] {
+			Path.Combine(ModuleDirectory, "Characters"), 
+			Path.Combine(ModuleDirectory, "Controllers"), 
+			Path.Combine(ModuleDirectory, "GameModes")
+		});
+
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
