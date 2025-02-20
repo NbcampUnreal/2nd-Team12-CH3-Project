@@ -25,16 +25,6 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
-
-    NormalSpeed = 600.0f;
-    SprintSpeedMultiplier = 1.5f;
-    SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
-
-    GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-    // 앉기 기능 설정
-    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-    // 앉기 시 현재 앉기 애니메이션에 맞는 절반 높이 설정
-    GetCharacterMovement()->SetCrouchedHalfHeight(65.f);
 }
 
 void ASPTPlayerCharacter::BeginPlay()
