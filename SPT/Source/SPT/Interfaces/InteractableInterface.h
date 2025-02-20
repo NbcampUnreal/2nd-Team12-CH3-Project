@@ -15,15 +15,18 @@ struct FInteractableData
 
 	FInteractableData() :
 		Name(FText::GetEmpty()),
-		Action(FText::GetEmpty())
+		Action(FText::GetEmpty()),
+		InteractionDuration(0.0f)
 	{
 	};
 
 	UPROPERTY(EditInstanceOnly)
 	FText Name;
-
 	UPROPERTY(EditInstanceOnly)
 	FText Action;
+	UPROPERTY(EditInstanceOnly)
+	float InteractionDuration;
+
 };
 
 // This class does not need to be modified.
@@ -40,6 +43,8 @@ class SPT_API IInteractableInterface
 public:
 	virtual void BeginFocus() = 0;
 	virtual void EndFocus() = 0;
+	virtual void BeginInteract() = 0;
+	virtual void EndInteract() = 0;
 	virtual void Interact(ASPTPlayerCharacter* PlayerCharacter) = 0;
 
 	FInteractableData InteractableData;

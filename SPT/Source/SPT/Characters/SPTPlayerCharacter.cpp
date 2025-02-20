@@ -9,6 +9,16 @@
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
 
+
+////////////////////////////////////////////////////////////////////////////////
+/* 아이템 디버깅 */
+// 인벤토리 클래스 포함
+#include "SPT/Items/WorldItems/WorldItemActor.h"
+#include "DrawDebugHelpers.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 ASPTPlayerCharacter::ASPTPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -37,6 +47,11 @@ void ASPTPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+    /* 아이템 디버깅 */
+    if (GetWorld()->TimeSince(InteractionData.LastIneractionCheckTime) > InteractionCheckFrequency)
+    {
+        PerformInteractionCheck();
+    }
 }
 
 void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -74,6 +89,12 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
             {
                 EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartCrouch);
                 EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopCrouch);
+            }
+
+            if (PlayerController->InteractAction)
+            {
+                EnhancedInput->BindAction(PlayerController->InteractAction, ETriggerEvent::Started, this, &ASPTPlayerCharacter::BeginInteract);
+                EnhancedInput->BindAction(PlayerController->InteractAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::EndInteract);
             }
         }
     }
@@ -155,3 +176,146 @@ void ASPTPlayerCharacter::StopCrouch(const FInputActionValue& value)
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+void ASPTPlayerCharacter::PerformInteractionCheck()
+{
+    InteractionData.LastIneractionCheckTime = GetWorld()->GetTimeSeconds();
+
+    FVector TraceStart{ GetPawnViewLocation() };    // Pawn 앞의 시야 시작 지점
+    FVector TraceEnd{ TraceStart + (GetViewRotation().Vector() * InteractionCheckDistance) };   // Pawn이 바라보는 방향에서 상호 작용 최대 거리까지
+
+    float LookDirection = FVector::DotProduct(GetActorForwardVector(), GetViewRotation().Vector());
+    // 필요한 경우에 한해 진행 (옆이나 뒤를 볼 경우 따라오는가?를 확인해봐야함)
+    if (LookDirection > 0)
+    {
+        DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 1.0f, 0, 2.0f); // 라인 트레이스 확인을 위한 디버깅 도구
+
+        FCollisionQueryParams QueryParams;
+        QueryParams.AddIgnoredActor(this);
+        FHitResult TraceHit;
+
+        if (GetWorld()->LineTraceSingleByChannel(
+            TraceHit,
+            TraceStart,
+            TraceEnd,
+            ECC_Visibility,
+            QueryParams))
+        {
+            if (TraceHit.GetActor()->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+            {
+                const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
+
+                if (TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
+                {
+                    FoundInteractable(TraceHit.GetActor());
+                    return;
+                }
+
+                if (TraceHit.GetActor() == InteractionData.CurrentInteractable)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    NoInteractableFound();      // 상호 작용 가능 아이템이 아닐 때
+}
+
+void ASPTPlayerCharacter::FoundInteractable(AActor* NewInteractable)
+{
+    if (IsInteracting())
+    {
+        GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+    }
+
+    // 기존 포커스 종료
+    if (InteractionData.CurrentInteractable)
+    {
+        TargetInteractable = InteractionData.CurrentInteractable;
+        TargetInteractable->EndFocus();
+    }
+
+    // 새로운 포커스 설정
+    InteractionData.CurrentInteractable = NewInteractable;
+    TargetInteractable = NewInteractable;
+
+    TargetInteractable->BeginFocus();
+}
+
+void ASPTPlayerCharacter::NoInteractableFound()
+{
+    if (IsInteracting())
+    {
+        GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+    }
+
+    if (InteractionData.CurrentInteractable)
+    {
+        // 상호 작용 후 월드에서 아이템이 사라졌을 때 Crash 방지
+        if (IsValid(TargetInteractable.GetObject()))
+        {
+            TargetInteractable->EndFocus();
+        }
+
+        // hide interaction widget on the HUD
+
+        InteractionData.CurrentInteractable = nullptr;
+        TargetInteractable = nullptr;
+    }
+}
+
+void ASPTPlayerCharacter::BeginInteract()
+{
+    // verify nothing has changed with the interactable state since beginning interaction
+    PerformInteractionCheck();
+
+    if (InteractionData.CurrentInteractable)
+    {
+        if (IsValid(TargetInteractable.GetObject()))
+        {
+            TargetInteractable->BeginInteract();
+
+            if (FMath::IsNearlyZero(TargetInteractable->InteractableData.InteractionDuration, 0.1f))
+            {
+                Interact();
+            }
+            else
+            {
+                GetWorldTimerManager().SetTimer(
+                    TimerHandle_Interaction,
+                    this,
+                    &ASPTPlayerCharacter::Interact,
+                    TargetInteractable->InteractableData.InteractionDuration,
+                    false);
+            }
+        }
+    }
+}
+
+void ASPTPlayerCharacter::EndInteract()
+{
+    GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+
+    if (IsValid(TargetInteractable.GetObject()))
+    {
+        TargetInteractable->EndInteract();
+    }
+}
+
+void ASPTPlayerCharacter::Interact()
+{
+    GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+
+    if (IsValid(TargetInteractable.GetObject()))
+    {
+        TargetInteractable->Interact(this);
+    }
+}
+
+bool ASPTPlayerCharacter::IsInteracting() const
+{
+    return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction);
+}
+
+////////////////////////////////////////////////////////////////////////////////

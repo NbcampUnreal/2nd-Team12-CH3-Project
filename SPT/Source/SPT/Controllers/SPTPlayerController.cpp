@@ -11,6 +11,7 @@ ASPTPlayerController::ASPTPlayerController()
 	LookAction = nullptr;
 	JumpAction = nullptr;
 	SprintAction = nullptr;
+    InteractAction = nullptr;
 }
 
 void ASPTPlayerController::BeginPlay()

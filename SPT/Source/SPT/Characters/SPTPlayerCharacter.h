@@ -4,12 +4,36 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "SPT/Interfaces/InteractableInterface.h"
 #include "SPTPlayerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 
 struct FInputActionValue;
+
+
+////////////////////////////////////////////////////////////////////////////////
+/* Interaction 추가 */
+USTRUCT()
+struct FInteractionData
+{
+	GENERATED_USTRUCT_BODY();
+
+	FInteractionData() :
+		CurrentInteractable(nullptr),
+		LastIneractionCheckTime(0.0f)
+	{
+	};
+
+	UPROPERTY()
+	AActor* CurrentInteractable;
+
+	UPROPERTY()
+	float LastIneractionCheckTime;
+};
+////////////////////////////////////////////////////////////////////////////////
+
 
 UCLASS()
 class SPT_API ASPTPlayerCharacter : public ABaseCharacter
@@ -44,6 +68,39 @@ protected:
 	void StartCrouch(const FInputActionValue& value);
 	UFUNCTION()
 	void StopCrouch(const FInputActionValue& value);
+
+////////////////////////////////////////////////////////////////////////////////
+	/* 상호 작용 관련 함수 */
+	void PerformInteractionCheck();		// 플레이어의 시야 방향으로 라인트레이스 수행
+	void FoundInteractable(AActor* NewInteractable);	// 새로운 상호작용 대상 감지 시, 새로운 액터 포커스
+	void NoInteractableFound();			// 플레이어가 상호작용 가능한 액터를 찾지 못했을 때 실행
+	void BeginInteract();
+	void EndInteract();
+	void Interact();					
+
+	FORCEINLINE bool IsInteracting() const;
+
+	/* 상호 작용 관련 변수 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Interaction")
+	TScriptInterface<IInteractableInterface> TargetInteractable;
+
+	float InteractionCheckFrequency;
+	float InteractionCheckDistance;
+	FTimerHandle TimerHandle_Interaction;
+	FInteractionData InteractionData;
+
+	/* 인벤토리 관련 함수
+	void OpenInventory();
+	void CloseInventory();
+	void PickupItem();
+	void DropItem(UItemObject* ItemToDrop);
+
+	/* 인벤토리 시스템 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Inventory")
+	UInventoryComponent* InventoryComponent;
+	*/
+////////////////////////////////////////////////////////////////////////////////
+
 
 private:
 	// 카메라 관련 컴포넌트
