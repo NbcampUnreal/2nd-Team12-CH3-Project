@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "SPTPlayerCharacter.generated.h"
 
 class USpringArmComponent;
@@ -12,7 +12,7 @@ class UCameraComponent;
 struct FInputActionValue;
 
 UCLASS()
-class SPT_API ASPTPlayerCharacter : public ACharacter
+class SPT_API ASPTPlayerCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -51,14 +51,4 @@ private:
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCameraComponent> CameraComp;
-
-	// 기본 걷기 속도
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = true))
-	float NormalSpeed;
-	// 기본 걷기 속도 대비 몇 배로 빠르게 달릴지 결정
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = true))
-	float SprintSpeedMultiplier;
-	// 실제 달리기 속도
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = true))
-	float SprintSpeed;
 };
