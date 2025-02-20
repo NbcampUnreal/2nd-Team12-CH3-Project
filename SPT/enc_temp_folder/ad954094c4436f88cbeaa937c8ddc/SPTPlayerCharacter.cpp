@@ -35,13 +35,6 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
-
-
-    // 상호 작용 관련 변수 초기화
-    InteractionCheckFrequency = 0.1f;
-    InteractionCheckDistance = 225.0f;
-    BaseEyeHeight = 80.0f;
-
 }
 
 void ASPTPlayerCharacter::BeginPlay()
