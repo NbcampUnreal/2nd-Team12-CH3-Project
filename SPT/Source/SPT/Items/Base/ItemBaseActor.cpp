@@ -25,7 +25,7 @@ AItemBaseActor* AItemBaseActor::CreateItemCopy() const
 	AItemBaseActor* NewItem = NewObject<AItemBaseActor>();
 	if (NewItem)
 	{
-		// NewItem->SetItemData(ItemData);
+		NewItem->SetItemData(ItemData);
 		NewItem->SetQuantity(Quantity);
 	}
 
@@ -35,22 +35,19 @@ AItemBaseActor* AItemBaseActor::CreateItemCopy() const
 // 현재 아이템의 총 무게 반환
 float AItemBaseActor::GetItemStackWeight() const
 {
-	// return ItemData.Weight * Quantity;
-	return Quantity;
+	return ItemData.NumericData.Weight * Quantity;
 }
 
 // 아이템 단일 무게 반환
 float AItemBaseActor::GetItemSingleWeight() const
 {
-	// return ItemData.Weight;
-	return 0.0f;
+	return ItemData.NumericData.Weight;
 }
 
 // 최대 스택 개수인지 확인
 FORCEINLINE bool AItemBaseActor::IsFullItemStack() const
 {
-	// return Quantity >= ItemData.MaxStackSize;
-	return false;
+	return Quantity >= ItemData.NumericData.MaxStackSize;
 }
 
 // 아이템 개수 설정
@@ -58,7 +55,7 @@ void AItemBaseActor::SetQuantity(const int32 NewQuantity)
 {
 	if (NewQuantity != Quantity)
 	{
-		// Quantity = FMath::Clamp(NewQuantity, 0, ItemData.NumericData.bIsStackable ? ItemData.NumericData.MaxStackSize : 1);
+		Quantity = FMath::Clamp(NewQuantity, 0, ItemData.NumericData.bIsStackable ? ItemData.NumericData.MaxStackSize : 1);
 
 		/*
 		if (OwningInventory)
@@ -75,20 +72,29 @@ void AItemBaseActor::SetQuantity(const int32 NewQuantity)
 // 아이템 사용
 void AItemBaseActor::Use(ASPTPlayerCharacter* PlayerCharacter)
 {
-	// UE_LOG(LogTemp, Warning, TEXT("Item Used: %s"), *ItemData.ItemName.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("Item Used"));
+	UE_LOG(LogTemp, Warning, TEXT("Item Used: %s"), *ItemData.TextData.Name.ToString());
 }
 
 // 비교 연산자 오버로딩 (아이템 ID 비교)
 bool AItemBaseActor::operator==(const FName& OtherID) const
 {
-	// return this->ItemData.ItemID == OtherID;
-	return false;
+	return this->ItemData.ItemID == OtherID;
 }
 
 UStaticMeshComponent* AItemBaseActor::GetMeshComponent() const
 {
 	return StaticMeshComponent;
+}
+
+FItemData AItemBaseActor::GetItemData() const
+{
+	return ItemData;
+}
+
+void AItemBaseActor::SetItemData(const FItemData& NewItemData)
+{
+	ItemData = NewItemData;
+	Quantity = 1;
 }
 
 bool AItemBaseActor::IsWeapon() const

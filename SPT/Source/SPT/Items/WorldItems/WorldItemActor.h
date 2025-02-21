@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "SPT/Items/Base/ItemBaseActor.h"
+#include "SPT/Interfaces/InteractableInterface.h"
 #include "WorldItemActor.generated.h"
 
 UCLASS()
-class SPT_API AWorldItemActor : public AItemBaseActor
+class SPT_API AWorldItemActor : public AItemBaseActor, public IInteractableInterface
 {
 	GENERATED_BODY()
 
@@ -20,5 +21,22 @@ public:
 	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter);
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void OnDrop(ASPTPlayerCharacter* PlayerCharacter);
+
+	virtual void BeginFocus() override;
+	virtual void EndFocus() override;
+	virtual void BeginInteract() override;
+	virtual void EndInteract() override;
+	virtual void Interact(ASPTPlayerCharacter* PlayerCharacter) override;
 	
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Pickup")
+	UDataTable* ItemDataTable;		// 아이템 데이터 테이블
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Pickup")
+	FName ItemID;					// 아이템 ID
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup")
+	UStaticMeshComponent* PickupMesh;	// 픽업 아이템 메쉬
+
 };

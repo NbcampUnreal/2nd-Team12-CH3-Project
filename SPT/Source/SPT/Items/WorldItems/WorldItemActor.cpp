@@ -8,6 +8,11 @@
 AWorldItemActor::AWorldItemActor()
 {
     PrimaryActorTick.bCanEverTick = false;
+
+    // 픽업 아이템의 메쉬 설정
+    PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>("PickupMesh");
+    PickupMesh->SetSimulatePhysics(true);
+    SetRootComponent(PickupMesh);
 }
 
 void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
@@ -45,5 +50,45 @@ void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
         // DroppedItem->SetItemData(ItemData);
         DroppedItem->SetQuantity(Quantity);
         UE_LOG(LogTemp, Warning, TEXT("%s has dropped Item"), *PlayerCharacter->GetName());
+    }
+}
+
+void AWorldItemActor::BeginFocus()
+{
+}
+
+void AWorldItemActor::EndFocus()
+{
+}
+
+void AWorldItemActor::BeginInteract()
+{
+}
+
+void AWorldItemActor::EndInteract()
+{
+}
+
+void AWorldItemActor::Interact(ASPTPlayerCharacter* PlayerCharacter)
+{
+}
+
+void AWorldItemActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    const FName ChangedPropertyName = PropertyChangedEvent.Property ? FName(*PropertyChangedEvent.Property->GetName()) : NAME_None;
+
+    if (ChangedPropertyName == GET_MEMBER_NAME_CHECKED(AWorldItemActor, ItemID))
+    {
+        if (ItemDataTable)
+        {
+            const FString ContextString{ ItemID.ToString() };
+
+            if (const FItemData* FoundItemData = ItemDataTable->FindRow<FItemData>(ItemID, ItemID.ToString()))
+            {
+                PickupMesh->SetStaticMesh(FoundItemData->AssetData.StaticMesh);
+            }
+        }
     }
 }

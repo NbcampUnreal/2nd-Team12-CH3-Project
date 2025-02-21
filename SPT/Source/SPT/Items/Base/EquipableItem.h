@@ -22,14 +22,11 @@ public:
     virtual bool Equip(ASPTPlayerCharacter* PlayerCharacter);
 
     /* 아이템 해제 */
-    virtual bool Unequip(ASPTPlayerCharacter* PlayerCharacter);
+    virtual bool UnEquip(ASPTPlayerCharacter* PlayerCharacter);
 
 protected:
-    /* 장착할 SkeletalMesh */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipable")
-    USkeletalMeshComponent* ItemMesh;
 
     /* 장착 시 연결할 소켓 이름 */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipable")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Equipable")
     FName AttachSocketName;
 };

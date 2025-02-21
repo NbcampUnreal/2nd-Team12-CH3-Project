@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-// #include "ItemDataStructs.h"
-// #include "WeaponDataStructs.h"
+#include "SPT/Items/Data/ItemDataStructs.h"
+#include "SPT/Items/Data/WeaponDataStructs.h"
 #include "ItemBaseActor.generated.h"
 
 class ASPTPlayerCharacter;
@@ -41,21 +41,21 @@ public:
 
 	/* Getter & Setter */
 	UStaticMeshComponent* GetMeshComponent() const;
-	// FItemData GetItemData() const;
-	// void SetItemData(const FItemData& NewItemData);
+	FItemData GetItemData() const;
+	void SetItemData(const FItemData& NewItemData);
 	bool IsWeapon() const;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Mesh")
 	UStaticMeshComponent* StaticMeshComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Mesh")
 	USkeletalMeshComponent* SkeletalMeshComponent;
 
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	// FItemData ItemData;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item", meta = (ShowOnlyInnerProperties))
+	FItemData ItemData;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item", meta = (UIMin = 1, UIMax = 100))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item", meta = (UIMin = 1, UIMax = 100))
 	int32 Quantity;
 
 };

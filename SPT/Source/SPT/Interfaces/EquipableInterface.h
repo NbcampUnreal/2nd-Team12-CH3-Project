@@ -24,5 +24,5 @@ public:
 
 	// 아이템 장착 및 해제 함수
 	virtual bool Equip(ASPTPlayerCharacter* PlayerCharacter) = 0;
-	virtual bool Unequip(ASPTPlayerCharacter* PlayerCharacter) = 0;
+	virtual bool UnEquip(ASPTPlayerCharacter* PlayerCharacter) = 0;
 };
