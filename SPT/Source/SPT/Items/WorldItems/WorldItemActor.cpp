@@ -3,6 +3,7 @@
 
 #include "WorldItemActor.h"
 #include "SPTPlayerCharacter.h"
+#include "SPT/Items/Data/ItemDataObject.h"
 // #include "InventoryComponent.h"
 
 AWorldItemActor::AWorldItemActor()
@@ -15,22 +16,41 @@ AWorldItemActor::AWorldItemActor()
     SetRootComponent(PickupMesh);
 }
 
+void AWorldItemActor::InitializeItem(const FItemData& NewItemData)
+{
+    ItemData = NewItemData;
+
+    // StaticMesh 설정 (데이터 기반)
+    if (NewItemData.AssetData.StaticMesh)
+    {
+        PickupMesh->SetStaticMesh(NewItemData.AssetData.StaticMesh);
+    }
+}
+
 void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 {
     if (!PlayerCharacter) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("%s has picked up %s"), *PlayerCharacter->GetName(), *ItemData.TextData.Name.ToString());
-    Destroy(); // 아이템 줍기 후 제거
+	// 아이템 데이터 객체 생성
+    UItemDataObject* NewItemDataObject = NewObject<UItemDataObject>();
+	NewItemDataObject->SetItemData(ItemData);
+	NewItemDataObject->SetQuantity(1);
 
-	/* 인벤토리 컴포넌트 생성 시 해제
-    UInventoryComponent* Inventory = PlayerCharacter->FindComponentByClass<UInventoryComponent>();
-
-    if (Inventory)
+    /* 인벤토리 컴포넌트 생성 시 해제
+    if (Inventory->AddItem(NewItemDataObject))
     {
-        Inventory->AddItem(this);  // 인벤토리에 추가
-        Destroy();  // 월드에서 제거
+        // 아이템 주운 후 제거
+        Destroy();
+        UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s 아이템을 인벤토리에 추가 완료!"), *ItemData.TextData.Name.ToString());
     }
-	*/ 
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("WorldItemActor: 인벤토리에 공간이 부족함!"));
+    }
+	*/
+
+    UE_LOG(LogTemp, Warning, TEXT("%s has picked up %s"), *PlayerCharacter->GetName(), *ItemData.TextData.Name.ToString());
+    Destroy(); // 나중에 인벤토리로 넣을것
 }
 
 void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
@@ -48,6 +68,7 @@ void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
         // 아이템 개수 등 정보 유지 가능
         DroppedItem->SetItemData(ItemData);
         DroppedItem->SetQuantity(Quantity);
+
         UE_LOG(LogTemp, Warning, TEXT("%s has dropped %s (Quantity: %d)"),
             *PlayerCharacter->GetName(),
             *DroppedItem->GetItemData().TextData.Name.ToString(),

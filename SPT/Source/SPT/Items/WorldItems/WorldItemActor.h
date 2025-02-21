@@ -16,6 +16,9 @@ public:
 	/* 기본 생성자 */
 	AWorldItemActor();
 
+	/* 아이템 데이터 설정 */
+	void InitializeItem(const FItemData& NewItemData);
+
 	/* 아이템 줍기 및 버리기 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter);
