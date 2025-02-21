@@ -37,7 +37,10 @@ bool AEquipableItem::Equip(ASPTPlayerCharacter* PlayerCharacter)
 
     // 아이템을 캐릭터에 장착 (예: 무기 슬롯에 추가)
     // 캐릭터의 Mesh에 부착
-    SkeletalMeshComponent->AttachToComponent(PlayerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachSocketName);
+    SkeletalMeshComponent->AttachToComponent(
+        PlayerCharacter->GetMesh(),
+        FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+        AttachSocketName);
     UE_LOG(LogTemp, Log, TEXT("%s Equipped by %s"), *GetName(), *PlayerCharacter->GetName());
 
     // TODO: 캐릭터의 장비 슬롯에 추가하는 로직
