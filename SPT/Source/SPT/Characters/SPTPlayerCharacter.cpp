@@ -83,12 +83,20 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
             if (PlayerController->InteractAction)
             {
+                // 키 입력 중에 1번만 호출됨
                 EnhancedInput->BindAction(PlayerController->InteractAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartInteract);
             }
 
             if (PlayerController->InventoryAction)
             {
+                // 키 입력 중에 1번만 호출됨
                 EnhancedInput->BindAction(PlayerController->InventoryAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::OnOffInventory);
+            }
+
+            if (PlayerController->ReloadAction)
+            {
+                // 키 입력 중에 1번만 호출됨
+                EnhancedInput->BindAction(PlayerController->ReloadAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartReload);
             }
         }
     }
@@ -194,6 +202,15 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
     if (value.Get<bool>())
     {
 
+    }
+}
+
+void ASPTPlayerCharacter::StartReload(const FInputActionValue& value)
+{
+    // 현재 착용중인 아이템이 총이거나 재장전 할 수 있는 아이템이라면 재장전
+    if (value.Get<bool>())
+    {
+        
     }
 }
 

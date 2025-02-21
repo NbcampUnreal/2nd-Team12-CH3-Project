@@ -50,6 +50,8 @@ protected:
 	void StartInteract(const FInputActionValue& value);
 	UFUNCTION()
 	void OnOffInventory(const FInputActionValue& value);
+	UFUNCTION()
+	void StartReload(const FInputActionValue& value);
 
 private:
 	// 카메라 관련 컴포넌트

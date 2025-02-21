@@ -38,4 +38,6 @@ public:
 	TObjectPtr<UInputAction> InteractAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> InventoryAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> ReloadAction;
 };
