@@ -18,12 +18,11 @@ public:
 	virtual void Attack() PURE_VIRTUAL(AWeaponActor::Attack, );
 
 	virtual bool Equip(ASPTPlayerCharacter* PlayerCharacter) override;
-
 	virtual bool UnEquip(ASPTPlayerCharacter* PlayerCharacter) override;
+	virtual void Drop(ASPTPlayerCharacter* PlayerCharacter) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon | State")
-	void Drop();
-
+	/* 무기 데이터 가져오기 */
+	EWeaponType GetWeaponType() const;
 	FWeaponItemData GetWeaponData() const;
 
 protected:

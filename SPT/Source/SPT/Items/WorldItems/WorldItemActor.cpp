@@ -75,12 +75,15 @@ void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
     if (!PlayerCharacter) return;
 
     FItemData CurrentItemData = GetItemData();
-    // 무기인지 확인
+
+    // 무기 아이템
     if (CurrentItemData.ItemType == EItemType::EIT_Weapon)
     {
         AWeaponActor* NewWeapon = GetWorld()->SpawnActor<AWeaponActor>(AWeaponActor::StaticClass());
         if (NewWeapon)
         {
+            NewWeapon->SetItemData(ItemData);
+
             if (PlayerCharacter->EquipItem(NewWeapon))
             {
                 UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s equip %s"), *PlayerCharacter->GetName(), *GetName());
@@ -89,6 +92,7 @@ void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
             }
         }
     }
+    // 소비 아이템 및 일반 아이템
     else
     {
         // 인벤토리 컴포넌트 가져오기
@@ -99,24 +103,28 @@ void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
             UE_LOG(LogTemp, Warning, TEXT("WorldItemActor: %s의 인벤토리 컴포넌트를 찾을 수 없음!"), *PlayerCharacter->GetName());
             return;
         }
-        */
 
-        // 아이템 데이터 객체 생성
-        UItemDataObject* NewItemDataObject = NewObject<UItemDataObject>();
-        NewItemDataObject->SetItemData(ItemData);
-        NewItemDataObject->SetQuantity(1);
-
-        /* 인벤토리 컴포넌트 생성 시 해제
-        if (Inventory->AddItem(NewItemDataObject))
+        // 기존 아이템이 인벤토리에 있는지 확인
+        UItemDataObject* ExistingItem = Inventory->FindItemByID(ItemData.ItemID);
+        if (ExistingItem)
         {
-            // 아이템 주운 후 제거
-            Destroy();
-            UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s 아이템을 인벤토리에 추가 완료!"), *ItemData.TextData.Name.ToString());
+            ExistingItem->SetQuantity(ExistingItem->GetQuantity() + Quantity);
+            UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s has increased stack of %s to %d"),
+                *PlayerCharacter->GetName(),
+                *ExistingItem->GetItemData().TextData.Name.ToString(),
+                ExistingItem->GetQuantity());
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("WorldItemActor: 인벤토리에 공간이 부족함!"));
+            UItemDataObject* NewItemDataObject = NewObject<UItemDataObject>();
+            NewItemDataObject->SetItemData(ItemData);
+            NewItemDataObject->SetQuantity(Quantity);
+            Inventory->AddItem(NewItemDataObject);
+            UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s added %s to inventory"),
+                *PlayerCharacter->GetName(),
+                *NewItemDataObject->GetItemData().TextData.Name.ToString());
         }
+
         */
 
         UE_LOG(LogTemp, Warning, TEXT("%s has picked up %s"), *PlayerCharacter->GetName(), *ItemData.TextData.Name.ToString());
@@ -131,14 +139,18 @@ void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
     // 아이템을 버릴 때 월드에 다시 생성
     FActorSpawnParameters SpawnParams;
     SpawnParams.Owner = PlayerCharacter;
+    SpawnParams.Instigator = PlayerCharacter;
 
-    AWorldItemActor* DroppedItem = GetWorld()->SpawnActor<AWorldItemActor>(GetClass(), PlayerCharacter->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+    AWorldItemActor* DroppedItem = GetWorld()->SpawnActor<AWorldItemActor>(GetClass(),
+        PlayerCharacter->GetActorLocation() + FVector(50, 0, 0),
+        FRotator::ZeroRotator,
+        SpawnParams);
 
     if (DroppedItem)
     {
         // 아이템 개수 등 정보 유지 가능
         DroppedItem->SetItemData(ItemData);
-        DroppedItem->SetQuantity(Quantity);
+        DroppedItem->Quantity;
 
         UE_LOG(LogTemp, Warning, TEXT("%s has dropped %s (Quantity: %d)"),
             *PlayerCharacter->GetName(),

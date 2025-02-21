@@ -15,9 +15,11 @@ class ASPTPlayerCharacter;
 UENUM(BlueprintType)
 enum class EItemState : uint8
 {
-	EIS_World     UMETA(DisplayName = "World"),    // 아이템이 월드에 떨어진 상태
-	EIS_Inventory    UMETA(DisplayName = "Inventory"),   // 아이템이 인벤토리에 있지만 장착되지 않은 상태
-	EIS_Equipped  UMETA(DisplayName = "Equipped")  // 아이템이 장착된 상태
+	EIS_World		UMETA(DisplayName = "World"),    // 아이템이 월드에 떨어진 상태
+	EIS_Inventory   UMETA(DisplayName = "Inventory"),   // 아이템이 인벤토리에 있지만 장착되지 않은 상태
+	EIS_Equipped	UMETA(DisplayName = "Equipped"),  // 아이템이 장착된 상태
+	EIS_QuickSlot	UMETA(DisplayName = "QuickSlot"),
+	EIS_MAX			UMETA(Hidden)
 };
 
 UCLASS()
@@ -29,30 +31,23 @@ public:
 	/* 기본 생성자 */
 	AItemBaseActor();
 
+	/* 아이템 상태 업데이트 */
+	void UpdateItemState(EItemState NewState);
+
 	/* 아이템 복사 기능 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	AItemBaseActor* CreateItemCopy() const;
-
-	/* 아이템 스택 관련 함수 */
-	UFUNCTION(BlueprintCallable, Category = "Item")
-	float GetItemStackWeight() const;
-	UFUNCTION(BlueprintCallable, Category = "Item")
-	float GetItemSingleWeight() const;
-	UFUNCTION(BlueprintCallable, Category = "Item")
-	FORCEINLINE bool IsFullItemStack() const;
-	UFUNCTION(BlueprintCallable, Category = "Item")
-	void SetQuantity(const int32 NewQuantity);
 
 	/* 아이템 사용 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void Use(ASPTPlayerCharacter* PlayerCharacter);
 
-	bool operator==(const FName& OtherID) const;
+	/* 아이템 데이터 설정 */
+	void SetItemData(const FItemData& NewItemData);
 
 	/* Getter & Setter */
 	UStaticMeshComponent* GetMeshComponent() const;
 	FItemData GetItemData() const;
-	void SetItemData(const FItemData& NewItemData);
 	bool IsWeapon() const;
 
 	// 아이템 상태 (월드, 인벤토리, 장착)

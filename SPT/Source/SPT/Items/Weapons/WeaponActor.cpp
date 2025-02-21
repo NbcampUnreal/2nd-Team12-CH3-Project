@@ -3,6 +3,7 @@
 
 #include "WeaponActor.h"
 #include "SPT/Characters/SPTPlayerCharacter.h"
+#include "SPT/Items/WorldItems/WorldItemActor.h"
 
 AWeaponActor::AWeaponActor()
 {
@@ -17,53 +18,81 @@ bool AWeaponActor::Equip(ASPTPlayerCharacter* PlayerCharacter)
 		return false;
 	}
 
-	WeaponState = EItemState::EIS_Equipped;
-
-	// 캐릭터의 SkeletalMesh에서 손 소켓을 가져와 무기를 부착
-	USkeletalMeshComponent* CharacterMesh = PlayerCharacter->GetMesh();
-	if (!CharacterMesh)
+	if (PlayerCharacter->EquippedItem)
 	{
-		return false;
+		PlayerCharacter->UnEquipItem(); // 기존 장착 아이템 해제
 	}
 
-	// 무기를 손 소켓("hand_r")에 부착
+	PlayerCharacter->EquippedItem = this;
 	AttachToComponent(
-		CharacterMesh,
+		PlayerCharacter->GetMesh(),
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-		AttachSocketName
-	);
+		AttachSocketName);
 
-	// 무기 장착 애니메이션 실행 (있을 경우)
+	UpdateItemState(EItemState::EIS_Equipped);
+
+	// TODO: 무기 장착 애니메이션 실행
 	/*
-	if (ItemData.EquipAnimation && PlayerCharacter->GetMesh()->GetAnimInstance())
+	if (EquipAnimation && PlayerCharacter->GetMesh()->GetAnimInstance())
 	{
-		PlayerCharacter->PlayAnimMontage(ItemData.EquipAnimation);
+		PlayerCharacter->GetMesh()->GetAnimInstance()->Montage_Play(EquipAnimation);
+		UE_LOG(LogTemp, Log, TEXT("AWeaponActor: Playing equip animation for %s"), *GetName());
 	}
 	*/
 
-	UE_LOG(LogTemp, Log, TEXT("AWeaponActor: %s is Equipped (Socket: hand_r)"), *GetName());
+	// TODO: 무기 전용 기능 (예: 탄약 설정, 조준 설정)
+	// - 탄약 설정: Reload() 초기화
+	// - 조준 상태 초기화
+	// - UI 업데이트
+
+	UE_LOG(LogTemp, Log, TEXT("AWeaponActor: %s is Equipped with additional weapon setup"), *GetName());
 
 	return true;
 }
 
 bool AWeaponActor::UnEquip(ASPTPlayerCharacter* PlayerCharacter)
 {
-	UE_LOG(LogTemp, Log, TEXT("%s is UnEquipped!"), *GetName());
+	if (!PlayerCharacter || PlayerCharacter->EquippedItem != this)
+	{
+		return false;
+	}
 
-	WeaponState = EItemState::EIS_Inventory;
-
-	// TODO: 캐릭터의 무기 슬롯에서 제거하는 로직
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	PlayerCharacter->EquippedItem = nullptr;
+	UpdateItemState(EItemState::EIS_QuickSlot);
 
 	return true;
 }
 
-void AWeaponActor::Drop()
+void AWeaponActor::Drop(ASPTPlayerCharacter* PlayerCharacter)
 {
-	UE_LOG(LogTemp, Log, TEXT("%s 무기 드롭!"), *GetName());
+	if (!PlayerCharacter || PlayerCharacter->EquippedItem != this)
+	{
+		return;
+	}
 
-	WeaponState = EItemState::EIS_World;
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = nullptr;
+	SpawnParams.Instigator = PlayerCharacter;
 
-	// TODO: 월드에 무기 드롭 로직 추가
+	AWorldItemActor* DroppedItem = PlayerCharacter->GetWorld()->SpawnActor<AWorldItemActor>(
+		AWorldItemActor::StaticClass(),
+		PlayerCharacter->GetActorLocation() + FVector(50, 0, 0),
+		FRotator::ZeroRotator,
+		SpawnParams);
+
+	if (DroppedItem)
+	{
+		DroppedItem->InitializeItem(ItemData);
+	}
+
+	PlayerCharacter->UnEquipItem();
+	Destroy();
+}
+
+EWeaponType AWeaponActor::GetWeaponType() const
+{
+	return WeaponData.WeaponType;
 }
 
 FWeaponItemData AWeaponActor::GetWeaponData() const

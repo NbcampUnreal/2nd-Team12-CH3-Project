@@ -56,6 +56,8 @@ struct FItemAssetData
 	UStaticMesh* StaticMesh;	// 월드에서 보여질 스태틱 메시
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item", meta = (EditCondition = "ItemType == EIT_Weapon"))
 	USkeletalMesh* SkeletalMesh;	// 장착 시 사용될 SkeletalMesh (무기)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	FName AttachSocketName = NAME_None;	// 장착할 소켓 이름 (장착 가능한 아이템만 사용)
 };
 
 /* 전체 아이템 데이터 */

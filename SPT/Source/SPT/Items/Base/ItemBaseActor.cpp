@@ -17,6 +17,13 @@ AItemBaseActor::AItemBaseActor()
 	SkeletalMeshComponent->SetupAttachment(RootComponent);
 
 	Quantity = 1;
+	ItemState = EItemState::EIS_World; // 기본적으로 월드에 존재
+}
+
+void AItemBaseActor::UpdateItemState(EItemState NewState)
+{
+	ItemState = NewState;
+	UE_LOG(LogTemp, Log, TEXT("ItemBaseActor:: Item state updated: %d"), static_cast<int32>(ItemState));
 }
 
 // 아이템 복제
@@ -26,59 +33,41 @@ AItemBaseActor* AItemBaseActor::CreateItemCopy() const
 	if (NewItem)
 	{
 		NewItem->SetItemData(ItemData);
-		NewItem->SetQuantity(Quantity);
+		NewItem->Quantity = Quantity;
+		NewItem->UpdateItemState(ItemState);
 	}
 
 	return NewItem;
 }
 
-// 현재 아이템의 총 무게 반환
-float AItemBaseActor::GetItemStackWeight() const
-{
-	return ItemData.NumericData.Weight * Quantity;
-}
-
-// 아이템 단일 무게 반환
-float AItemBaseActor::GetItemSingleWeight() const
-{
-	return ItemData.NumericData.Weight;
-}
-
-// 최대 스택 개수인지 확인
-FORCEINLINE bool AItemBaseActor::IsFullItemStack() const
-{
-	return Quantity >= ItemData.NumericData.MaxStackSize;
-}
-
-// 아이템 개수 설정
-void AItemBaseActor::SetQuantity(const int32 NewQuantity)
-{
-	if (NewQuantity != Quantity)
-	{
-		Quantity = FMath::Clamp(NewQuantity, 0, ItemData.NumericData.bIsStackable ? ItemData.NumericData.MaxStackSize : 1);
-
-		/*
-		if (OwningInventory)
-		{
-			if (Quantity <= 0)
-			{
-				OwningInventory->RemoveItem(this);
-			}
-		}
-		*/
-	}
-}
-
 // 아이템 사용
 void AItemBaseActor::Use(ASPTPlayerCharacter* PlayerCharacter)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Item Used: %s"), *ItemData.TextData.Name.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("ItemBaseActor:: Item Used: %s"), *ItemData.TextData.Name.ToString());
+
+
+	// 소비 아이템에서 추가
 }
 
-// 비교 연산자 오버로딩 (아이템 ID 비교)
-bool AItemBaseActor::operator==(const FName& OtherID) const
+// 아이템 데이터 설정
+void AItemBaseActor::SetItemData(const FItemData& NewItemData)
 {
-	return this->ItemData.ItemID == OtherID;
+	ItemData = NewItemData;
+	Quantity = 1;
+
+	// 아이템 유형에 따라 적절한 메시 설정
+	if (ItemData.ItemType == EItemType::EIT_Weapon && ItemData.AssetData.SkeletalMesh)
+	{
+		SkeletalMeshComponent->SetSkeletalMesh(ItemData.AssetData.SkeletalMesh);
+		SkeletalMeshComponent->SetVisibility(true);
+		StaticMeshComponent->SetVisibility(false);
+	}
+	else if (ItemData.AssetData.StaticMesh)
+	{
+		StaticMeshComponent->SetStaticMesh(ItemData.AssetData.StaticMesh);
+		StaticMeshComponent->SetVisibility(true);
+		SkeletalMeshComponent->SetVisibility(false);
+	}
 }
 
 UStaticMeshComponent* AItemBaseActor::GetMeshComponent() const
@@ -91,15 +80,7 @@ FItemData AItemBaseActor::GetItemData() const
 	return ItemData;
 }
 
-void AItemBaseActor::SetItemData(const FItemData& NewItemData)
-{
-	ItemData = NewItemData;
-	Quantity = 1;
-}
-
 bool AItemBaseActor::IsWeapon() const
 {
-	// return Cast<AWeapon>(this) != nullptr;
-	// return ItemData.bIsWeapon;
-	return false;
+	return ItemData.ItemType == EItemType::EIT_Weapon;
 }

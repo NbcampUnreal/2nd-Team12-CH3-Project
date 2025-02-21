@@ -5,12 +5,14 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "SPT/Interfaces/InteractableInterface.h"
+#include "SPT/Items/Data/WeaponDataStructs.h"
 #include "SPTPlayerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class AEquipableItem;
-
+class AWeaponActor;
+class AConsumableItemActor;
 struct FInputActionValue;
 
 
@@ -52,17 +54,52 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	/** 아이템 장착 함수 */
+	/* 아이템 장착*/
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	bool EquipItem(AEquipableItem* NewItem);
 
-	/** 아이템 장착 함수 */
+	/* 아이템 해제 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	bool UnEquipItem();
 
-	/** 현재 장착 중인 무기를 반환 */
+	/* 소비 아이템 사용 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
-	AEquipableItem* GetEquippedItem() const;
+	void UseConsumable();
+
+	/* 현재 장착된 무기 반환 */
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	AWeaponActor* GetEquippedWeapon(EWeaponType WeaponType) const;
+
+	/* 현재 손에 들고 있는 아이템 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Equipped")
+	AEquipableItem* EquippedItem;
+
+	/* 퀵슬롯에 저장된 아이템 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
+	AWeaponActor* PrimaryQuickSlot;    // 총기 (주무기)
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
+	AWeaponActor* MeleeQuickSlot;      // 근접 무기
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
+	AWeaponActor* ThrowableQuickSlot;  // 투척 무기
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
+	AConsumableItemActor* ConsumableQuickSlot;  // 소비 아이템
+
+	/* 장착할 소켓 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Equipment")
+	FName EquippedItemSocket;  // 손에 들리는 아이템
+
+	/* 퀵슬롯 아이템이 보관될 소켓 (허리, 등에 위치) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
+	FName QuickSlotPrimarySocket;  // 주무기 저장
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
+	FName QuickSlotMeleeSocket;  // 근접 무기 저장
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
+	FName QuickSlotThrowableSocket;  // 투척 무기 저장
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
+	FName QuickSlotConsumableSocket;  // 소비 아이템 저장
 
 protected:
 	UFUNCTION()
@@ -101,14 +138,6 @@ protected:
 	float InteractionCheckDistance;
 	FTimerHandle TimerHandle_Interaction;
 	FInteractionData InteractionData;
-
-	/* 현재 장착 중인 아이템 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Weapon")
-	AEquipableItem* EquippedItem;
-
-	/* 장착할 소켓 이름 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Weapon")
-	FName ItemAttachSocket = "HandSocket"; // 손에 장착할 소켓 이름
 
 	/* 인벤토리 관련 함수
 	void OpenInventory();

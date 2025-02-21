@@ -6,15 +6,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
-#include "SPT/Items/Base/EquipableItem.h"
-#include "SPT/Items/Weapons/WeaponActor.h"
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
 /* 아이템 디버깅 */
-// 인벤토리 클래스 포함
+#include "SPT/Items/Base/EquipableItem.h"
+#include "SPT/Items/Weapons/WeaponActor.h"
+#include "SPT/Items/ConsumableItems/ConsumableItemActor.h"
 #include "SPT/Items/WorldItems/WorldItemActor.h"
 #include "DrawDebugHelpers.h"
 
@@ -46,7 +46,16 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 
     // 장착 아이템 메시 기본값 설정
     EquippedItem = nullptr;
-    ItemAttachSocket = "HandSocket";
+    PrimaryQuickSlot = nullptr;
+    MeleeQuickSlot = nullptr;
+    ThrowableQuickSlot = nullptr;
+    ConsumableQuickSlot = nullptr;
+
+    EquippedItemSocket = "hand_r";
+    QuickSlotPrimarySocket = "spine";
+    QuickSlotMeleeSocket = "thigh"; 
+    QuickSlotThrowableSocket = "belt";
+    QuickSlotConsumableSocket = "hand_l";
 
 }
 
@@ -117,60 +126,162 @@ bool ASPTPlayerCharacter::EquipItem(AEquipableItem* NewItem)
 {
     if (!NewItem)
     {
-        UE_LOG(LogTemp, Warning, TEXT("There is No Item for Equip"));
+        UE_LOG(LogTemp, Warning, TEXT("EquipItem: No item provided"));
         return false;
     }
 
-    if (!NewItem->IsA(AEquipableItem::StaticClass()))
-    {
-        UE_LOG(LogTemp, Error, TEXT("EquipItem: NewItem is NOT of type AEquipableItem!"));
-        return false;
-    }
-
-    // 기존 아이템이 있다면 해제
     if (EquippedItem)
     {
-        UnEquipItem();
+        // 기존 손에 든 아이템을 퀵슬롯으로 이동
+        if (EquippedItem->IsA(AWeaponActor::StaticClass()))
+        {
+            AWeaponActor* Weapon = Cast<AWeaponActor>(EquippedItem);
+            if (!Weapon)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: Failed to cast to AWeaponActor"));
+                return false;
+            }
+
+            // 무기 유형에 따라 퀵슬롯 저장
+            switch (Weapon->GetWeaponData().WeaponType)
+            {
+            case EWeaponType::EWT_Firearm:
+                PrimaryQuickSlot = Weapon;
+                PrimaryQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotPrimarySocket);
+                break;
+            case EWeaponType::EWT_Melee:
+                MeleeQuickSlot = Weapon;
+                MeleeQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotMeleeSocket);
+                break;
+            case EWeaponType::EWT_Grenade:
+                ThrowableQuickSlot = Weapon;
+                ThrowableQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotThrowableSocket);
+                break;
+            default:
+                UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: Unknown weapon type"));
+                break;
+            }
+        }
+        else if (EquippedItem->IsA(AConsumableItemActor::StaticClass()))
+        {
+            // 소비 아이템이면 퀵슬롯에 저장
+            ConsumableQuickSlot = Cast<AConsumableItemActor>(EquippedItem);
+            ConsumableQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotConsumableSocket);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: Unknown item type"));
+            return false;
+        }
     }
 
-    bool bEquipSuccess = NewItem->Equip(this);
+    // 새로운 아이템을 손에 장착
+    EquippedItem = NewItem;
+    EquippedItem->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, EquippedItemSocket);
+    EquippedItem->UpdateItemState(EItemState::EIS_Equipped);
 
-    UE_LOG(LogTemp, Warning, TEXT("EquipItem: Equip() returned %s for %s"),
-        bEquipSuccess ? TEXT("true") : TEXT("false"), *NewItem->GetName());
-
-    // 새 아이템 장착 (Equip() 호출)
-    if (NewItem->Equip(this)) // `Equip()`을 호출하여 실제 장착 수행
-    {
-        EquippedItem = NewItem;
-        UE_LOG(LogTemp, Log, TEXT("EquipItem: %s successfully equipped to %s"), *NewItem->GetName(), *NewItem->AttachSocketName.ToString());
-        return true;
-    }
-
-    UE_LOG(LogTemp, Error, TEXT("EquipItem failed for: %s"), *NewItem->GetName());
-    return false;
+    UE_LOG(LogTemp, Log, TEXT("EquipItem: Equipped %s"), *NewItem->GetName());
+    return true;
 }
 
 bool ASPTPlayerCharacter::UnEquipItem()
 {
     if (!EquippedItem)
     {
-        UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: 장착된 아이템이 없음!"));
+        UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: No item equipped"));
         return false;
     }
 
-    // 장착 해제
-    if (EquippedItem->UnEquip(this))
+    // 장착된 아이템을 원래 퀵슬롯으로 되돌림
+    if (EquippedItem->IsA(AWeaponActor::StaticClass()))
     {
-        EquippedItem = nullptr;
-        return true;
+        AWeaponActor* Weapon = Cast<AWeaponActor>(EquippedItem);
+        if (!Weapon)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: Failed to cast to AWeaponActor"));
+            return false;
+        }
+
+        // 무기 유형에 따라 퀵슬롯 저장
+        switch (Weapon->GetWeaponData().WeaponType)
+        {
+        case EWeaponType::EWT_Firearm:
+            PrimaryQuickSlot = Weapon;
+            PrimaryQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotPrimarySocket);
+            break;
+        case EWeaponType::EWT_Melee:
+            MeleeQuickSlot = Weapon;
+            MeleeQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotMeleeSocket);
+            break;
+        case EWeaponType::EWT_Grenade:
+            ThrowableQuickSlot = Weapon;
+            ThrowableQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotThrowableSocket);
+            break;
+        default:
+            UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: Unknown weapon type"));
+            break;
+        }
+    }
+    else if (EquippedItem->IsA(AConsumableItemActor::StaticClass()))
+    {
+        // 소비 아이템이면 퀵슬롯에 저장
+        ConsumableQuickSlot = Cast<AConsumableItemActor>(EquippedItem);
+        ConsumableQuickSlot->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, QuickSlotConsumableSocket);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: Unknown item type"));
+        return false;
     }
 
-    return false;
+    EquippedItem->UpdateItemState(EItemState::EIS_QuickSlot);
+    EquippedItem = nullptr;
+
+    UE_LOG(LogTemp, Log, TEXT("UnEquipItem: Item unequipped and stored"));
+    return true;
 }
 
-AEquipableItem* ASPTPlayerCharacter::GetEquippedItem() const
+void ASPTPlayerCharacter::UseConsumable()
 {
-    return EquippedItem;
+    if (!EquippedItem || EquippedItem->GetItemData().ItemType != EItemType::EIT_Consumable)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UseConsumable: No consumable item equipped"));
+        return;
+    }
+
+    AConsumableItemActor* Consumable = Cast<AConsumableItemActor>(EquippedItem);
+    if (!Consumable)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UseConsumable: Equipped item is not a consumable"));
+        return;
+    }
+
+    // TODO: 사용 애니메이션 실행
+    /*
+    if (Consumable->UseAnimation && GetMesh()->GetAnimInstance())
+    {
+        GetMesh()->GetAnimInstance()->Montage_Play(Consumable->UseAnimation);
+    }
+    */
+    // 아이템 효과 적용
+    Consumable->Use(this);
+
+    // 사용 후 아이템 삭제
+    Consumable->Destroy();
+    EquippedItem = nullptr;
+
+    UE_LOG(LogTemp, Log, TEXT("UseConsumable: %s used"), *Consumable->GetName());
+}
+
+AWeaponActor* ASPTPlayerCharacter::GetEquippedWeapon(EWeaponType WeaponType) const
+{
+    if (!EquippedItem || !EquippedItem->IsA(AWeaponActor::StaticClass()))
+    {
+        return nullptr;
+    }
+
+    AWeaponActor* Weapon = Cast<AWeaponActor>(EquippedItem);
+    return (Weapon && Weapon->GetWeaponData().WeaponType == WeaponType) ? Weapon : nullptr;
 }
 
 void ASPTPlayerCharacter::Move(const FInputActionValue& value)

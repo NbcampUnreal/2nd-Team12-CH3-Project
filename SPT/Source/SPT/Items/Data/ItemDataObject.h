@@ -35,6 +35,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void Use(ASPTPlayerCharacter* PlayerCharacter);
 
+	void ApplyConsumableEffect(ASPTPlayerCharacter* PlayerCharacter);
+
 	/* 아이템 데이터 가져오기 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	FItemData GetItemData() const;

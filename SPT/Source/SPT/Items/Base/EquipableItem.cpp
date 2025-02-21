@@ -3,6 +3,7 @@
 
 #include "EquipableItem.h"
 #include "SPT/Characters/SPTPlayerCharacter.h"
+#include "SPT/Items/WorldItems/WorldItemActor.h"
 
 AEquipableItem::AEquipableItem()
 {
@@ -12,27 +13,16 @@ AEquipableItem::AEquipableItem()
 
 void AEquipableItem::DetermineAttachSocket()
 {
-    // 무기인지 확인
-    if (ItemData.ItemType == EItemType::EIT_Weapon)
+    // 아이템 데이터가 유효한 경우 소켓 이름을 설정
+    if (!ItemData.AssetData.AttachSocketName.IsNone())
     {
-        AttachSocketName = "hand_r"; // 무기는 손에 장착
+        AttachSocketName = ItemData.AssetData.AttachSocketName;
     }
     else
     {
-        AttachSocketName = "spine"; // 기타 아이템은 허리에 장착
+        // 기본값 설정 (무기: 손, 나머지: 허리)
+        AttachSocketName = (ItemData.ItemType == EItemType::EIT_Weapon) ? "hand_r" : "spine";
     }
-}
-
-bool AEquipableItem::CanEquip(ASPTPlayerCharacter* PlayerCharacter) const
-{
-    if (!PlayerCharacter)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("EquipableItem: PlayerCharacter is null!"));
-        return false;
-    }
-
-    // 예시: 무기가 이미 장착되어 있지 않은 경우에만 장착 가능
-    return true;
 }
 
 bool AEquipableItem::Equip(ASPTPlayerCharacter* PlayerCharacter)
@@ -42,45 +32,52 @@ bool AEquipableItem::Equip(ASPTPlayerCharacter* PlayerCharacter)
         return false;
     }
 
-    if (!CanEquip(PlayerCharacter))
+    if (PlayerCharacter->EquippedItem)
     {
-        return false;
+        PlayerCharacter->UnEquipItem(); // 기존 장착 아이템 해제
     }
 
-    USkeletalMeshComponent* CharacterMesh = PlayerCharacter->GetMesh();
-    if (!CharacterMesh)
-    {
-        return false;
-    }
-
-    if (AttachSocketName.IsNone() || !CharacterMesh->DoesSocketExist(AttachSocketName))
-    {
-        return false;
-    }
-
-    SkeletalMeshComponent->AttachToComponent(
-        CharacterMesh,
+    PlayerCharacter->EquippedItem = this;
+    AttachToComponent(
+        PlayerCharacter->GetMesh(),
         FAttachmentTransformRules::SnapToTargetNotIncludingScale,
         AttachSocketName);
 
+    UpdateItemState(EItemState::EIS_Equipped);
     return true;
-
 }
 
 bool AEquipableItem::UnEquip(ASPTPlayerCharacter* PlayerCharacter)
 {
-    if (!PlayerCharacter)
+    if (!PlayerCharacter || !PlayerCharacter->EquippedItem)
     {
-        UE_LOG(LogTemp, Warning, TEXT("EquipableItem: Cannot Unequip - Character is null!"));
         return false;
     }
 
-    // 장착 해제 로직
-    SkeletalMeshComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-    SetOwner(nullptr);
-    UE_LOG(LogTemp, Log, TEXT("%s Unequipped by %s"), *GetName(), *PlayerCharacter->GetName());
-
-    // TODO: 캐릭터의 인벤토리로 아이템 반환
+    DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+    PlayerCharacter->EquippedItem = nullptr;
+    UpdateItemState(EItemState::EIS_QuickSlot);
 
     return true;
+}
+
+void AEquipableItem::Drop(ASPTPlayerCharacter* PlayerCharacter)
+{
+    if (!PlayerCharacter || !PlayerCharacter->EquippedItem)
+    {
+        return;
+    }
+
+    AWorldItemActor* DroppedItem = PlayerCharacter->GetWorld()->SpawnActor<AWorldItemActor>(
+        AWorldItemActor::StaticClass(),
+        PlayerCharacter->GetActorLocation() + FVector(50, 0, 0),
+        FRotator::ZeroRotator);
+
+    if (DroppedItem)
+    {
+        DroppedItem->InitializeItem(ItemData);
+    }
+
+    PlayerCharacter->UnEquipItem();
+    Destroy();
 }
