@@ -32,4 +32,10 @@ public:
 	TObjectPtr<UInputAction> SprintAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> CrouchAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> ItemUseAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> InteractAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> InventoryAction;
 };

@@ -44,6 +44,12 @@ protected:
 	void StartCrouch(const FInputActionValue& value);
 	UFUNCTION()
 	void StopCrouch(const FInputActionValue& value);
+	UFUNCTION()
+	void ItemUse(const FInputActionValue& value);
+	UFUNCTION()
+	void StartInteract(const FInputActionValue& value);
+	UFUNCTION()
+	void OnOffInventory(const FInputActionValue& value);
 
 private:
 	// 카메라 관련 컴포넌트
