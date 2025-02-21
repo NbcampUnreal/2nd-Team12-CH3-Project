@@ -75,6 +75,29 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
                 EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartCrouch);
                 EnhancedInput->BindAction(PlayerController->CrouchAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopCrouch);
             }
+
+            if (PlayerController->ItemUseAction)
+            {
+                EnhancedInput->BindAction(PlayerController->ItemUseAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::ItemUse);
+            }
+
+            if (PlayerController->InteractAction)
+            {
+                // 키 입력 중에 1번만 호출됨
+                EnhancedInput->BindAction(PlayerController->InteractAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartInteract);
+            }
+
+            if (PlayerController->InventoryAction)
+            {
+                // 키 입력 중에 1번만 호출됨
+                EnhancedInput->BindAction(PlayerController->InventoryAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::OnOffInventory);
+            }
+
+            if (PlayerController->ReloadAction)
+            {
+                // 키 입력 중에 1번만 호출됨
+                EnhancedInput->BindAction(PlayerController->ReloadAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartReload);
+            }
         }
     }
 }
@@ -152,6 +175,42 @@ void ASPTPlayerCharacter::StopCrouch(const FInputActionValue& value)
     if (!value.Get<bool>())
     {
         UnCrouch();
+    }
+}
+
+void ASPTPlayerCharacter::ItemUse(const FInputActionValue& value)
+{
+    // 현재 장착중인 아이템을 사용한다.
+    if (value.Get<bool>())
+    {
+        
+    }
+}
+
+void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
+{
+    // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
+    if (value.Get<bool>())
+    {
+        
+    }
+}
+
+void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
+{
+    // 인벤토리를 켜거나 끈다.
+    if (value.Get<bool>())
+    {
+
+    }
+}
+
+void ASPTPlayerCharacter::StartReload(const FInputActionValue& value)
+{
+    // 현재 착용중인 아이템이 총이거나 재장전 할 수 있는 아이템이라면 재장전
+    if (value.Get<bool>())
+    {
+        
     }
 }
 
