@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SPT/Items/Base/EquipableItem.h"
-#include "SPT/Items/Data/WeaponDataStructs.h"
+// #include "SPT/Items/Data/WeaponDataStructs.h"
 #include "WeaponActor.generated.h"
 
 UCLASS()
@@ -24,15 +24,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon | State")
 	void Drop();
 
-	FWeaponItemData GetWeaponData() const;
+	// FWeaponItemData GetWeaponData() const;
 
 protected:
 	/* 무기 기본 데이터 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
-	FWeaponItemData WeaponData;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
+	// FWeaponItemData WeaponData;
 
 	/* 현재 무기 상태 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
-	EItemState WeaponState;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
+	// EItemState WeaponState;
 	
 };

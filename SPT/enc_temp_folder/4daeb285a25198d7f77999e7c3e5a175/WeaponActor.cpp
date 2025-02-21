@@ -17,7 +17,7 @@ bool AWeaponActor::Equip(ASPTPlayerCharacter* PlayerCharacter)
 
 	UE_LOG(LogTemp, Log, TEXT("%s 무기 장착됨!"), *GetName());
 
-	WeaponState = EItemState::EIS_Equipped;
+	// WeaponState = EItemState::Equipped;
 
 	// TODO: 캐릭터의 무기 슬롯에 추가하는 로직
 
@@ -28,7 +28,7 @@ bool AWeaponActor::UnEquip(ASPTPlayerCharacter* PlayerCharacter)
 {
 	UE_LOG(LogTemp, Log, TEXT("%s 무기 해제됨!"), *GetName());
 
-	WeaponState = EItemState::EIS_Unequipped;
+	// WeaponState = EItemState::Unequipped;
 
 	// TODO: 캐릭터의 무기 슬롯에서 제거하는 로직
 
@@ -39,12 +39,7 @@ void AWeaponActor::Drop()
 {
 	UE_LOG(LogTemp, Log, TEXT("%s 무기 드롭!"), *GetName());
 
-	WeaponState = EItemState::EIS_Dropped;
+	// WeaponState = EItemState::Dropped;
 
 	// TODO: 월드에 무기 드롭 로직 추가
-}
-
-FWeaponItemData AWeaponActor::GetWeaponData() const
-{
-	return WeaponData;
 }

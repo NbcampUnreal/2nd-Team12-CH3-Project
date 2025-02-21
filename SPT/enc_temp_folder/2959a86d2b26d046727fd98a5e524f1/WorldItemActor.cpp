@@ -46,12 +46,9 @@ void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
     if (DroppedItem)
     {
         // 아이템 개수 등 정보 유지 가능
-        DroppedItem->SetItemData(ItemData);
+        // DroppedItem->SetItemData(ItemData);
         DroppedItem->SetQuantity(Quantity);
-        UE_LOG(LogTemp, Warning, TEXT("%s has dropped %s (Quantity: %d)"),
-            *PlayerCharacter->GetName(),
-            *DroppedItem->GetItemData().TextData.Name.ToString(),
-            DroppedItem->GetItemData().NumericData.MaxStackSize);
+        UE_LOG(LogTemp, Warning, TEXT("%s has dropped Item"), *PlayerCharacter->GetName());
     }
 }
 
