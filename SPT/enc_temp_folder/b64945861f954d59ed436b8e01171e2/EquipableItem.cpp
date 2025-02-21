@@ -37,24 +37,37 @@ bool AEquipableItem::CanEquip(ASPTPlayerCharacter* PlayerCharacter) const
 
 bool AEquipableItem::Equip(ASPTPlayerCharacter* PlayerCharacter)
 {
+    UE_LOG(LogTemp, Warning, TEXT("EquipableItem: Equip() called for %s"), *GetName()); // 로그 레벨 Warning으로 변경
+
     if (!PlayerCharacter)
     {
+        UE_LOG(LogTemp, Error, TEXT("EquipableItem: Cannot Equip - Character is null!"));
         return false;
     }
 
     if (!CanEquip(PlayerCharacter))
     {
+        UE_LOG(LogTemp, Warning, TEXT("EquipableItem: Cannot Equip - Conditions not met for %s"), *GetName());
         return false;
     }
 
     USkeletalMeshComponent* CharacterMesh = PlayerCharacter->GetMesh();
     if (!CharacterMesh)
     {
+        UE_LOG(LogTemp, Error, TEXT("EquipableItem: Failed to equip %s - PlayerCharacter's Mesh is null!"), *GetName());
         return false;
     }
 
-    if (AttachSocketName.IsNone() || !CharacterMesh->DoesSocketExist(AttachSocketName))
+    if (AttachSocketName.IsNone())
     {
+        UE_LOG(LogTemp, Error, TEXT("EquipableItem: Failed to equip %s - AttachSocketName is not set!"), *GetName());
+        return false;
+    }
+
+    if (!CharacterMesh->DoesSocketExist(AttachSocketName))
+    {
+        UE_LOG(LogTemp, Error, TEXT("EquipableItem: Failed to equip %s - AttachSocketName '%s' does not exist on PlayerCharacter's Mesh!"),
+            *GetName(), *AttachSocketName.ToString());
         return false;
     }
 
@@ -62,6 +75,8 @@ bool AEquipableItem::Equip(ASPTPlayerCharacter* PlayerCharacter)
         CharacterMesh,
         FAttachmentTransformRules::SnapToTargetNotIncludingScale,
         AttachSocketName);
+
+    UE_LOG(LogTemp, Warning, TEXT("1111 - %s Equipped by %s"), *GetName(), *PlayerCharacter->GetName()); // 로그 레벨 Warning으로 변경
 
     return true;
 

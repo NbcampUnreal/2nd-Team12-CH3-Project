@@ -9,6 +9,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class AEquipableItem;
 
 struct FInputActionValue;
 
@@ -51,6 +52,18 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	/** 아이템 장착 함수 */
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool EquipItem(AEquipableItem* NewItem);
+
+	/** 아이템 장착 함수 */
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool UnEquipItem();
+
+	/** 현재 장착 중인 무기를 반환 */
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	AEquipableItem* GetEquippedItem() const;
+
 protected:
 	UFUNCTION()
 	void Move(const FInputActionValue& value);
@@ -88,6 +101,14 @@ protected:
 	float InteractionCheckDistance;
 	FTimerHandle TimerHandle_Interaction;
 	FInteractionData InteractionData;
+
+	/* 현재 장착 중인 아이템 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Weapon")
+	AEquipableItem* EquippedItem;
+
+	/* 장착할 소켓 이름 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Weapon")
+	FName ItemAttachSocket = "HandSocket"; // 손에 장착할 소켓 이름
 
 	/* 인벤토리 관련 함수
 	void OpenInventory();

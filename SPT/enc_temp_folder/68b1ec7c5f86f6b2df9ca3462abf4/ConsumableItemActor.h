@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SPT/Items/Base/ItemBaseActor.h"
+#include "SPT/Items/Base/EquipableItem.h"
 #include "ConsumableItemActor.generated.h"
 
 UCLASS()
-class SPT_API AConsumableItemActor : public AItemBaseActor
+class SPT_API AConsumableItemActor : public AEquipableItem
 {
 	GENERATED_BODY()
 	

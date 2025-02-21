@@ -15,6 +15,8 @@ class SPT_API AEquipableItem : public AItemBaseActor, public IEquipableInterface
 public:
     AEquipableItem();
 
+    void DetermineAttachSocket();
+
     /* 장착 가능 여부 체크 */
     bool CanEquip(ASPTPlayerCharacter* PlayerCharacter) const;
      
@@ -23,8 +25,6 @@ public:
 
     /* 아이템 해제 */
     virtual bool UnEquip(ASPTPlayerCharacter* PlayerCharacter);
-
-protected:
 
     /* 장착 시 연결할 소켓 이름 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Equipable")

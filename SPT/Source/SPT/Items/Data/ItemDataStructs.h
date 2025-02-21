@@ -7,15 +7,6 @@
 #include "WeaponDataStructs.h"
 #include "ItemDataStructs.generated.h"
 
-/* 아이템 상태 Enum*/
-UENUM(BlueprintType)
-enum class EItemState : uint8
-{
-	EIS_Dropped     UMETA(DisplayName = "Dropped"),    // 아이템이 월드에 떨어진 상태
-	EIS_Equipped    UMETA(DisplayName = "Equipped"),   // 아이템이 장착된 상태
-	EIS_Unequipped  UMETA(DisplayName = "Unequipped")  // 아이템이 인벤토리에 있지만 장착되지 않은 상태
-};
-
 /* 아이템 타입 Enum */
 UENUM(BlueprintType)
 enum class EItemType : uint8
@@ -77,8 +68,6 @@ struct FItemData : public FTableRowBase
 	FName ItemID;	// 아이템 고유 ID
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
 	EItemType ItemType;	// 아이템 타입
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
-	EItemState ItemState;	// 아이템 상태
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
 	FItemTextData TextData;	// 아이템 문자 데이터
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")

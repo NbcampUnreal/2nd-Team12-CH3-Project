@@ -10,6 +10,16 @@
 
 class ASPTPlayerCharacter;
 
+
+/* 아이템 상태 Enum*/
+UENUM(BlueprintType)
+enum class EItemState : uint8
+{
+	EIS_World     UMETA(DisplayName = "World"),    // 아이템이 월드에 떨어진 상태
+	EIS_Inventory    UMETA(DisplayName = "Inventory"),   // 아이템이 인벤토리에 있지만 장착되지 않은 상태
+	EIS_Equipped  UMETA(DisplayName = "Equipped")  // 아이템이 장착된 상태
+};
+
 UCLASS()
 class SPT_API AItemBaseActor : public AActor
 {
@@ -44,6 +54,10 @@ public:
 	FItemData GetItemData() const;
 	void SetItemData(const FItemData& NewItemData);
 	bool IsWeapon() const;
+
+	// 아이템 상태 (월드, 인벤토리, 장착)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	EItemState ItemState;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Mesh")

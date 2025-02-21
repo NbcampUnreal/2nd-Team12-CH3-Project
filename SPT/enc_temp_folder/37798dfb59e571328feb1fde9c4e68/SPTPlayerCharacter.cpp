@@ -133,11 +133,6 @@ bool ASPTPlayerCharacter::EquipItem(AEquipableItem* NewItem)
         UnEquipItem();
     }
 
-    bool bEquipSuccess = NewItem->Equip(this);
-
-    UE_LOG(LogTemp, Warning, TEXT("EquipItem: Equip() returned %s for %s"),
-        bEquipSuccess ? TEXT("true") : TEXT("false"), *NewItem->GetName());
-
     // 새 아이템 장착 (Equip() 호출)
     if (NewItem->Equip(this)) // `Equip()`을 호출하여 실제 장착 수행
     {
