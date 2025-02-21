@@ -41,7 +41,16 @@ void USPTPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		// 현재 캐릭터가 이동중인 방향
 		GroundDierction = CalculateDirection(Velocity, Character->GetActorRotation());
 		// 현재 캐릭터가 이동 중인지 여부
-		bShouldMove = !FMath::IsNearlyZero(CharacterMovement->GetCurrentAcceleration().SizeSquared()) ? true : false;
+		// 현재 캐릭터가 플레이어의 조종을 받을 경우
+		if (TryGetPawnOwner()->IsPlayerControlled())
+		{
+			bShouldMove = !FMath::IsNearlyZero(CharacterMovement->GetCurrentAcceleration().SizeSquared()) ? true : false;
+		}
+		// 현재 캐릭터가 AI의 조종을 받을 경우
+		else
+		{
+			bShouldMove = !FMath::IsNearlyZero(GroundSpeed) ? true : false;
+		}
 		// 현재 캐릭터가 낙하 중인지 여부
 		bIsFalling = CharacterMovement->IsFalling();
 		// 현재 캐릭터가 앉아 있는지 여부
