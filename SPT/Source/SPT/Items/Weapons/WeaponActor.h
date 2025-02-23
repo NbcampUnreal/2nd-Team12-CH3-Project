@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SPT/Items/Base/EquipableItem.h"
+#include "SPT/Items/WorldItems/WorldItemActor.h"
 #include "SPT/Items/Data/WeaponDataStructs.h"
 #include "WeaponActor.generated.h"
 
 UCLASS()
-class SPT_API AWeaponActor : public AEquipableItem
+class SPT_API AWeaponActor : public WorldItemActor
 {
 	GENERATED_BODY()
 

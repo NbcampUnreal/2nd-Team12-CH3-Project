@@ -10,7 +10,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-class AEquipableItem;
+class AWorldItemActor;
 class AWeaponActor;
 class AConsumableItemActor;
 struct FInputActionValue;
@@ -62,44 +62,27 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	bool UnEquipItem();
 
+	/* 아이템 드롭? */
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void DropItem();
+
 	/* 소비 아이템 사용 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void UseConsumable();
 
-	/* 현재 장착된 무기 반환 */
+	/* 현재 장착한 아이템 반환 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
-	AWeaponActor* GetEquippedWeapon(EWeaponType WeaponType) const;
+	AWorldItemActor* GetEquippedItem() const;
 
 	/* 현재 손에 들고 있는 아이템 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Equipped")
-	AEquipableItem* EquippedItem;
-
-	/* 퀵슬롯에 저장된 아이템 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
-	AWeaponActor* PrimaryQuickSlot;    // 총기 (주무기)
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
-	AWeaponActor* MeleeQuickSlot;      // 근접 무기
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
-	AWeaponActor* ThrowableQuickSlot;  // 투척 무기
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | QuickSlot")
-	AConsumableItemActor* ConsumableQuickSlot;  // 소비 아이템
+	AWorldItemActor* EquippedItem;
 
 	/* 장착할 소켓 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Equipment")
 	FName EquippedItemSocket;  // 손에 들리는 아이템
 
-	/* 퀵슬롯 아이템이 보관될 소켓 (허리, 등에 위치) */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
-	FName QuickSlotPrimarySocket;  // 주무기 저장
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
-	FName QuickSlotMeleeSocket;  // 근접 무기 저장
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
-	FName QuickSlotThrowableSocket;  // 투척 무기 저장
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | QuickSlot")
-	FName QuickSlotConsumableSocket;  // 소비 아이템 저장
+	/* 인벤토리 시스템 */
 
 protected:
 	UFUNCTION()
@@ -138,17 +121,7 @@ protected:
 	float InteractionCheckDistance;
 	FTimerHandle TimerHandle_Interaction;
 	FInteractionData InteractionData;
-
-	/* 인벤토리 관련 함수
-	void OpenInventory();
-	void CloseInventory();
-	void PickupItem();
-	void DropItem(UItemObject* ItemToDrop);
-
-	/* 인벤토리 시스템 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Inventory")
-	UInventoryComponent* InventoryComponent;
-	*/
+	
 ////////////////////////////////////////////////////////////////////////////////
 
 
