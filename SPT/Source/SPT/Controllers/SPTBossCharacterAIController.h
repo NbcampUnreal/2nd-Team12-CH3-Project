@@ -15,4 +15,9 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void BeginPlay() override;
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
+
+	APawn* PlayerPawn;
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	APawn* GetTargetPlayer() const;
 };

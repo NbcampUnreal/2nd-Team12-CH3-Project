@@ -12,6 +12,9 @@ void ASPTBossCharacterAIController::OnPossess(APawn* InPawn)
 void ASPTBossCharacterAIController::BeginPlay()
 {
     Super::BeginPlay();
+
+    // 플레이어 캐릭터 찾기
+    PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 }
 
 void ASPTBossCharacterAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
@@ -21,4 +24,10 @@ void ASPTBossCharacterAIController::OnMoveCompleted(FAIRequestID RequestID, cons
     if (Result.Code == EPathFollowingResult::Success)
     {
     }
+}
+
+
+APawn* ASPTBossCharacterAIController::GetTargetPlayer() const
+{
+    return PlayerPawn;
 }
