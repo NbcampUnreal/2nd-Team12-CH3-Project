@@ -8,30 +8,23 @@
 #include "WeaponActor.generated.h"
 
 UCLASS()
-class SPT_API AWeaponActor : public WorldItemActor
+class SPT_API AWeaponActor : public AWorldItemActor
 {
 	GENERATED_BODY()
 
 public:
 	AWeaponActor();
 
+	/* 공격 기능 (순수 가상 함수) */
 	virtual void Attack() PURE_VIRTUAL(AWeaponActor::Attack, );
 
-	virtual bool Equip(ASPTPlayerCharacter* PlayerCharacter) override;
-	virtual bool UnEquip(ASPTPlayerCharacter* PlayerCharacter) override;
-	virtual void Drop(ASPTPlayerCharacter* PlayerCharacter) override;
+	/* 아이템 줍기 */
+	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter) override;
+	
+	/* 아이템 드랍 */
+	virtual void OnDrop(ASPTPlayerCharacter* PlayerCharacter);
 
 	/* 무기 데이터 가져오기 */
 	EWeaponType GetWeaponType() const;
 	FWeaponItemData GetWeaponData() const;
-
-protected:
-	/* 무기 기본 데이터 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
-	FWeaponItemData WeaponData;
-
-	/* 현재 무기 상태 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
-	EItemState WeaponState;
-	
 };

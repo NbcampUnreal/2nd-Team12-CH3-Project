@@ -31,6 +31,12 @@ public:
 	/* 기본 생성자 */
 	AItemBaseActor();
 
+	/* 아이템 데이터 설정 */
+	void SetItemData(const FItemData& NewItemData);
+
+	/* 상태에 따라 메쉬를 갱신 */
+	void UpdateMeshForState(EItemState NewState);
+
 	/* 아이템 상태 업데이트 */
 	void UpdateItemState(EItemState NewState);
 
@@ -41,9 +47,6 @@ public:
 	/* 아이템 사용 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void Use(ASPTPlayerCharacter* PlayerCharacter);
-
-	/* 아이템 데이터 설정 */
-	void SetItemData(const FItemData& NewItemData);
 
 	/* Getter & Setter */
 	UStaticMeshComponent* GetMeshComponent() const;

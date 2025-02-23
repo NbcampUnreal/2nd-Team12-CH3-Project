@@ -4,18 +4,12 @@
 #include "WorldItemActor.h"
 #include "SPTPlayerCharacter.h"
 #include "SPT/Items/Data/ItemDataObject.h"
-#include "SPT/Items/Base/EquipableItem.h"
 #include "SPT/Items/Weapons/WeaponActor.h"
 // #include "InventoryComponent.h"
 
 AWorldItemActor::AWorldItemActor()
 {
     PrimaryActorTick.bCanEverTick = false;
-
-    // 픽업 아이템의 메쉬 설정
-    PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>("PickupMesh");
-    PickupMesh->SetSimulatePhysics(true);
-    SetRootComponent(PickupMesh);
 }
 
 void AWorldItemActor::BeginPlay()
@@ -34,24 +28,23 @@ void AWorldItemActor::InitializeItemFromDataTable()
         return;
     }
 
+    if (ItemID.IsNone())
+    {
+        UE_LOG(LogTemp, Error, TEXT("WorldItemActor has no valid ItemID!"));
+        return;
+    }
+
     const FString ContextString = TEXT("ItemDataTable Lookup");
     FItemData* FoundItemData = ItemDataTable->FindRow<FItemData>(ItemID, ContextString);
-
     if (!FoundItemData)
     {
         UE_LOG(LogTemp, Error, TEXT("ItemID '%s' not found in ItemDataTable!"), *ItemID.ToString());
         return;
     }
 
-    // 데이터를 가져와서 적용
-    ItemData = *FoundItemData;
+    // 데이터 가져오기
+    SetItemData(*FoundItemData);
     UE_LOG(LogTemp, Log, TEXT("Item '%s' initialized with ItemType: %d"), *ItemID.ToString(), static_cast<int32>(ItemData.ItemType));
-
-    // Static Mesh 설정 (데이터 기반)
-    if (ItemData.AssetData.StaticMesh)
-    {
-        PickupMesh->SetStaticMesh(ItemData.AssetData.StaticMesh);
-    }
 }
 
 void AWorldItemActor::InitializeItem(const FItemData& NewItemData)
@@ -62,12 +55,6 @@ void AWorldItemActor::InitializeItem(const FItemData& NewItemData)
         static_cast<int32>(GetItemData().ItemType),
         static_cast<int32>(EItemType::EIT_Weapon),
         static_cast<int32>(EItemType::EIT_Consumable));
-
-    // StaticMesh 설정 (데이터 기반)
-    if (NewItemData.AssetData.StaticMesh)
-    {
-        PickupMesh->SetStaticMesh(NewItemData.AssetData.StaticMesh);
-    }
 }
 
 void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
@@ -76,13 +63,14 @@ void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 
     FItemData CurrentItemData = GetItemData();
 
-    // 무기 아이템
+    // 무기 아이템인 경우, 무기 액터를 스폰하여 장착 처리
     if (CurrentItemData.ItemType == EItemType::EIT_Weapon)
     {
         AWeaponActor* NewWeapon = GetWorld()->SpawnActor<AWeaponActor>(AWeaponActor::StaticClass());
         if (NewWeapon)
         {
             NewWeapon->SetItemData(ItemData);
+            NewWeapon->UpdateMeshForState(EItemState::EIS_Equipped);
 
             if (PlayerCharacter->EquipItem(NewWeapon))
             {
@@ -97,32 +85,17 @@ void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
     {
         // 인벤토리 컴포넌트 가져오기
         /*
-        UInventoryComponent* Inventory = PlayerCharacter->FindComponentByClass<UInventoryComponent>();
-        if (!Inventory)
+        // 인벤토리에 추가
+        if (PlayerCharacter->InventoryComponent)
         {
-            UE_LOG(LogTemp, Warning, TEXT("WorldItemActor: %s의 인벤토리 컴포넌트를 찾을 수 없음!"), *PlayerCharacter->GetName());
-            return;
-        }
-
-        // 기존 아이템이 인벤토리에 있는지 확인
-        UItemDataObject* ExistingItem = Inventory->FindItemByID(ItemData.ItemID);
-        if (ExistingItem)
-        {
-            ExistingItem->SetQuantity(ExistingItem->GetQuantity() + Quantity);
-            UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s has increased stack of %s to %d"),
+            PlayerCharacter->InventoryComponent->AddItem(ItemData);
+            UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s added %s to inventory"),
                 *PlayerCharacter->GetName(),
-                *ExistingItem->GetItemData().TextData.Name.ToString(),
-                ExistingItem->GetQuantity());
+                *ItemData.TextData.Name.ToString());
         }
         else
         {
-            UItemDataObject* NewItemDataObject = NewObject<UItemDataObject>();
-            NewItemDataObject->SetItemData(ItemData);
-            NewItemDataObject->SetQuantity(Quantity);
-            Inventory->AddItem(NewItemDataObject);
-            UE_LOG(LogTemp, Log, TEXT("WorldItemActor: %s added %s to inventory"),
-                *PlayerCharacter->GetName(),
-                *NewItemDataObject->GetItemData().TextData.Name.ToString());
+            UE_LOG(LogTemp, Warning, TEXT("WorldItemActor: PlayerCharacter has no InventoryComponent!"));
         }
 
         */
@@ -134,7 +107,21 @@ void AWorldItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 
 void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
 {
-    if (!PlayerCharacter) return;
+    if (!PlayerCharacter)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("OnDrop: PlayerCharacter is null"));
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("OnDrop: World is null"));
+        return;
+    }
+
+    // 드랍 오프셋을 상수로 정의
+    static const FVector DefaultDropOffset(50.f, 0.f, 0.f);
 
     // 아이템을 버릴 때 월드에 다시 생성
     FActorSpawnParameters SpawnParams;
@@ -142,7 +129,7 @@ void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
     SpawnParams.Instigator = PlayerCharacter;
 
     AWorldItemActor* DroppedItem = GetWorld()->SpawnActor<AWorldItemActor>(GetClass(),
-        PlayerCharacter->GetActorLocation() + FVector(50, 0, 0),
+        PlayerCharacter->GetActorLocation() + DefaultDropOffset,
         FRotator::ZeroRotator,
         SpawnParams);
 
@@ -150,7 +137,6 @@ void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
     {
         // 아이템 개수 등 정보 유지 가능
         DroppedItem->SetItemData(ItemData);
-        DroppedItem->Quantity;
 
         UE_LOG(LogTemp, Warning, TEXT("%s has dropped %s (Quantity: %d)"),
             *PlayerCharacter->GetName(),
@@ -161,18 +147,12 @@ void AWorldItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
 
 void AWorldItemActor::BeginFocus()
 {
-    if (PickupMesh)
-    {
-        PickupMesh->SetRenderCustomDepth(true);
-    }
+    UE_LOG(LogTemp, Log, TEXT("WorldItemActor BeginFocus: %s"), *GetName());
 }
 
 void AWorldItemActor::EndFocus()
 {
-    if (PickupMesh)
-    {
-        PickupMesh->SetRenderCustomDepth(false);
-    }
+    UE_LOG(LogTemp, Log, TEXT("WorldItemActor EndFocus: %s"), *GetName());
 }
 
 void AWorldItemActor::BeginInteract()
@@ -208,7 +188,7 @@ void AWorldItemActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
 
             if (const FItemData* FoundItemData = ItemDataTable->FindRow<FItemData>(ItemID, ItemID.ToString()))
             {
-                PickupMesh->SetStaticMesh(FoundItemData->AssetData.StaticMesh);
+                SetItemData(*FoundItemData);
             }
         }
     }

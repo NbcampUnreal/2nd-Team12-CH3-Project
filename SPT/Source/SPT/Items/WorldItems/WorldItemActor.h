@@ -7,6 +7,8 @@
 #include "SPT/Interfaces/InteractableInterface.h"
 #include "WorldItemActor.generated.h"
 
+class ASPTPlayerCharacter;
+
 UCLASS()
 class SPT_API AWorldItemActor : public AItemBaseActor, public IInteractableInterface
 {
@@ -26,7 +28,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter);
 	UFUNCTION(BlueprintCallable, Category = "Item")
-	virtual void OnDrop(ASPTPlayerCharacter* PlayerCharacter);
+	virtual void OnDrop  (ASPTPlayerCharacter* PlayerCharacter);
 
 	virtual void BeginFocus() override;
 	virtual void EndFocus() override;
@@ -42,7 +44,4 @@ public:
 	UDataTable* ItemDataTable;		// 아이템 데이터 테이블
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Pickup")
 	FName ItemID;					// 아이템 ID
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup")
-	UStaticMeshComponent* PickupMesh;	// 픽업 아이템 메쉬
-
 };

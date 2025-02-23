@@ -56,7 +56,7 @@ public:
 
 	/* 아이템 장착*/
 	UFUNCTION(BlueprintCallable, Category = "Item")
-	bool EquipItem(AEquipableItem* NewItem);
+	bool EquipItem(AWorldItemActor* NewItem);
 
 	/* 아이템 해제 */
 	UFUNCTION(BlueprintCallable, Category = "Item")

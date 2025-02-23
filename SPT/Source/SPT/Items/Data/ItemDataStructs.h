@@ -42,6 +42,8 @@ struct FItemNumericData
 	int32 MaxStackSize;	// 최대 스택 개수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	bool bIsStackable;	// 스택 가능 여부
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	float EffectDuration;
 };
 
 /* 아이템 에셋 데이터 */
@@ -58,6 +60,22 @@ struct FItemAssetData
 	USkeletalMesh* SkeletalMesh;	// 장착 시 사용될 SkeletalMesh (무기)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName AttachSocketName = NAME_None;	// 장착할 소켓 이름 (장착 가능한 아이템만 사용)
+};
+
+/* 아이템 애니메이션 데이터 구조체 */
+USTRUCT(BlueprintType)
+struct FItemAnimationData
+{
+	GENERATED_USTRUCT_BODY()
+
+	/* 아이템 사용 애니메이션 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Animation")
+	UAnimMontage* UseAnimation;
+
+	/* 애니메이션 종료 후 아이템 제거 지연 시간 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Animation")
+	float AnimationDelayAfterUse;
+
 };
 
 /* 전체 아이템 데이터 */
@@ -77,7 +95,12 @@ struct FItemData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
 	FItemAssetData AssetData;	// 아이템 에셋 데이터
 
+	/* 애니메이션 관련 데이터 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Animation")
+	FItemAnimationData AnimationData;
+
 	/* 무기 데이터 (무기인 경우에만 할당) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Weapon", meta = (EditCondition = "ItemType == EIT_Weapon"))
 	FWeaponItemData WeaponData;
+
 };

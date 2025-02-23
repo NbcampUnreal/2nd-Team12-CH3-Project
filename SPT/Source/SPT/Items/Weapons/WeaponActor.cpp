@@ -3,99 +3,68 @@
 
 #include "WeaponActor.h"
 #include "SPT/Characters/SPTPlayerCharacter.h"
-#include "SPT/Items/WorldItems/WorldItemActor.h"
+// #include "SPT/Inventory/InventoryComponent.h"
 
 AWeaponActor::AWeaponActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	AttachSocketName = "hand_r";
 }
 
-bool AWeaponActor::Equip(ASPTPlayerCharacter* PlayerCharacter)
+void AWeaponActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 {
-	if (!PlayerCharacter)
-	{
-		return false;
-	}
-
-	if (PlayerCharacter->EquippedItem)
-	{
-		PlayerCharacter->UnEquipItem(); // 기존 장착 아이템 해제
-	}
-
-	PlayerCharacter->EquippedItem = this;
-	AttachToComponent(
-		PlayerCharacter->GetMesh(),
-		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-		AttachSocketName);
-
-	UpdateItemState(EItemState::EIS_Equipped);
-
-	// TODO: 무기 장착 애니메이션 실행
 	/*
-	if (EquipAnimation && PlayerCharacter->GetMesh()->GetAnimInstance())
+	if (!PlayerCharacter || !PlayerCharacter->InventoryComponent)
 	{
-		PlayerCharacter->GetMesh()->GetAnimInstance()->Montage_Play(EquipAnimation);
-		UE_LOG(LogTemp, Log, TEXT("AWeaponActor: Playing equip animation for %s"), *GetName());
+		return;
 	}
 	*/
 
-	// TODO: 무기 전용 기능 (예: 탄약 설정, 조준 설정)
-	// - 탄약 설정: Reload() 초기화
-	// - 조준 상태 초기화
-	// - UI 업데이트
-
-	UE_LOG(LogTemp, Log, TEXT("AWeaponActor: %s is Equipped with additional weapon setup"), *GetName());
-
-	return true;
-}
-
-bool AWeaponActor::UnEquip(ASPTPlayerCharacter* PlayerCharacter)
-{
-	if (!PlayerCharacter || PlayerCharacter->EquippedItem != this)
+	// 무기 장착 (기존 장착 무기 해제 후)
+	if (PlayerCharacter->EquippedItem)
 	{
-		return false;
+		PlayerCharacter->UnEquipItem();
 	}
 
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	PlayerCharacter->EquippedItem = nullptr;
-	UpdateItemState(EItemState::EIS_QuickSlot);
+	// 플레이어의 손에 무기를 장착
+	PlayerCharacter->EquipItem(this);
 
-	return true;
+	UE_LOG(LogTemp, Log, TEXT("WeaponActor: %s picked up %s"), *PlayerCharacter->GetName(), *GetName());
+
+	// 월드에서 제거
+	Destroy();
 }
 
-void AWeaponActor::Drop(ASPTPlayerCharacter* PlayerCharacter)
+void AWeaponActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
 {
-	if (!PlayerCharacter || PlayerCharacter->EquippedItem != this)
+	if (!PlayerCharacter)
 	{
 		return;
 	}
 
+	// 아이템을 버릴 때 월드에 다시 생성
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = nullptr;
+	SpawnParams.Owner = PlayerCharacter;
 	SpawnParams.Instigator = PlayerCharacter;
 
-	AWorldItemActor* DroppedItem = PlayerCharacter->GetWorld()->SpawnActor<AWorldItemActor>(
-		AWorldItemActor::StaticClass(),
+	AWeaponActor* DroppedWeapon = GetWorld()->SpawnActor<AWeaponActor>(
+		GetClass(),
 		PlayerCharacter->GetActorLocation() + FVector(50, 0, 0),
 		FRotator::ZeroRotator,
 		SpawnParams);
 
-	if (DroppedItem)
+	if (DroppedWeapon)
 	{
-		DroppedItem->InitializeItem(ItemData);
+		DroppedWeapon->SetItemData(GetItemData());
+		UE_LOG(LogTemp, Log, TEXT("%s has dropped %s"), *PlayerCharacter->GetName(), *DroppedWeapon->GetName());
 	}
-
-	PlayerCharacter->UnEquipItem();
-	Destroy();
 }
 
 EWeaponType AWeaponActor::GetWeaponType() const
 {
-	return WeaponData.WeaponType;
+	return GetWeaponData().WeaponType;
 }
 
 FWeaponItemData AWeaponActor::GetWeaponData() const
 {
-	return WeaponData;
+	return ItemData.WeaponData;
 }

@@ -105,7 +105,7 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
     }
 }
 
-bool ASPTPlayerCharacter::EquipItem(AEquipableItem* NewItem)
+bool ASPTPlayerCharacter::EquipItem(AWorldItemActor* NewItem)
 {
     if (!NewItem)
     {
@@ -136,7 +136,8 @@ bool ASPTPlayerCharacter::UnEquipItem()
     }
 
     // 아이템 드랍
-    EquippedItem->Drop(this);
+    EquippedItem->OnDrop(this);
+    EquippedItem = nullptr;
 
     /* 아이템 제거 후 인벤토리
     EquippedItem->Destroy();
@@ -145,6 +146,18 @@ bool ASPTPlayerCharacter::UnEquipItem()
 
     UE_LOG(LogTemp, Log, TEXT("UnEquipItem: Item unequipped and moved to inventory"));
     return true;
+}
+
+void ASPTPlayerCharacter::DropItem()
+{
+    if (!EquippedItem)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DropItem: No item to drop"));
+        return;
+    }
+
+    EquippedItem->OnDrop(this);
+    EquippedItem = nullptr;
 }
 
 void ASPTPlayerCharacter::UseConsumable()
@@ -180,13 +193,8 @@ void ASPTPlayerCharacter::UseConsumable()
     UE_LOG(LogTemp, Log, TEXT("UseConsumable: %s used"), *Consumable->GetName());
 }
 
-AEquipableItem* ASPTPlayerCharacter::GetEquippedItem() const
+AWorldItemActor* ASPTPlayerCharacter::GetEquippedItem() const
 {
-    if (!IsValid(EquippedItem))
-    {
-        return nullptr;
-    }
-
     return EquippedItem;
 }
 
