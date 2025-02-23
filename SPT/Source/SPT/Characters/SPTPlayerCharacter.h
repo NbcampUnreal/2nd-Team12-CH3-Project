@@ -101,6 +101,14 @@ protected:
 	void StartCrouch(const FInputActionValue& value);
 	UFUNCTION()
 	void StopCrouch(const FInputActionValue& value);
+	UFUNCTION()
+	void ItemUse(const FInputActionValue& value);
+	UFUNCTION()
+	void StartInteract(const FInputActionValue& value);
+	UFUNCTION()
+	void OnOffInventory(const FInputActionValue& value);
+	UFUNCTION()
+	void StartReload(const FInputActionValue& value);
 
 ////////////////////////////////////////////////////////////////////////////////
 	/* 상호 작용 관련 함수 */
