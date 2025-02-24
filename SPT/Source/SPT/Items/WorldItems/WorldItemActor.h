@@ -29,6 +29,8 @@ public:
 	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter);
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void OnDrop  (ASPTPlayerCharacter* PlayerCharacter);
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void SpawnDroppedItem(FVector SpawnLocation, FRotator SpawnRotation);
 
 	virtual void BeginFocus() override;
 	virtual void EndFocus() override;
@@ -38,6 +40,7 @@ public:
 	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	void OnConstruction(const FTransform& Transform);
 #endif
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Pickup")

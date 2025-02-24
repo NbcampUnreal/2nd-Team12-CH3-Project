@@ -62,10 +62,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	bool UnEquipItem();
 
-	/* 아이템 드롭? */
+
+	/* 아이템 드롭 */
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void DropEquippedItem();
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void DropItem();
-
+	
 	/* 소비 아이템 사용 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void UseConsumable();

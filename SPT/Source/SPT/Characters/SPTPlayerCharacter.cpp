@@ -40,7 +40,7 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 
     // 상호 작용 관련 변수 초기화
     InteractionCheckFrequency = 0.1f;
-    InteractionCheckDistance = 225.0f;
+    InteractionCheckDistance = 250.0f;
     BaseEyeHeight = 80.0f;
 
     // 장착 아이템 메시 기본값 설정
@@ -128,6 +128,174 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
     }
 }
 
+bool ASPTPlayerCharacter::EquipItem(AWorldItemActor* NewItem)
+{
+    if (!NewItem)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("EquipItem: No item provided"));
+        return false;
+    }
+
+    // 기존 무기 해제
+    if (EquippedItem)
+    {
+        UnEquipItem();
+    }
+
+    // 현재 장착한 아이템 저장
+    EquippedItem = NewItem;
+
+    FName AttachSocket = NewItem->GetItemData().AssetData.AttachSocketName;
+    if (AttachSocket.IsNone())
+    {
+        AttachSocket = EquippedItemSocket;
+    }
+
+    // 아이템 장착
+    EquippedItem->AttachToComponent(
+        GetMesh(),
+        FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+        AttachSocket);
+
+    // 오프셋 적용
+    FItemData ItemData = NewItem->GetItemData();
+    if (UPrimitiveComponent* MeshComp = EquippedItem->GetMeshComponent())
+    {
+        MeshComp->SetRelativeLocation(ItemData.AssetData.EquipPositionOffset);
+        MeshComp->SetRelativeRotation(ItemData.AssetData.EquipRotationOffset);
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("EquipItem: Equipped %s"), *NewItem->GetName());
+    return true;
+}
+
+bool ASPTPlayerCharacter::UnEquipItem()
+{
+    if (!EquippedItem)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UnEquipItem: No item equipped"));
+        return false;
+    }
+
+    // 현재 장착된 아이템의 정보 가져오기
+    FItemData ItemData = EquippedItem->GetItemData();
+    if (ItemData.ItemType == EItemType::EIT_Weapon)
+    {
+        DropEquippedItem();
+        UE_LOG(LogTemp, Log, TEXT("UnEquipItem: Item unequipped"));
+    }
+    else
+    {
+        /* 인벤토리 추가
+         * 총기 아이템 및 근접 무기 아이템이 아닌 다른 아이템의 경우 장비 해제 시 인벤토리로 들어갑니다.
+         * 투척류 무기, 소모품(힐템 등) UItemDataObject를 통하여 아이템 정보를 얻은 후
+         * 인벤토리에 넣으면 됩니다.
+         * 수량에 대한 로직은 조금 더 생각해봐야할 거 같습니다.
+         * 
+        if (InventoryComponent)
+        {
+            UItemDataObject* NewItem = NewObject<UItemDataObject>();
+            if (NewItem)
+            {
+                NewItem->SetItemData(ItemData);
+                InventoryComponent->AddItem(NewItem);
+                UE_LOG(LogTemp, Log, TEXT("UnEquipItem: %s added to inventory"), *ItemData.TextData.Name.ToString());
+            }
+        }
+        */
+
+        EquippedItem->Destroy();
+        UE_LOG(LogTemp, Log, TEXT("UnEquipItem: Item moved to inventory"));
+    }
+
+    EquippedItem = nullptr;
+    return true;
+}
+
+void ASPTPlayerCharacter::DropEquippedItem()
+{
+    if (!EquippedItem)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DropEquippedItem: No equipped item to drop"));
+        return;
+    }
+
+    EquippedItem->OnDrop(this);
+    UE_LOG(LogTemp, Log, TEXT("DropEquippedItem: Dropped equipped item with state retained"));
+}
+
+void ASPTPlayerCharacter::DropItem()
+{
+    /* 인벤토리 추가
+     * 총기 아이템 및 근접 무기 아이템이 아닌 다른 아이템의 경우 장비 해제 시 인벤토리로 들어갑니다.
+     * 투척류 무기, 소모품(힐템 등) UItemDataObject를 통하여 아이템 정보를 얻은 후
+     * 인벤토리에 넣으면 됩니다.
+     * 수량에 대한 로직은 조금 더 생각해봐야할 거 같습니다.
+     *
+    if (InventoryComponent)
+    {
+        UItemDataObject* NewItem = NewObject<UItemDataObject>();
+        if (NewItem)
+        {
+            NewItem->SetItemData(ItemData);
+            InventoryComponent->AddItem(NewItem);
+            UE_LOG(LogTemp, Log, TEXT("UnEquipItem: %s added to inventory"), *ItemData.TextData.Name.ToString());
+        }
+    }
+    */
+}
+
+void ASPTPlayerCharacter::UseConsumable()
+{
+    if (!EquippedItem || EquippedItem->GetItemData().ItemType != EItemType::EIT_Consumable)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UseConsumable: No consumable item equipped"));
+        return;
+    }
+
+    AConsumableItemActor* Consumable = Cast<AConsumableItemActor>(EquippedItem);
+    if (!Consumable)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UseConsumable: Equipped item is not a consumable"));
+        return;
+    }
+
+    // TODO: 사용 애니메이션 실행
+    /*
+   if (Consumable->GetItemData().AnimationData.UseAnimation && GetMesh()->GetAnimInstance())
+    {
+        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+        float AnimationDuration = AnimInstance->Montage_Play(Consumable->GetItemData().AnimationData.UseAnimation);
+
+        // 애니메이션이 끝난 후 아이템 사용 처리
+        GetWorldTimerManager().SetTimer(
+            TimerHandle_ItemUse,
+            [this, Consumable]()
+            {
+                if (Consumable)
+                {
+                    Consumable->Use(this);
+                }
+            },
+            AnimationDuration,
+            false
+        );
+    }
+    else
+    {
+        // 애니메이션이 없으면 바로 아이템 사용
+        Consumable->Use(this);
+    }
+    */
+
+    UE_LOG(LogTemp, Log, TEXT("UseConsumable: %s used"), *Consumable->GetName());
+}
+
+AWorldItemActor* ASPTPlayerCharacter::GetEquippedItem() const
+{
+    return EquippedItem;
+}
+
 void ASPTPlayerCharacter::Move(const FInputActionValue& value)
 {
     if (!Controller) return;
@@ -209,7 +377,10 @@ void ASPTPlayerCharacter::ItemUse(const FInputActionValue& value)
     // 현재 장착중인 아이템을 사용한다.
     if (value.Get<bool>())
     {
-        
+        if (EquippedItem)
+        {
+            EquippedItem->Use(this);
+        }
     }
 }
 
@@ -218,7 +389,12 @@ void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
     // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
     if (value.Get<bool>())
     {
-        
+        GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+
+        if (IsValid(TargetInteractable.GetObject()))
+        {
+            TargetInteractable->Interact(this);
+        }
     }
 }
 
@@ -240,3 +416,178 @@ void ASPTPlayerCharacter::StartReload(const FInputActionValue& value)
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+void ASPTPlayerCharacter::PerformInteractionCheck()
+{
+    InteractionData.LastIneractionCheckTime = GetWorld()->GetTimeSeconds();
+
+    FVector PlayerViewLocation = GetPawnViewLocation();
+    FVector PlayerViewDirection = GetViewRotation().Vector();
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(this);
+
+    // 라인 트레이스로 아이템 감지
+    FHitResult LineTraceHit;
+    bool bLineHit = GetWorld()->LineTraceSingleByChannel(
+        LineTraceHit,
+        PlayerViewLocation,
+        PlayerViewLocation + (PlayerViewDirection * InteractionCheckDistance * 1.5f),
+        ECC_Visibility,
+        QueryParams
+    );
+
+    if (bLineHit)
+    {
+        AWorldItemActor* LineHitItem = Cast<AWorldItemActor>(LineTraceHit.GetActor());
+        if (LineHitItem && LineHitItem->Implements<UInteractableInterface>())
+        {
+            FoundInteractable(LineHitItem);
+        }
+    }
+
+    // 스피어 트레이스로 근처 아이템 감지
+    TArray<FHitResult> HitResults;
+    bool bHit = GetWorld()->SweepMultiByChannel(
+        HitResults,
+        PlayerViewLocation,
+        PlayerViewLocation + (PlayerViewDirection * InteractionCheckDistance),
+        FQuat::Identity,
+        ECC_Visibility,
+        FCollisionShape::MakeSphere(InteractionCheckDistance * 0.6f),
+        QueryParams
+    );
+
+    AWorldItemActor* BestCandidate = nullptr;
+    float BestDotProduct = 0.7f;
+
+    for (FHitResult Hit : HitResults)
+    {
+        AWorldItemActor* Item = Cast<AWorldItemActor>(Hit.GetActor());
+        if (!Item || !Item->GetMeshComponent() || !Item->Implements<UInteractableInterface>())
+        {
+            continue;
+        }
+
+        FVector DirectionToItem = (Item->GetActorLocation() - PlayerViewLocation).GetSafeNormal();
+        float DotProduct = FVector::DotProduct(PlayerViewDirection, DirectionToItem);
+
+        // 플레이어가 바라보는 방향(60도 이내)만 필터링
+        if (DotProduct > BestDotProduct)
+        {
+            BestDotProduct = DotProduct;
+            BestCandidate = Item;
+        }
+    }
+
+    // 최적 아이템 선택
+    if (BestCandidate)
+    {
+        if (BestCandidate != InteractionData.CurrentInteractable)
+        {
+            FoundInteractable(BestCandidate);
+        }
+    }
+    else
+    {
+        NoInteractableFound();
+    }
+}
+
+void ASPTPlayerCharacter::FoundInteractable(AActor* NewInteractable)
+{
+    if (IsInteracting())
+    {
+        GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+    }
+
+    // 기존 포커스 종료
+    if (InteractionData.CurrentInteractable)
+    {
+        TargetInteractable = InteractionData.CurrentInteractable;
+        TargetInteractable->EndFocus();
+    }
+
+    // 새로운 포커스 설정
+    InteractionData.CurrentInteractable = NewInteractable;
+    TargetInteractable = NewInteractable;
+
+    TargetInteractable->BeginFocus();
+}
+
+void ASPTPlayerCharacter::NoInteractableFound()
+{
+    if (IsInteracting())
+    {
+        GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+    }
+
+    if (InteractionData.CurrentInteractable)
+    {
+        // 상호 작용 후 월드에서 아이템이 사라졌을 때 Crash 방지
+        if (IsValid(TargetInteractable.GetObject()))
+        {
+            TargetInteractable->EndFocus();
+        }
+
+        // hide interaction widget on the HUD
+
+        InteractionData.CurrentInteractable = nullptr;
+        TargetInteractable = nullptr;
+    }
+}
+
+void ASPTPlayerCharacter::BeginInteract()
+{
+    // verify nothing has changed with the interactable state since beginning interaction
+    PerformInteractionCheck();
+
+    if (InteractionData.CurrentInteractable)
+    {
+        if (IsValid(TargetInteractable.GetObject()))
+        {
+            TargetInteractable->BeginInteract();
+
+            if (FMath::IsNearlyZero(TargetInteractable->InteractableData.InteractionDuration, 0.1f))
+            {
+                // Interact();
+            }
+            else
+            {
+                GetWorldTimerManager().SetTimer(
+                    TimerHandle_Interaction,
+                    this,
+                    &ASPTPlayerCharacter::Interact,
+                    TargetInteractable->InteractableData.InteractionDuration,
+                    false);
+            }
+        }
+    }
+}
+
+void ASPTPlayerCharacter::EndInteract()
+{
+    GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+
+    if (IsValid(TargetInteractable.GetObject()))
+    {
+        TargetInteractable->EndInteract();
+    }
+}
+
+void ASPTPlayerCharacter::Interact()
+{
+    GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+
+    if (IsValid(TargetInteractable.GetObject()))
+    {
+        TargetInteractable->Interact(this);
+    }
+}
+
+
+bool ASPTPlayerCharacter::IsInteracting() const
+{
+    return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction);
+}
+
+////////////////////////////////////////////////////////////////////////////////

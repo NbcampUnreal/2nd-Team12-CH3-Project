@@ -60,6 +60,11 @@ struct FItemAssetData
 	USkeletalMesh* SkeletalMesh;	// 장착 시 사용될 SkeletalMesh (무기)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName AttachSocketName = NAME_None;	// 장착할 소켓 이름 (장착 가능한 아이템만 사용)
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Transform")
+	FVector EquipPositionOffset;  // 장착 위치 오프셋
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Transform")
+	FRotator EquipRotationOffset;  // 장착 회전 오프셋
 };
 
 /* 아이템 애니메이션 데이터 구조체 */

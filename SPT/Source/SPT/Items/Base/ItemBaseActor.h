@@ -49,7 +49,7 @@ public:
 	virtual void Use(ASPTPlayerCharacter* PlayerCharacter);
 
 	/* Getter & Setter */
-	UStaticMeshComponent* GetMeshComponent() const;
+	UPrimitiveComponent* GetMeshComponent() const;
 	FItemData GetItemData() const;
 	bool IsWeapon() const;
 

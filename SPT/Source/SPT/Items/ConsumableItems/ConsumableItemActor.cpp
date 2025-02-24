@@ -12,47 +12,13 @@ AConsumableItemActor::AConsumableItemActor()
 
 void AConsumableItemActor::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 {
-	/*
-	if (!PlayerCharacter || !PlayerCharacter->InventoryComponent)
-	{
-		return;
-	}
-	*/
-
-	// 인벤토리에 아이템 추가
-	// PlayerCharacter->InventoryComponent->AddItem(GetItemData());
-
-	UE_LOG(LogTemp, Log, TEXT("ConsumableItemActor: %s picked up %s"), *PlayerCharacter->GetName(), *GetName());
-
-	// 월드에서 제거 (이제 인벤토리에서 관리됨)
-	Destroy();
+	Super::OnPickup(PlayerCharacter);
 }
 
 void AConsumableItemActor::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
 {
-	if (!PlayerCharacter)
-	{
-		return;
-	}
-
-	// 아이템을 버릴 때 월드에 다시 생성
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = PlayerCharacter;
-	SpawnParams.Instigator = PlayerCharacter;
-
-	AConsumableItemActor* DroppedItem = GetWorld()->SpawnActor<AConsumableItemActor>(
-		GetClass(),
-		PlayerCharacter->GetActorLocation() + FVector(50, 0, 0),
-		FRotator::ZeroRotator,
-		SpawnParams);
-
-	if (DroppedItem)
-	{
-		DroppedItem->SetItemData(GetItemData());
-		UE_LOG(LogTemp, Log, TEXT("%s has dropped %s"), *PlayerCharacter->GetName(), *DroppedItem->GetName());
-	}
+	Super::OnDrop(PlayerCharacter);
 }
-
 
 void AConsumableItemActor::Use(ASPTPlayerCharacter* PlayerCharacter)
 {
@@ -65,14 +31,12 @@ void AConsumableItemActor::Use(ASPTPlayerCharacter* PlayerCharacter)
 	// 소비 아이템 효과 적용
 	ApplyConsumableEffect(PlayerCharacter);
 
-	// 애니메이션 실행 (애니메이션은 액터 삭제 후에도 유지됨)
-	if (ItemData.AnimationData.UseAnimation && PlayerCharacter->GetMesh() && PlayerCharacter->GetMesh()->GetAnimInstance())
+	// 아이템 개수 감소
+	if (--Quantity <= 0)
 	{
-		PlayerCharacter->GetMesh()->GetAnimInstance()->Montage_Play(ItemData.AnimationData.UseAnimation);
+		UE_LOG(LogTemp, Log, TEXT("%s has been consumed completely! Removing from inventory."), *ItemData.TextData.Name.ToString());
+		Destroy(); // 인벤토리에서 삭제
 	}
-
-	// 아이템 즉시 삭제 (애니메이션과 효과는 독립적으로 실행)
-	Destroy();
 }
 
 void AConsumableItemActor::ApplyConsumableEffect_Implementation(ASPTPlayerCharacter* PlayerCharacter)
@@ -99,4 +63,6 @@ void AConsumableItemActor::ApplyConsumableEffect_Implementation(ASPTPlayerCharac
 
 void AConsumableItemActor::RemoveEffect()
 {
+	// TODO: 효과 제거 로직 구현
+	UE_LOG(LogTemp, Log, TEXT("Effect of %s has ended"), *GetName());
 }

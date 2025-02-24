@@ -109,10 +109,11 @@ void AItemBaseActor::Use(ASPTPlayerCharacter* PlayerCharacter)
 	// TO DO: 아이템 사용 로직 구현
 }
 
-
-UStaticMeshComponent* AItemBaseActor::GetMeshComponent() const
+UPrimitiveComponent* AItemBaseActor::GetMeshComponent() const
 {
-	return StaticMeshComponent;
+	return (IsWeapon() && SkeletalMeshComponent)
+		? static_cast<UPrimitiveComponent*>(SkeletalMeshComponent)
+		: static_cast<UPrimitiveComponent*>(StaticMeshComponent);
 }
 
 FItemData AItemBaseActor::GetItemData() const

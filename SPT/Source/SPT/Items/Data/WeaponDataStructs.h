@@ -97,4 +97,8 @@ struct FWeaponItemData : public FTableRowBase
 	FMeleeWeaponStats MeleeStats;  // 근접 무기 데이터
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Grenade", meta = (EditCondition = "WeaponType == EWT_Grenade"))
 	FGrenadeStats GrenadeStats;  // 수류탄 데이터
+
+	/* 무기 전용 Physics Asset */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Assets")
+	UPhysicsAsset* PhysicsAsset;
 };
