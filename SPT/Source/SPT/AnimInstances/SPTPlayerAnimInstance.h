@@ -33,6 +33,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	float GroundDierction;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
+	float AimYaw;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
+	float AimPitch;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	bool bShouldMove;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	bool bIsFalling;

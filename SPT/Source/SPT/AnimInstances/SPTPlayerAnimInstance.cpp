@@ -4,6 +4,7 @@
 #include "SPTPlayerAnimInstance.h"
 #include "SPTPlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 USPTPlayerAnimInstance::USPTPlayerAnimInstance()
 {
@@ -55,5 +56,15 @@ void USPTPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = CharacterMovement->IsFalling();
 		// 현재 캐릭터가 앉아 있는지 여부
 		bIsCrouching = CharacterMovement->IsCrouching();
+
+		// 
+		FRotator TargetRotate = Character->GetControlRotation() - Character->GetActorRotation();
+
+		FRotator CurrentRotate(AimPitch, AimYaw, 0.f);
+
+		FRotator DeltaRotate = UKismetMathLibrary::RInterpTo(CurrentRotate, TargetRotate, DeltaSeconds, 15.f);
+
+		AimYaw = UKismetMathLibrary::ClampAngle(DeltaRotate.Yaw, -90.f, 90.f);
+		AimPitch = UKismetMathLibrary::ClampAngle(DeltaRotate.Pitch, -90.f, 90.f);
 	}
 }
