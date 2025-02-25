@@ -4,10 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "InventoryManager.h"
+#include "ItemWidget/InventoryMainWidget.h"
+#include "SPT/ItemActor.h"		// 테스트용 아이템 액터 정식 아이템 추가시 폐기
 #include "SPTPlayerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
+class AEquipmentInventory;
+class AConsumableInventory;
 
 struct FInputActionValue;
 
@@ -18,6 +23,45 @@ class SPT_API ASPTPlayerCharacter : public ABaseCharacter
 
 public:
 	ASPTPlayerCharacter();
+
+
+
+	// 미작성
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void AddItemToInventory(AItemActor* Item);
+	// 미작성
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void ToggleInventory();
+	UFUNCTION()
+	void TryPickupItem();
+	// 미작성
+	UFUNCTION()
+	void DropItem(AInventoryManager* Inventory, AItemActor* Item);
+
+	// 미작성
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	AInventoryManager* GetInventory() const;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AInventoryManager> InventoryManagerClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
+	UPROPERTY()
+	AInventoryManager* InventoryManager;
+	UPROPERTY()
+	AEquipmentInventory* EquipmentInventory;
+	UPROPERTY()
+	AConsumableInventory* ConsumableInventory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UInventoryMainWidget> InventoryMainWidgetClass;
+
+	UPROPERTY()
+	UInventoryMainWidget* InventoryMainWidgetInstance;
+
+
 
 protected:
 	virtual void BeginPlay() override;

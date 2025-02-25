@@ -2,6 +2,8 @@
 
 
 #include "SPTPlayerCharacter.h"
+#include "EquipmentInventory.h"
+#include "ConsumableInventory.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -27,10 +29,131 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 	CameraComp->SetupAttachment(SpringArmComp);
 }
 
+void ASPTPlayerCharacter::AddItemToInventory(AItemActor* Item)
+{
+    // 아이템이 유효한지 확인
+    if (!Item)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AddItemToInventory: Item is invalid!"));
+        return;
+    }
+
+    // 아이템이 장비 아이템인지 소모품 아이템인지 확인
+    UEquipmentItem* EquipmentItem = Cast<UEquipmentItem>(Item->GetItemData());
+    if (EquipmentItem)
+    {
+        // 장비 아이템이라면 EquipmentInventory에 추가
+        if (EquipmentInventory)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Added EquipmentItem to Equipment Inventory: %s"), *Item->GetItemName());
+            EquipmentInventory->AddItem(EquipmentItem);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Equipment Inventory is null!"));
+        }
+        return;
+    }
+
+    UConsumableItem* ConsumableItem = Cast<UConsumableItem>(Item->GetItemData());
+    if (ConsumableItem)
+    {
+        // 소모품 아이템이라면 ConsumableInventory에 추가
+        if (ConsumableInventory)
+        {
+            ConsumableInventory->AddItem(ConsumableItem);
+            UE_LOG(LogTemp, Log, TEXT("Added ConsumableItem to Consumable Inventory: %s"), *Item->GetItemName());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Consumable Inventory is null!"));
+        }
+        return;
+    }
+
+    // 아이템이 장비나 소모품이 아니라면 경고
+    UE_LOG(LogTemp, Warning, TEXT("AddItemToInventory: Unknown item type for item: %s"), *Item->GetName());
+}
+
+void ASPTPlayerCharacter::ToggleInventory()
+{
+}
+
+void ASPTPlayerCharacter::TryPickupItem()
+{
+    UE_LOG(LogTemp, Warning, TEXT("PickUp Start"));
+    FVector Start = GetActorLocation();
+    FVector ForwardVector = GetActorForwardVector();
+    FVector End = Start + (ForwardVector * 200.0f);
+
+    FHitResult HitResult;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, Params);
+
+
+    if (bHit) {
+        AItemActor* Item = Cast<AItemActor>(HitResult.GetActor());
+        if (Item) {
+            UE_LOG(LogTemp, Warning, TEXT("PickUp This"));
+            AddItemToInventory(Item);
+            Item->SetActorHiddenInGame(true);
+            Item->SetActorEnableCollision(false);
+        }
+
+    }
+}
+
+void ASPTPlayerCharacter::DropItem(AInventoryManager* Inventory, AItemActor* Item)
+{
+}
+
+AInventoryManager* ASPTPlayerCharacter::GetInventory() const
+{
+    return nullptr;
+}
+
 void ASPTPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+    // InventoryManagerClass가 할당되었는지 확인
+    if (InventoryManagerClass)
+    {
+        // 인벤토리 매니저 생성
+        InventoryManager = GetWorld()->SpawnActor<AInventoryManager>(InventoryManagerClass);
+        if (InventoryManager)
+        {
+            if (EquipmentInventoryClass)
+            {
+                EquipmentInventory = GetWorld()->SpawnActor<AEquipmentInventory>(EquipmentInventoryClass);
+                InventoryManager->RegisterInventory(EquipmentInventory);
+            }
+
+            if (ConsumableInventoryClass)
+            {
+                ConsumableInventory = GetWorld()->SpawnActor<AConsumableInventory>(ConsumableInventoryClass);
+                InventoryManager->RegisterInventory(ConsumableInventory);
+            }
+        }
+    }
+
+    // 아직 미구현(인벤토리 위젯)
+    //if (InventoryMainWidgetClass)
+    //{
+    //    InventoryMainWidgetInstance = CreateWidget<UInventoryMainWidget>(GetWorld(), InventoryMainWidgetClass);
+    //    if (InventoryMainWidgetInstance)
+    //    {
+    //        InventoryMainWidgetInstance->AddToViewport();
+    //    }
+
+    //    if (InventoryManager)
+    //    {
+    //        InventoryManager->PlayerCharacter = this;
+    //    }
+    //}
+
 }
 
 void ASPTPlayerCharacter::Tick(float DeltaTime)
@@ -192,7 +315,8 @@ void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
     // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
     if (value.Get<bool>())
     {
-        
+        UE_LOG(LogTemp, Warning, TEXT("Interact Complete"));
+        TryPickupItem();
     }
 }
 
