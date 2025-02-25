@@ -26,7 +26,6 @@ public:
 
 
 
-	// 미작성
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItemToInventory(AItemActor* Item);
 	// 미작성
@@ -36,12 +35,12 @@ public:
 	void TryPickupItem();
 	// 미작성
 	UFUNCTION()
-	void DropItem(AInventoryManager* Inventory, AItemActor* Item);
+	void DropItem(UInventoryItem* InventoryItem);
 
-	// 미작성
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	AInventoryManager* GetInventory() const;
 
+	// 인벤토리 적용
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TSubclassOf<AInventoryManager> InventoryManagerClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
@@ -55,9 +54,9 @@ public:
 	UPROPERTY()
 	AConsumableInventory* ConsumableInventory;
 
+	// 인벤토리 위젯 적용
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UInventoryMainWidget> InventoryMainWidgetClass;
-
 	UPROPERTY()
 	UInventoryMainWidget* InventoryMainWidgetInstance;
 

@@ -4,6 +4,7 @@
 #include "SPTPlayerCharacter.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
+#include "InventoryManager.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -34,54 +35,53 @@ void ASPTPlayerCharacter::AddItemToInventory(AItemActor* Item)
     // 아이템이 유효한지 확인
     if (!Item)
     {
-        UE_LOG(LogTemp, Warning, TEXT("AddItemToInventory: Item is invalid!"));
         return;
     }
 
-    // 아이템이 장비 아이템인지 소모품 아이템인지 확인
-    UEquipmentItem* EquipmentItem = Cast<UEquipmentItem>(Item->GetItemData());
-    if (EquipmentItem)
+    // 아이템 매니저가 유효한지 확인
+    if (InventoryManager)
     {
-        // 장비 아이템이라면 EquipmentInventory에 추가
-        if (EquipmentInventory)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Added EquipmentItem to Equipment Inventory: %s"), *Item->GetItemName());
-            EquipmentInventory->AddItem(EquipmentItem);
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Equipment Inventory is null!"));
-        }
-        return;
+        // 아이템을 아이템 매니저에 추가
+        InventoryManager->AddItemToInventory(Item->GetItemData());
     }
-
-    UConsumableItem* ConsumableItem = Cast<UConsumableItem>(Item->GetItemData());
-    if (ConsumableItem)
-    {
-        // 소모품 아이템이라면 ConsumableInventory에 추가
-        if (ConsumableInventory)
-        {
-            ConsumableInventory->AddItem(ConsumableItem);
-            UE_LOG(LogTemp, Log, TEXT("Added ConsumableItem to Consumable Inventory: %s"), *Item->GetItemName());
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Consumable Inventory is null!"));
-        }
-        return;
-    }
-
-    // 아이템이 장비나 소모품이 아니라면 경고
-    UE_LOG(LogTemp, Warning, TEXT("AddItemToInventory: Unknown item type for item: %s"), *Item->GetName());
 }
 
 void ASPTPlayerCharacter::ToggleInventory()
 {
+    if (InventoryMainWidgetInstance)
+    {
+        bool bIsVisible = InventoryMainWidgetInstance->IsVisible();
+        InventoryMainWidgetInstance->SetVisibility(bIsVisible ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+
+        if (!bIsVisible)
+        {
+            APlayerController* PlayerController = Cast<APlayerController>(GetController());
+            if (PlayerController)
+            {
+                FInputModeGameAndUI InputMode;
+                InputMode.SetWidgetToFocus(InventoryMainWidgetInstance->TakeWidget());
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+                PlayerController->SetInputMode(InputMode);
+                PlayerController->bShowMouseCursor = true;
+                //PlayerController->SetPause(true);
+            }
+        }
+        else
+        {
+            APlayerController* PlayerController = Cast<APlayerController>(GetController());
+            if (PlayerController)
+            {
+                PlayerController->SetInputMode(FInputModeGameOnly());
+                PlayerController->bShowMouseCursor = false;
+                //PlayerController->SetPause(false);
+            }
+        }
+    }
 }
 
 void ASPTPlayerCharacter::TryPickupItem()
 {
-    UE_LOG(LogTemp, Warning, TEXT("PickUp Start"));
     FVector Start = GetActorLocation();
     FVector ForwardVector = GetActorForwardVector();
     FVector End = Start + (ForwardVector * 200.0f);
@@ -93,25 +93,27 @@ void ASPTPlayerCharacter::TryPickupItem()
     bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, Params);
 
 
-    if (bHit) {
+    if (bHit)
+    {
         AItemActor* Item = Cast<AItemActor>(HitResult.GetActor());
-        if (Item) {
-            UE_LOG(LogTemp, Warning, TEXT("PickUp This"));
-            AddItemToInventory(Item);
-            Item->SetActorHiddenInGame(true);
-            Item->SetActorEnableCollision(false);
+        if (Item && InventoryManager)
+        {
+            InventoryManager->AddItemToInventory(Item);
         }
-
     }
 }
 
-void ASPTPlayerCharacter::DropItem(AInventoryManager* Inventory, AItemActor* Item)
+void ASPTPlayerCharacter::DropItem(UInventoryItem* InventoryItem)
 {
+    if (InventoryManager && InventoryItem)
+    {
+        InventoryManager->DropItemFromInventory(InventoryItem);
+    }
 }
 
 AInventoryManager* ASPTPlayerCharacter::GetInventory() const
 {
-    return nullptr;
+    return InventoryManager;
 }
 
 void ASPTPlayerCharacter::BeginPlay()
@@ -139,20 +141,20 @@ void ASPTPlayerCharacter::BeginPlay()
         }
     }
 
-    // 아직 미구현(인벤토리 위젯)
-    //if (InventoryMainWidgetClass)
-    //{
-    //    InventoryMainWidgetInstance = CreateWidget<UInventoryMainWidget>(GetWorld(), InventoryMainWidgetClass);
-    //    if (InventoryMainWidgetInstance)
-    //    {
-    //        InventoryMainWidgetInstance->AddToViewport();
-    //    }
+    if (InventoryMainWidgetClass)
+    {
+        InventoryMainWidgetInstance = CreateWidget<UInventoryMainWidget>(GetWorld(), InventoryMainWidgetClass);
+        if (InventoryMainWidgetInstance)
+        {
+            InventoryMainWidgetInstance->AddToViewport();
+            InventoryMainWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
 
-    //    if (InventoryManager)
-    //    {
-    //        InventoryManager->PlayerCharacter = this;
-    //    }
-    //}
+    if (InventoryManager)
+    {
+        InventoryManager->SetInventoryWidget(InventoryMainWidgetInstance);
+    }
 
 }
 
@@ -315,7 +317,6 @@ void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
     // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
     if (value.Get<bool>())
     {
-        UE_LOG(LogTemp, Warning, TEXT("Interact Complete"));
         TryPickupItem();
     }
 }
@@ -325,7 +326,36 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
     // 인벤토리를 켜거나 끈다.
     if (value.Get<bool>())
     {
+        if (InventoryMainWidgetInstance)
+        {
+            bool bIsVisible = InventoryMainWidgetInstance->IsVisible();
+            InventoryMainWidgetInstance->SetVisibility(bIsVisible ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
 
+            if (!bIsVisible)
+            {
+                APlayerController* PlayerController = Cast<APlayerController>(GetController());
+                if (PlayerController)
+                {
+                    FInputModeGameAndUI InputMode;
+                    InputMode.SetWidgetToFocus(InventoryMainWidgetInstance->TakeWidget());
+                    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+                    PlayerController->SetInputMode(InputMode);
+                    PlayerController->bShowMouseCursor = true;
+                    //PlayerController->SetPause(true);
+                }
+            }
+            else
+            {
+                APlayerController* PlayerController = Cast<APlayerController>(GetController());
+                if (PlayerController)
+                {
+                    PlayerController->SetInputMode(FInputModeGameOnly());
+                    PlayerController->bShowMouseCursor = false;
+                    //PlayerController->SetPause(false);
+                }
+            }
+        }
     }
 }
 

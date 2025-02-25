@@ -7,8 +7,11 @@
 #include "InventoryManager.generated.h"
 
 class IInventoryInterface;
+class UInventoryItem;
 class UEquipmentItem;
 class UConsumableItem;
+class UInventoryMainWidget;
+
 
 UCLASS()
 class SPT_API AInventoryManager : public AActor
@@ -19,8 +22,13 @@ public:
 	AInventoryManager();
 
 	void RegisterInventory(AActor* InventoryActor);
-	void AddEquipmentItem(UEquipmentItem* Item);
-	void AddConsumableItem(UConsumableItem* Item);
+	void AddItemToInventory(UInventoryItem* Item);
+
+	void SetInventoryWidget(UInventoryMainWidget* NewWidget);
+
+	UPROPERTY()
+	UInventoryMainWidget* InventoryMainWidgetInstance;
+
 
 private:
 	UPROPERTY()
