@@ -16,6 +16,7 @@ USPTPlayerAnimInstance::USPTPlayerAnimInstance()
 	GroundDierction = 0.f;
 	AimYaw = 0.f;
 	AimPitch = 0.f;
+	TurnInPlaceYaw = 0.f;
 	RotationScalar = 2.5f;
 	bShouldMove = false;
 	bIsFalling = false;
@@ -69,6 +70,8 @@ void USPTPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		AimYaw = UKismetMathLibrary::ClampAngle(DeltaRotate.Yaw, -90.f, 90.f);
 		AimPitch = UKismetMathLibrary::ClampAngle(DeltaRotate.Pitch, -90.f, 90.f);
+
+		TurnInPlaceYaw = UKismetMathLibrary::ClampAngle(DeltaRotate.Yaw, -90.f, 90.f);
 
 		float TurnYawWeight = (GetCurveValue(FName("TurnYawWeight")) > 0);
 		if (TurnYawWeight > 0.f)

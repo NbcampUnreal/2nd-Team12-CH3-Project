@@ -37,6 +37,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	float AimPitch;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
+	float TurnInPlaceYaw;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	float RotationScalar;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	bool bShouldMove;
