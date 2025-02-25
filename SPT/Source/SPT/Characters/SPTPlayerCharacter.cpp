@@ -22,11 +22,14 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
     SpringArmComp->CameraLagSpeed = 20.f;
     SpringArmComp->bEnableCameraRotationLag = true;
     SpringArmComp->CameraRotationLagSpeed = 20.f;
+    SpringArmComp->SocketOffset = FVector(0.f, 75.f, 100.f);
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
 
     bUseControllerRotationYaw = false;
+
+    GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 }
 
 void ASPTPlayerCharacter::BeginPlay()
