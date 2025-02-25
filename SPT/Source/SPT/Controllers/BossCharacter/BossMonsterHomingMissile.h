@@ -1,20 +1,20 @@
-#pragma once
+// Fill out your copyright notice in the Description page of Project Settings.
 
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "HomingMissile.generated.h"
-
+#include "BossMonsterHomingMissile.generated.h"
 
 UCLASS()
-class SPT_API AHomingMissile : public AActor
+class SPT_API ABossMonsterHomingMissile : public AActor
 {
 	GENERATED_BODY()
-
+	
 public:
-    AHomingMissile();
+    ABossMonsterHomingMissile();
 
 protected:
     virtual void BeginPlay() override;
@@ -60,4 +60,5 @@ public:
     // 미사일의 속도 설정 변수
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Missile")
     float MissileSpeed = 600.0f;
+
 };

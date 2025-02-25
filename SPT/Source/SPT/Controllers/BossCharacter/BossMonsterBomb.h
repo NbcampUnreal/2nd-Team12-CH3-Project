@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "BOSSBomb.generated.h"
+#include "BossMonsterBomb.generated.h"
 
 UCLASS()
-class SPT_API ABOSSBomb : public AActor
+class SPT_API ABossMonsterBomb : public AActor
 {
-    GENERATED_BODY()
-
-
-
-public:
+	GENERATED_BODY()
+	
+public:	
     virtual void BeginPlay() override;
 
-    ABOSSBomb();
+	// Sets default values for this actor's properties
+	ABossMonsterBomb();
 
     // 충돌 감지를 위한 컴포넌트
     UPROPERTY(VisibleAnywhere, Category = "Components")

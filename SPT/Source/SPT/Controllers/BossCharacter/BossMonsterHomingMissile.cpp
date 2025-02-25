@@ -1,4 +1,7 @@
-#include "HomingMissile.h"
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "BossCharacter/BossMonsterHomingMissile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
@@ -7,8 +10,7 @@
 #include "CollisionQueryParams.h" 
 
 
-
-AHomingMissile::AHomingMissile()
+ABossMonsterHomingMissile::ABossMonsterHomingMissile()
 {
     PrimaryActorTick.bCanEverTick = true;
 
@@ -19,7 +21,7 @@ AHomingMissile::AHomingMissile()
     CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
     RootComponent = CollisionComponent;
     CollisionComponent->SetSphereRadius(15.0f);
-    CollisionComponent->OnComponentHit.AddDynamic(this, &AHomingMissile::OnHit);
+    CollisionComponent->OnComponentHit.AddDynamic(this, &ABossMonsterHomingMissile::OnHit);
 
     // 미사일 메시
     Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
@@ -40,7 +42,7 @@ AHomingMissile::AHomingMissile()
     Target = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 }
 
-void AHomingMissile::BeginPlay()
+void ABossMonsterHomingMissile::BeginPlay()
 {
     Super::BeginPlay();
 
@@ -62,7 +64,7 @@ void AHomingMissile::BeginPlay()
     }
 }
 
-void AHomingMissile::Tick(float DeltaTime)
+void ABossMonsterHomingMissile::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
@@ -77,10 +79,10 @@ void AHomingMissile::Tick(float DeltaTime)
 
 
 
-void AHomingMissile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
+void ABossMonsterHomingMissile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse,
     const FHitResult& Hit)
-{ 
+{
     FString Message1 = "Exploded";
 
     GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Message1);
@@ -89,7 +91,7 @@ void AHomingMissile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 
 }
 
-void AHomingMissile::Explode()
+void ABossMonsterHomingMissile::Explode()
 {
     TArray<AActor*> OverlappingActors;
 

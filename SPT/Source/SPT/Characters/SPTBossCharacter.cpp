@@ -1,9 +1,9 @@
 #include "SPTBossCharacter.h"
 #include "SPTBossCharacterAIController.h"
-#include "HomingMissile.h"
+#include "Bosscharacter/BossMonsterHomingMissile.h"
 #include "Kismet/GameplayStatics.h"
-#include "SPTBOSSProjectile.h"
-#include "BOSSBomb.h"
+#include "BossCharacter/BossCharacterProjectile.h"
+#include "Bosscharacter/BossMonsterBomb.h"
 
 // Sets default values
 ASPTBossCharacter::ASPTBossCharacter()
@@ -75,7 +75,7 @@ void ASPTBossCharacter::SpawnMissile()
                 FRotator SpawnRotation = Direction.Rotation(); // 플레이어를 바라보는 회전값 계산
 
                 // 미사일 스폰
-                AHomingMissile* NewMissile = GetWorld()->SpawnActor<AHomingMissile>(MissileClass, SpawnLocation, SpawnRotation);
+                ABossMonsterHomingMissile* NewMissile = GetWorld()->SpawnActor<ABossMonsterHomingMissile>(MissileClass, SpawnLocation, SpawnRotation);
                 if (NewMissile)
                 {
                     // 미사일의 속도나 기타 설정
@@ -147,7 +147,7 @@ void ASPTBossCharacter::FireProjectile()
     FVector SpawnLocation = GetActorLocation() + FVector(0, 0, 50);
     FRotator SpawnRotation = (PlayerActor->GetActorLocation() - SpawnLocation).Rotation();
 
-    ASPTBOSSProjectile* Projectile = GetWorld()->SpawnActor<ASPTBOSSProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+    ABossCharacterProjectile* Projectile = GetWorld()->SpawnActor<ABossCharacterProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
     if (Projectile)
     {
         Projectile->SetOwner(this);
@@ -167,7 +167,7 @@ void ASPTBossCharacter::SpawnBombs()
         FRotator SpawnRotation = FRotator::ZeroRotator;  // 미사일의 초기 회전 값
             
         // 미사일 생성
-        ABOSSBomb* NewBomb = GetWorld()->SpawnActor<ABOSSBomb>(BombClass, SpawnPosition, SpawnRotation);
+        ABossMonsterBomb* NewBomb = GetWorld()->SpawnActor<ABossMonsterBomb>(BombClass, SpawnPosition, SpawnRotation);
         if (NewBomb)
         {
             // 미사일의 속도나 다른 설정을 블루프린트에서 조정할 수 있도록 설정

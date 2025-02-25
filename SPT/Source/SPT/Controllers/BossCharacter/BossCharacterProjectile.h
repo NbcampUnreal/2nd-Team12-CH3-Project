@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "SPTBOSSProjectile.generated.h"
+#include "BossCharacterProjectile.generated.h"
 
 UCLASS()
-class SPT_API ASPTBOSSProjectile : public AActor
+class SPT_API ABossCharacterProjectile : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	ASPTBOSSProjectile();
+
+public:
+    // Sets default values for this actor's properties
+    ABossCharacterProjectile();
 
 protected:
     virtual void BeginPlay() override;
@@ -34,4 +34,5 @@ public:
     void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, FVector NormalImpulse,
         const FHitResult& Hit);
+
 };

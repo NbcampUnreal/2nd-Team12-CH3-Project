@@ -1,11 +1,14 @@
-#include "SPTBOSSProjectile.h"
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "BossCharacter/BossCharacterProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
-ASPTBOSSProjectile::ASPTBOSSProjectile()
+ABossCharacterProjectile::ABossCharacterProjectile()
 {
     PrimaryActorTick.bCanEverTick = true;
 
@@ -18,7 +21,7 @@ ASPTBOSSProjectile::ASPTBOSSProjectile()
     CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     CollisionComponent->SetCollisionObjectType(ECC_PhysicsBody);
 
-    CollisionComponent->OnComponentHit.AddDynamic(this, &ASPTBOSSProjectile::OnHit);
+    CollisionComponent->OnComponentHit.AddDynamic(this, &ABossCharacterProjectile::OnHit);
 
     ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
     ProjectileMovement->InitialSpeed = 10000.0f;
@@ -30,20 +33,20 @@ ASPTBOSSProjectile::ASPTBOSSProjectile()
 }
 
 // Called when the game starts or when spawned
-void ASPTBOSSProjectile::BeginPlay()
+void ABossCharacterProjectile::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
+
 }
 
 // Called every frame
-void ASPTBOSSProjectile::Tick(float DeltaTime)
+void ABossCharacterProjectile::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
 }
 
-void ASPTBOSSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
+void ABossCharacterProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, FVector NormalImpulse,
     const FHitResult& Hit)
 {
