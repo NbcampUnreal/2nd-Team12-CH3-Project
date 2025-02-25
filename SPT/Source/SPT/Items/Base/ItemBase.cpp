@@ -21,12 +21,12 @@ AItemBase::AItemBase()
 	ItemData = CreateDefaultSubobject<UItemDataObject>(TEXT("ItemData"));
 }
 
-void AItemBase::InitializeItem(FName ItemRowName, UDataTable* ItemDataTable)
+void AItemBase::InitializeItem(FName ItemRowName)
 {
 	if (ItemData)
 	{
 		// ItemData에서 데이터 초기화
-		ItemData->InitializeFromDataTable(ItemDataTable, ItemRowName);
+		ItemData->InitializeFromDataTable(ItemRowName);
 
 		const FItemData& LoadedItemData = ItemData->GetItemData();
 

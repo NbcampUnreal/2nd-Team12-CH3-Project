@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "ItemDataStructs.h"
+#include "WeaponDataStructs.h"
 #include "ItemDataObject.generated.h"
 
 UCLASS()
@@ -18,7 +19,7 @@ public:
 
 	/* 데이터 테이블에서 아이템 초기화 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
-	void InitializeFromDataTable(UDataTable* ItemDataTable, FName RowName);
+	void InitializeFromDataTable(FName RowName);
 
 	/* 아이템 복사 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
@@ -29,6 +30,14 @@ public:
 	FItemData GetItemData() const;
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void SetItemData(const FItemData& NewItemData);
+
+	/* 무기 데이터 가져오기 / 설정 */
+	UFUNCTION(BlueprintCallable, Category = "Item|Weapons")
+	const FWeaponItemData& GetWeaponData() const;
+	UFUNCTION(BlueprintCallable, Category = "Item|Weapon")
+	void SetWeaponData(const FWeaponItemData& NewWeaponData);
+	UFUNCTION(BlueprintCallable, Category = "Item|Weapon")
+	bool IsWeapon() const;
 
 	/* 아이템 개수 가져오기 / 설정 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
@@ -50,6 +59,18 @@ protected:
 	/* 아이템 데이터 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
 	FItemData ItemData;
+
+	/* 아이템 데이터 테이블 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Data")
+	UDataTable* ItemDataTable;
+
+	/* 무기 데이터 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
+	FWeaponItemData WeaponData;
+
+	/* 무기 데이터 테이블 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Data")
+	UDataTable* WeaponDataTable;
 
 	/* 현재 아이템 개수 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Data", meta = (UIMin = 1, UIMax = 100))

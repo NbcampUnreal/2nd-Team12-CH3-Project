@@ -6,9 +6,11 @@
 UItemDataObject::UItemDataObject()
 {
 	Quantity = 1;
+	ItemDataTable = nullptr;
+	WeaponDataTable = nullptr;
 }
 
-void UItemDataObject::InitializeFromDataTable(UDataTable* ItemDataTable, FName RowName)
+void UItemDataObject::InitializeFromDataTable(FName RowName)
 {
 	if (!ItemDataTable)
 	{
@@ -17,15 +19,21 @@ void UItemDataObject::InitializeFromDataTable(UDataTable* ItemDataTable, FName R
 	}
 
 	// FItemData 구조체에서 데이터 로드
-	FItemData* FoundData = ItemDataTable->FindRow<FItemData>(RowName, TEXT(""));
-	if (FoundData)
+	FItemData* FoundItemData = ItemDataTable->FindRow<FItemData>(RowName, TEXT(""));
+	if (FoundItemData)
 	{
-		ItemData = *FoundData;  // 아이템 데이터를 로드
+		ItemData = *FoundItemData;  // 아이템 데이터를 로드
 		Quantity = 1; // 기본 값 설정
 	}
-	else
+
+	// FWeaponData 구조체에서 데이터 로드
+	if (IsWeapon() && WeaponDataTable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Item row with name %s not found in DataTable!"), *RowName.ToString());
+		FWeaponItemData* FoundWeaponData = WeaponDataTable->FindRow<FWeaponItemData>(RowName, TEXT(""));
+		if (FoundWeaponData)
+		{
+			WeaponData = *FoundWeaponData;
+		}
 	}
 }
 
@@ -50,6 +58,21 @@ void UItemDataObject::SetItemData(const FItemData& NewItemData)
 	ItemData = NewItemData;
 }
 
+const FWeaponItemData& UItemDataObject::GetWeaponData() const
+{
+	return WeaponData;
+}
+
+void UItemDataObject::SetWeaponData(const FWeaponItemData& NewWeaponData)
+{
+	WeaponData = NewWeaponData;
+}
+
+bool UItemDataObject::IsWeapon() const
+{
+	return ItemData.ItemType == EItemType::EIT_Weapon;
+}
+
 int32 UItemDataObject::GetQuantity() const
 {
 	return Quantity;
@@ -71,7 +94,7 @@ bool UItemDataObject::CanStackWith(const UItemDataObject* OtherItem) const
 
 int32 UItemDataObject::MergeStack(UItemDataObject* OtherItem)
 {
-	if (!CanStackWith(OtherItem)) return 0;
+	if (!OtherItem || !CanStackWith(OtherItem)) return 0;
 
 	// 병합 가능한 최대 수량만큼만 병합
 	int32 MergedAmount = FMath::Min(ItemData.NumericData.MaxStackSize - Quantity, OtherItem->Quantity);

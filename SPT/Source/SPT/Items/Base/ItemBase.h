@@ -30,9 +30,10 @@ public:
 	AItemBase();
 
 	/* 아이템 초기화 (데이터 테이블에서 로드) */
-	void InitializeItem(FName ItemRowName, UDataTable* ItemDataTable);
+	void InitializeItem(FName ItemRowName);
 
 	/* 마우스 좌클릭 시 실행할 기본 동작 */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Item")
 	virtual void PrimaryAction(class ASPTPlayerCharacter* PlayerCharacter);
 
 	/* Getter & Setter */
