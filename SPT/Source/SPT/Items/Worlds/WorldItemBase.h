@@ -18,12 +18,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-	/* 아이템 데이터 초기화 */
-	void InitializeItemFromDataTable();
-
-	/* 아이템 데이터 설정 */
-	void InitializeItem(const FItemData& NewItemData);
-
 	/* 아이템 줍기 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter);
@@ -38,6 +32,9 @@ public:
 	virtual void BeginInteract() override;
 	virtual void EndInteract() override;
 	virtual void Interact(ASPTPlayerCharacter* PlayerCharacter) override;
+
+	/* 메시 업데이트 */
+	void UpdateMesh();
 
 	/* 에디터에서 아이템 데이터 테이블 업데이트 */
 #if WITH_EDITOR
@@ -60,7 +57,5 @@ protected:
 		ASPTPlayerCharacter* PlayerCharacter,
 		FVector& OutDropLocation,
 		FRotator& OutDropRotation);
-
-	void UpdateMesh();
 
 };

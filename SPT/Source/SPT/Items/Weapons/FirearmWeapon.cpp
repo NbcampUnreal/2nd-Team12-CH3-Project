@@ -12,10 +12,17 @@ AFirearmWeapon::AFirearmWeapon()
 
 	// Skeletal Mesh 추가
 	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
-	SkeletalMeshComponent->SetupAttachment(RootComponent);
+	if (StaticMeshComponent && SkeletalMeshComponent)
+	{
+		SkeletalMeshComponent->SetupAttachment(RootComponent);
+	}
 
 	// 기본 피직스 애셋 설정 (필요시)
-	SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset);
+	if (ItemData)
+	{
+		SkeletalMeshComponent->SetSkeletalMesh(ItemData->GetItemData().AssetData.SkeletalMesh);
+		SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset);
+	}
 
 	// 초기 상태 설정
 	bIsReloading = false;
@@ -27,7 +34,7 @@ AFirearmWeapon::AFirearmWeapon()
 void AFirearmWeapon::Attack()
 {
 	// TODO : 발사 구현, 인벤토리와 연결
-	if (CurrentAmmo <= 0 || bIsReloading)
+	if (FirearmStats.AmmoCount <= 0 || bIsReloading)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s is out of ammo or reloading!"), *GetName());
 		return;
@@ -35,35 +42,39 @@ void AFirearmWeapon::Attack()
 
 	// 사격 상태로 전환
 	bIsFiring = true;
-	CurrentAmmo--;
+	FirearmStats.AmmoCount--;
 	CurrentRecoil += FirearmStats.Recoil;  // 반동 누적
 
-	UE_LOG(LogTemp, Log, TEXT("%s fired! Ammo left: %d, Recoil: %.2f"), *GetName(), CurrentAmmo, CurrentRecoil);
+	UE_LOG(LogTemp, Log, TEXT("%s fired! Ammo left: %d, Recoil: %.2f"), *GetName(), FirearmStats.AmmoCount, CurrentRecoil);
 }
 
 void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
 {
-	if (!PlayerCharacter)
+	if (!PlayerCharacter || !ItemData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AFirearmWeapon::Equip - PlayerCharacter is null!"));
 		return;
 	}
 
-	/* 캐릭터의 일부 함수 필요
 	// 기존에 장착된 총기가 있다면 먼저 해제
+	/*
 	AWeaponBase* EquippedWeapon = PlayerCharacter->GetEquippedWeapon();
 	if (EquippedWeapon && EquippedWeapon->IsA(AFirearmWeapon::StaticClass()))
 	{
 		EquippedWeapon->UnEquip(PlayerCharacter);
 	}
-
+	*/
 	// 새 총기 장착
 	PlayerCharacter->EquipWeapon(this);
-	*/
 
 	// 피직스 및 충돌 비활성화
 	if (SkeletalMeshComponent)
 	{
+		// 기본 애셋 설정
+		SkeletalMeshComponent->SetSkeletalMeshAsset(ItemData->GetItemData().AssetData.SkeletalMesh);
+		SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset);
+		SkeletalMeshComponent->SetVisibility(true);
+
 		// 물리 시뮬레이션 비활성화
 		SkeletalMeshComponent->SetSimulatePhysics(false);
 
@@ -74,7 +85,14 @@ void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
 
 	// 장착된 위치로 이동
 	// PlayerCharacter->EquipWeapon(this); 대신
-	AttachToActor(PlayerCharacter, FAttachmentTransformRules::SnapToTargetNotIncludingScale, ItemData->GetItemData().AssetData.AttachSocketName);
+	FName SocketName = ItemData->GetItemData().AssetData.AttachSocketName;
+	if (SocketName.IsNone())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Equip - No AttachSocketName set in ItemData, defaulting to 'hand_r'."));
+		SocketName = TEXT("hand_r");
+	}
+	AttachToComponent(PlayerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	
 	ItemState = EItemState::EIS_Equipped;
 	UE_LOG(LogTemp, Log, TEXT("%s equipped by %s"), *GetName(), *PlayerCharacter->GetName());
 }
@@ -119,22 +137,34 @@ void AFirearmWeapon::Drop(ASPTPlayerCharacter* PlayerCharacter)
 	}
 
 	// 기존 무기 데이터를 AWorldWeapon에 복사
-	DroppedWeapon->SetItemData(ItemData);
+	ItemState = EItemState::EIS_World;
+	WeaponData.FirearmStats = FirearmStats;
+	ItemData->SetWeaponData(WeaponData);
+
+	UItemDataObject* NewItemData = ItemData->CreateItemCopy();
+	DroppedWeapon->SetItemData(NewItemData);
+	DroppedWeapon->UpdateMesh();
+
+	if (ItemData->GetItemData().ItemID.IsNone())
+	{
+		UE_LOG(LogTemp, Error, TEXT("FirearmWeapon::Faild to load ItemID!!!!!!"));
+	}
 
 	// 피직스 및 충돌 활성화
 	if (USkeletalMeshComponent* WeaponMesh = DroppedWeapon->FindComponentByClass<USkeletalMeshComponent>())
 	{
+		WeaponMesh->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset); // 피직스 애셋 연결
 		WeaponMesh->SetSimulatePhysics(true); // 물리 시뮬레이션 활성화
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 충돌 활성화
 		WeaponMesh->SetCollisionObjectType(ECC_PhysicsBody); // 물리 바디 타입 설정
 		WeaponMesh->SetCollisionResponseToAllChannels(ECR_Block); // 모든 채널에서 충돌 처리
-
+		WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // Pawn 클래스 충돌 무시
+		WeaponMesh->SetEnableGravity(true); // 중력 적용
 		// 플레이어 방향으로 물리적 힘을 추가 (아이템 던지기)
 		WeaponMesh->AddImpulse(PlayerCharacter->GetActorForwardVector() * 200.0f, NAME_None, true);
 	}
 
 	// 원본 무기 제거
-	ItemState = EItemState::EIS_World;
 	Destroy();
 }
 
@@ -173,12 +203,13 @@ int32 AFirearmWeapon::GetCurrentAmmo() const
 	return CurrentAmmo;
 }
 
-void AFirearmWeapon::InitializeFirearmData(const FWeaponItemData& NewWeaponData)
+void AFirearmWeapon::SetWeaponData(const FWeaponItemData& NewWeaponData)
 {
-	FirearmStats = ItemData->GetWeaponData().FirearmStats;
+	Super::SetWeaponData(NewWeaponData);
+
+	FirearmStats = NewWeaponData.FirearmStats;
 
 	// 개별 무기 상태 초기화
-	CurrentAmmo = FirearmStats.MagazineCapacity;
 	bIsReloading = false;
 	bIsFiring = false;
 	bIsAiming = false;

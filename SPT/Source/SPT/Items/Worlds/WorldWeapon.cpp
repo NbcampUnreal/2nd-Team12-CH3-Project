@@ -15,12 +15,15 @@ AWorldWeapon::AWorldWeapon()
 
 	// Skeletal Mesh 추가
 	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
-	SkeletalMeshComponent = SkeletalMeshComponent;
+	SkeletalMeshComponent->SetupAttachment(RootComponent);
 
 	// 피직스 애셋 설정 (물리 시뮬레이션 활성화)
-	if (SkeletalMeshComponent && ItemData->GetWeaponData().PhysicsAsset)
+	if (ItemData && SkeletalMeshComponent)
 	{
-		SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset); // 피직스 애셋 연결
+		if (ItemData->GetWeaponData().PhysicsAsset)
+		{
+			SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset); // 피직스 애셋 연결
+		}
 		SkeletalMeshComponent->SetSimulatePhysics(true); // 물리 시뮬레이션 활성화
 		SkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 충돌 활성화
 		SkeletalMeshComponent->SetCollisionObjectType(ECC_PhysicsBody); // 물리 바디 타입 설정
@@ -72,7 +75,9 @@ void AWorldWeapon::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 	}
 
 	// 무기 데이터 설정
-	SpawnedWeapon->SetItemData(ItemData);
+	UItemDataObject* NewItemData = ItemData->CreateItemCopy();
+	SpawnedWeapon->SetItemData(NewItemData);
+	SpawnedWeapon->SetWeaponData(NewItemData->GetWeaponData());
 
 	// 무기 장착 (각 클래스에서 장착 로직 구현)
 	SpawnedWeapon->Equip(PlayerCharacter);
@@ -91,29 +96,33 @@ void AWorldWeapon::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 
 	if (ChangedPropertyName == GET_MEMBER_NAME_CHECKED(AWorldWeapon, ItemID))
 	{
-		InitializeItemFromDataTable();
+		if (!ItemData)
+		{
+			ItemData = NewObject<UItemDataObject>(this, UItemDataObject::StaticClass());
+		}
+
+		ItemData->InitializeItemData(ItemID);
 		UpdateMesh();
+		UE_LOG(LogTemp, Log, TEXT("PostEditChangeProperty - ItemData updated for %s"), *ItemID.ToString());
 	}
 }
 
 void AWorldWeapon::OnConstruction(const FTransform& Transform)
 {
-	Super::OnConstruction(Transform);
-
-	if (!ItemData || ItemData->GetItemData().ItemID.IsNone())
+	if (!ItemDataTable || ItemID.IsNone())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnConstruction: ItemData is missing or ItemID is not set!"));
+		UE_LOG(LogTemp, Log, TEXT("AWorldWeapon::OnConstruction: There is No ItemDataTable or ItemID for %s"), *GetName());
 		return;
 	}
 
-	const FString ContextString = TEXT("ItemDataTable Lookup");
-	FItemData* FoundItemData = ItemDataTable->FindRow<FItemData>(ItemID, ContextString);
-
-	if (FoundItemData)
+	if (!ItemData)
 	{
-		ItemData->InitializeFromDataTable(ItemDataTable, WeaponDataTable, nullptr, FoundItemData->ItemID);
-		UE_LOG(LogTemp, Log, TEXT("OnConstruction: Item data loaded for %s"), *GetName());
+		ItemData = NewObject<UItemDataObject>(this, UItemDataObject::StaticClass());
 	}
+
+	ItemData->SetItemData(ItemData->GetItemData());
+	UE_LOG(LogTemp, Log, TEXT("OnConstruction: Item data loaded for %s"), *GetName());
+
 
 	// 피직스 애셋 설정 (물리 시뮬레이션 활성화)
 	if (SkeletalMeshComponent && ItemData->GetWeaponData().PhysicsAsset)

@@ -2,53 +2,85 @@
 
 
 #include "ItemDataObject.h"
+#include "SPTPlayerCharacter.h"
+#include "SPT/Items/Consumables/ConsumableItem.h"
 
 UItemDataObject::UItemDataObject()
 {
+	static ConstructorHelpers::FObjectFinder<UDataTable> DataTableFinder(TEXT("/Game/Blueprints/Items/ItemData.ItemData"));
+	if (DataTableFinder.Succeeded())
+	{
+		ItemDataTable = DataTableFinder.Object;
+	}
+
+	if (IsWeapon())
+	{
+		static ConstructorHelpers::FObjectFinder<UDataTable> WeaponDataTableFinder(TEXT("/Game/Blueprints/Items/WeaponData.WeaponData"));
+
+		if (WeaponDataTableFinder.Succeeded())
+		{
+			WeaponDataTable = WeaponDataTableFinder.Object;
+		}
+	}
+
 	Quantity = 1;
 	bHasWeaponData = false;
 	bHasConsumableData = false;
 }
 
-void UItemDataObject::InitializeFromDataTable(
-	UDataTable* InItemDataTable, 
-	UDataTable* InWeaponDataTable, 
-	UDataTable* InConsumableDataTable,
-	FName RowName)
+void UItemDataObject::InitializeItemData(FName RowName)
 {
 	// 기본 아이템 데이터 로드
-	if (InItemDataTable)
+	if (ItemDataTable)
 	{
-		FItemData* FoundData = InItemDataTable->FindRow<FItemData>(RowName, TEXT(""));
-		if (FoundData)
+		UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: %s for %s"), *RowName.ToString(), *GetName());
+		if (FItemData* FoundData = ItemDataTable->FindRow<FItemData>(RowName, TEXT("")))
 		{
-			ItemData = *FoundData;
-			Quantity = 1;  // 기본 수량 설정
+			if (ItemData.ItemID.IsNone()) 
+			{
+				ItemData = *FoundData;
+				Quantity = 1;
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: Failed to load the ItemDataTable using %s for %s"), *RowName.ToString(), *GetName());
+			return;
 		}
 	}
 
 	// 무기 데이터 로드 (무기일 경우)
-	if (IsWeapon() && InWeaponDataTable)
+	if (IsWeapon())
 	{
-		FWeaponItemData* WeaponInfo = InWeaponDataTable->FindRow<FWeaponItemData>(RowName, TEXT(""));
-		if (WeaponInfo)
+		if (WeaponDataTable)
 		{
-			WeaponData = *WeaponInfo;
-			bHasWeaponData = true;  // 무기 데이터가 로드되었음을 표시
+			if (FWeaponItemData* FoundWeaponData = WeaponDataTable->FindRow<FWeaponItemData>(RowName, TEXT("")))
+			{
+				if (!bHasWeaponData)
+				{
+					WeaponData = *FoundWeaponData;
+					bHasWeaponData = true;
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: Failed to load the WeaponDataTable for %s"), *GetName());
+				return;
+			}
 		}
 	}
-	/*
+	
 	// 소비 아이템 데이터 로드 (소비 아이템일 경우)
-	if (IsConsumable() && InConsumableDataTable)
+	if (IsConsumable() && ConsumableDataTable)
 	{
-		FConsumableItemData* ConsumableInfo = InConsumableDataTable->FindRow<FConsumableItemData>(RowName, TEXT(""));
+		FConsumableItemData* ConsumableInfo = ConsumableDataTable->FindRow<FConsumableItemData>(RowName, TEXT(""));
 		if (ConsumableInfo)
 		{
 			ConsumableData = *ConsumableInfo;
-			bHasConsumableData = true;  // 소비 아이템 데이터가 로드되었음을 표시
+			Quantity = ConsumableData.Quantity;
+			bHasConsumableData = true;
 		}
 	}
-	*/
 }
 
 UItemDataObject* UItemDataObject::CreateItemCopy() const
@@ -59,7 +91,7 @@ UItemDataObject* UItemDataObject::CreateItemCopy() const
 		NewItem->ItemData = ItemData;
 		NewItem->Quantity = Quantity;
 		NewItem->WeaponData = WeaponData;
-		// NewItem->ConsumableData = ConsumableData;
+		NewItem->ConsumableData = ConsumableData;
 		NewItem->bHasWeaponData = bHasWeaponData;
 		NewItem->bHasConsumableData = bHasConsumableData;
 	}
@@ -86,12 +118,48 @@ void UItemDataObject::SetWeaponData(const FWeaponItemData& NewWeaponData)
 	WeaponData = NewWeaponData;
 }
 
-/*
-const FConsumableItemData* UItemDataObject::GetConsumableData() const
+const FConsumableItemData& UItemDataObject::GetConsumableata() const
 {
-	return bHasConsumableData ? &ConsumableData : nullptr;
+	return ConsumableData;
 }
-*/
+
+void UItemDataObject::SetConsumableData(const FConsumableItemData& NewConsumableData)
+{
+	ConsumableData = NewConsumableData;
+}
+
+void UItemDataObject::Use(ASPTPlayerCharacter* PlayerCharacter)
+{
+	if (!PlayerCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UItemDataObject::Use - Invaild PlayerCharacter"));
+		return;
+	}
+
+	if (IsConsumable())
+	{
+		FVector SpawnLocation = PlayerCharacter->GetActorLocation() + PlayerCharacter->GetActorForwardVector() * 50.0f;
+		FRotator SpawnRotation = PlayerCharacter->GetActorRotation();
+
+		AConsumableItem* UseActor = PlayerCharacter->GetWorld()->SpawnActor<AConsumableItem>(AConsumableItem::StaticClass());
+		if (UseActor)
+		{
+			
+			if (ConsumableData.Quantity > 0)
+			{
+				ConsumableData.Quantity--;
+				UseActor->CreateItemCopy();
+				UseActor->PrimaryAction(PlayerCharacter);
+				UE_LOG(LogTemp, Warning, TEXT("UItemDataObject::Use - Use Consumable Item"));
+			}
+
+			if (ConsumableData.Quantity <= 0)
+			{
+				// PlayerCharacter->RemoveFromInventory(this);
+			}
+		}
+	}
+}
 
 int32 UItemDataObject::GetQuantity() const
 {

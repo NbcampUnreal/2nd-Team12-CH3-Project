@@ -29,14 +29,10 @@ public:
 	/* 기본 생성자 */
 	AItemBase();
 
+	virtual void BeginPlay() override;
+
 	/* 아이템 초기화 (데이터 테이블에서 로드) */
 	void InitializeItem(FName ItemRowName);
-
-
-	void InitializeItem(FName ItemRowName,
-		UDataTable* ItemDataTable,
-		UDataTable* WeaponTable,
-		UDataTable* ConsumableTable);
 
 	/* 마우스 좌클릭 시 실행할 기본 동작 */
 	virtual void PrimaryAction(class ASPTPlayerCharacter* PlayerCharacter) PURE_VIRTUAL(AItemBase::PrimaryAction, );
@@ -60,7 +56,7 @@ protected:
 	EItemState ItemState;
 
 	/* 아이템 데이터 (동적 상태 포함) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	UItemDataObject* ItemData;
 
 	/* 아이템 메시 (월드에서 시각적 표현) */

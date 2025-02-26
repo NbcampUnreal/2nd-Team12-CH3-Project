@@ -21,4 +21,5 @@ class SPT_API IItemUsableInterface
 
 public:
 	virtual void Use(ASPTPlayerCharacter* PlayerCharacter) = 0;
+
 };

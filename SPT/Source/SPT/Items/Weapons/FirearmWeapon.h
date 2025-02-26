@@ -67,6 +67,6 @@ protected:
 	USkeletalMeshComponent* SkeletalMeshComponent;
 
 	/* 총기 데이터를 불러와 초기화 */
-	void InitializeFirearmData(const FWeaponItemData& NewWeaponData);
+	virtual void SetWeaponData(const FWeaponItemData& NewWeaponData) override;
 
 };

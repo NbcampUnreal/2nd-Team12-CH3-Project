@@ -22,12 +22,15 @@ public:
 	/* 아이템을 줍는 기능 */
 	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter) override;
 
+	/* 메시 업데이트 */
+	void UpdateMesh();
+
 protected:
 	/* SkeletalMeshComponent (총기, 투척 무기 전용) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
 	USkeletalMeshComponent* SkeletalMeshComponent;
 
-	/* 아이템 데이터 테이블 */
+	/* 무기 데이터 테이블 */
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Item|Data")
 	UDataTable* WeaponDataTable;
 
@@ -36,7 +39,5 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 #endif
-
-	void UpdateMesh();
 
 };

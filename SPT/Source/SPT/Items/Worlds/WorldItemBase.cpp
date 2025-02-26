@@ -15,44 +15,6 @@ AWorldItemBase::AWorldItemBase()
 void AWorldItemBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// 아이템 데이터를 DataTable에서 로드
-	InitializeItemFromDataTable();
-}
-
-void AWorldItemBase::InitializeItemFromDataTable()
-{
-	if (!ItemDataTable)
-	{
-		UE_LOG(LogTemp, Error, TEXT("WorldItemBase::ItemDataTable is not assigned!"));
-		return;
-	}
-
-	if (ItemID.IsNone())
-	{
-		UE_LOG(LogTemp, Error, TEXT("WorldItemBase::No Vaild ItemID!"));
-		return;
-	}
-
-	const FString ContextStromg = TEXT("ItemDataTable");
-	FItemData* FoundItemData = ItemDataTable->FindRow<FItemData>(ItemID, ContextStromg);
-	if (FoundItemData && ItemData)
-	{
-		ItemData->SetItemData(*FoundItemData);
-		UE_LOG(LogTemp, Log, TEXT("World item initialized: %s"), *ItemID.ToString());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable does not contain data for ItemID: %s"), *ItemID.ToString());
-	}
-}
-
-void AWorldItemBase::InitializeItem(const FItemData& NewItemData)
-{
-	if (ItemData)
-	{
-		ItemData->SetItemData(NewItemData);
-	}
 }
 
 void AWorldItemBase::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
@@ -148,8 +110,14 @@ void AWorldItemBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 	// ItemID가 변경된 경우에만 데이터 테이블을 업데이트
 	if (ChangedPropertyName == GET_MEMBER_NAME_CHECKED(AWorldItemBase, ItemID))
 	{
-		InitializeItemFromDataTable();
+		if (!ItemData)
+		{
+			ItemData = NewObject<UItemDataObject>(this, UItemDataObject::StaticClass());
+		}
+
+		ItemData->InitializeItemData(ItemID);
 		UpdateMesh();
+		UE_LOG(LogTemp, Log, TEXT("PostEditChangeProperty - ItemData updated for %s"), *ItemID.ToString());
 	}
 }
 
@@ -159,17 +127,17 @@ void AWorldItemBase::OnConstruction(const FTransform& Transform)
 
 	if (!ItemDataTable || ItemID.IsNone())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnConstruction: ItemDataTable is missing or ItemID is not set for %s"), *GetName());
+		UE_LOG(LogTemp, Log, TEXT("AWorldItemBase::OnConstruction: There is No ItemDataTable or ItemID for %s"), *GetName());
 		return;
 	}
 
-	const FString ContextString = TEXT("ItemDataTable Lookup");
-	FItemData* FoundItemData = ItemDataTable->FindRow<FItemData>(ItemID, ContextString);
-	if (FoundItemData)
+	if (!ItemData)
 	{
-		ItemData->SetItemData(*FoundItemData);
-		UE_LOG(LogTemp, Log, TEXT("OnConstruction: Item data loaded for %s"), *GetName());
+		ItemData = NewObject<UItemDataObject>(this, UItemDataObject::StaticClass());
 	}
+
+	ItemData->SetItemData(ItemData->GetItemData());
+	UE_LOG(LogTemp, Log, TEXT("OnConstruction: Item data loaded for %s"), *GetName());
 
 	UpdateMesh();
 }

@@ -19,6 +19,8 @@ public:
 
 public:
 
+	virtual void PrimaryAction(class ASPTPlayerCharacter* PlayerCharacter) override;
+
 	/* 공격 기능 */
 	virtual void Attack() PURE_VIRTUAL(AWeaponBase::Attack, );
 
@@ -35,7 +37,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item|Weapons")
 	virtual const FWeaponItemData& GetWeaponData() const;
 	UFUNCTION(BlueprintCallable, Category = "Item|Weapons")
-	void SetWeaponData(const FWeaponItemData& NewWeaponData);
+	virtual void SetWeaponData(const FWeaponItemData& NewWeaponData);
 
 protected:
 	/* 공통 무기 데이터 */

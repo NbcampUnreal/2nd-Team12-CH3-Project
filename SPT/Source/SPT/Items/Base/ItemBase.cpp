@@ -13,19 +13,35 @@ AItemBase::AItemBase()
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = StaticMeshComponent;
 
-	// 아이템 데이터 오브젝트 초기화
-	ItemData = CreateDefaultSubobject<UItemDataObject>(TEXT("ItemData"));
-
 	// 기본 상태는 월드 상태
 	ItemState = EItemState::EIS_World;
 }
 
-void AItemBase::InitializeItem(FName ItemRowName, UDataTable* ItemDataTable, UDataTable* WeaponTable, UDataTable* ConsumableTable)
+void AItemBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (!ItemData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemData is nullptr. Creating new ItemDataObject."));
+		ItemData = NewObject<UItemDataObject>(this, UItemDataObject::StaticClass());
+
+		if (!ItemData)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to create ItemDataObject!"));
+			return;  // 충돌 방지
+		}
+	}
+
+	ItemData->InitializeItemData(ItemData->GetItemData().ItemID);
+}
+
+void AItemBase::InitializeItem(FName ItemRowName)
 {
 	if (ItemData)
 	{
 		// ItemDataObject에서 데이터 초기화
-		ItemData->InitializeFromDataTable(ItemDataTable, WeaponTable, ConsumableTable, ItemRowName);
+		ItemData->InitializeItemData(ItemRowName);
 
 		const FItemData& LoadedItemData = ItemData->GetItemData();
 
@@ -103,5 +119,6 @@ void AItemBase::SetItemData(UItemDataObject* NewItemData)
 	if (NewItemData)
 	{
 		ItemData = NewItemData;
+		UE_LOG(LogTemp, Warning, TEXT("AItemBase::SetItemData called. Keeping existing item state."));
 	}
 }

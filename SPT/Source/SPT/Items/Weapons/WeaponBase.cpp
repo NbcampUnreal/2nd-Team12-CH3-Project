@@ -16,6 +16,14 @@ AWeaponBase::AWeaponBase()
 	}
 }
 
+void AWeaponBase::PrimaryAction(ASPTPlayerCharacter* PlayerCharacter)
+{
+	if (PlayerCharacter)
+	{
+		Attack();
+	}
+}
+
 void AWeaponBase::Drop(ASPTPlayerCharacter* PlayerCharacter)
 {
 	if (!PlayerCharacter)
@@ -38,7 +46,10 @@ void AWeaponBase::Drop(ASPTPlayerCharacter* PlayerCharacter)
 	}
 
 	// 기존 무기 데이터를 AWorldWeapon에 복사
-	DroppedWeapon->SetItemData(ItemData);
+	ItemState = EItemState::EIS_World;
+	UItemDataObject* NewItemData = ItemData->CreateItemCopy();
+	DroppedWeapon->SetItemData(NewItemData);
+	DroppedWeapon->UpdateMesh();
 
 	// 물리 효과 적용하여 자연스럽게 떨어지게 설정
 	if (UStaticMeshComponent* WeaponMesh = DroppedWeapon->FindComponentByClass<UStaticMeshComponent>())
@@ -51,7 +62,6 @@ void AWeaponBase::Drop(ASPTPlayerCharacter* PlayerCharacter)
 	}
 
 	// 원본 무기 제거
-	ItemState = EItemState::EIS_World;
 	Destroy();
 }
 

@@ -10,5 +10,12 @@ UCLASS()
 class SPT_API AWorldConsumable : public AWorldItemBase
 {
 	GENERATED_BODY()
+
+public:
+
+	AWorldConsumable();
+
+	/* 아이템 줍는 기능 */
+	virtual void OnPickup(ASPTPlayerCharacter* PlayerCharacter) override;
 	
 };
