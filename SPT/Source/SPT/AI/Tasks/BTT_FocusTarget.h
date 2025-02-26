@@ -15,6 +15,7 @@ class SPT_API UBTT_FocusTarget : public UBTTaskNode
 public:
 	UBTT_FocusTarget();
 
+protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blackboard")

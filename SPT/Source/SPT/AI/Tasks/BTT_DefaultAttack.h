@@ -14,8 +14,6 @@ class SPT_API UBTT_DefaultAttack : public UBTTaskNode
 public:
     UBTT_DefaultAttack();
 
-    virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
 	// 공격 종료 시 호출되는 함수
 	UFUNCTION()
 	void OnAttackFinished();
@@ -23,5 +21,8 @@ public:
 	UPROPERTY()
 	ASPTEnemyCharacter* EnemyCharacterRef = nullptr;
 	UPROPERTY()
-	UBehaviorTreeComponent* StoredOwnerComp = nullptr;
+	UBehaviorTreeComponent* OwnerCompRef = nullptr;
+
+protected:
+	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 };

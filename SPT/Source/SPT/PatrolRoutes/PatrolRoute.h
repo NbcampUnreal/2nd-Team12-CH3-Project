@@ -16,6 +16,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadwrite, Category = "AI")
     USplineComponent* Path;  // ¼øÂû °æ·Î
 
-protected:
-    virtual void BeginPlay() override;
+    UFUNCTION(BlueprintCallable, Category = "Patrol")
+    FVector GetNextPatrolPoint(AActor* Requester);
+
+private:
+    TMap<AActor*, int32> PatrolIndexes;
 };

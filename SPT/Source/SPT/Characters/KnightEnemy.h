@@ -17,5 +17,17 @@ protected:
 
 public:
 
-	void Attack() override;
+	virtual void Attack() override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Montage")
+	UAnimMontage* AttackMontage;
+
+	void EquippedWeapon() override;
+	void UnEquippedWeapon() override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Montage")
+	UAnimMontage* EquipMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Montage")
+	UAnimMontage* UnEquipMontage;
+
 };
