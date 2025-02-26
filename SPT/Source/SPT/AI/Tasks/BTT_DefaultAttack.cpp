@@ -13,8 +13,10 @@ UBTT_DefaultAttack::UBTT_DefaultAttack()
 
 EBTNodeResult::Type UBTT_DefaultAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+    OwnerCompRef = &OwnerComp;
+
     // AI 컨트롤러와 블랙보드 가져오기
-    AAIController* AIC = OwnerComp.GetAIOwner();
+    ASPTEnemyController* AIC = Cast<ASPTEnemyController>(OwnerComp.GetAIOwner());
     UBlackboardComponent* BBC = OwnerComp.GetBlackboardComponent();
     
     if (!AIC || !BBC)
@@ -27,8 +29,6 @@ EBTNodeResult::Type UBTT_DefaultAttack::ExecuteTask(UBehaviorTreeComponent& Owne
     EnemyCharacterRef = Cast<ASPTEnemyCharacter>(AIC->GetPawn());
     if (EnemyCharacterRef)
     {
-        StoredOwnerComp = &OwnerComp;
-
         // 공격 종료 이벤트 바인딩
         EnemyCharacterRef->OnAttackEnd.AddDynamic(this, &UBTT_DefaultAttack::OnAttackFinished);
 
@@ -55,9 +55,9 @@ void UBTT_DefaultAttack::OnAttackFinished()
         EnemyCharacterRef->OnAttackEnd.RemoveDynamic(this, &UBTT_DefaultAttack::OnAttackFinished);
     }
 
-    if (StoredOwnerComp)
+    if (OwnerCompRef)
     {
         UE_LOG(LogTemp, Warning, TEXT("DefaultAttack Task is done!"));
-        FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
+        FinishLatentTask(*OwnerCompRef, EBTNodeResult::Succeeded);
     }
 }
