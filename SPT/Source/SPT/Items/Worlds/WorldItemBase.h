@@ -46,10 +46,21 @@ public:
 #endif
 
 	/* 아이템 데이터 테이블 */
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Pickup")
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Item|Data")
 	UDataTable* ItemDataTable;
 
 	/* 아이템 ID */
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Pickup")
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Item|Data")
 	FName ItemID;
+
+protected:
+
+	/* 드롭 위치 계산 */
+	FVector GetDropLocation(
+		ASPTPlayerCharacter* PlayerCharacter,
+		FVector& OutDropLocation,
+		FRotator& OutDropRotation);
+
+	void UpdateMesh();
+
 };

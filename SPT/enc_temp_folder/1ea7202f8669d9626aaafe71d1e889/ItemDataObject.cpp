@@ -81,11 +81,6 @@ const FWeaponItemData& UItemDataObject::GetWeaponData() const
 	return WeaponData;
 }
 
-void UItemDataObject::SetWeaponData(const FWeaponItemData& NewWeaponData)
-{
-	WeaponData = NewWeaponData;
-}
-
 /*
 const FConsumableItemData* UItemDataObject::GetConsumableData() const
 {

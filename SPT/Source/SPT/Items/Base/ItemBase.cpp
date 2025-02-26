@@ -13,20 +13,19 @@ AItemBase::AItemBase()
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = StaticMeshComponent;
 
-	// Skeletal Mesh Component 생성 (무기)
-	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
-	SkeletalMeshComponent->SetupAttachment(RootComponent);
-
 	// 아이템 데이터 오브젝트 초기화
 	ItemData = CreateDefaultSubobject<UItemDataObject>(TEXT("ItemData"));
+
+	// 기본 상태는 월드 상태
+	ItemState = EItemState::EIS_World;
 }
 
-void AItemBase::InitializeItem(FName ItemRowName)
+void AItemBase::InitializeItem(FName ItemRowName, UDataTable* ItemDataTable, UDataTable* WeaponTable, UDataTable* ConsumableTable)
 {
 	if (ItemData)
 	{
-		// ItemData에서 데이터 초기화
-		ItemData->InitializeFromDataTable(ItemRowName);
+		// ItemDataObject에서 데이터 초기화
+		ItemData->InitializeFromDataTable(ItemDataTable, WeaponTable, ConsumableTable, ItemRowName);
 
 		const FItemData& LoadedItemData = ItemData->GetItemData();
 
@@ -35,21 +34,49 @@ void AItemBase::InitializeItem(FName ItemRowName)
 		{
 			StaticMeshComponent->SetStaticMesh(LoadedItemData.AssetData.StaticMesh);
 			StaticMeshComponent->SetVisibility(true);
-			SkeletalMeshComponent->SetVisibility(false);
-		}
-		else if (LoadedItemData.AssetData.SkeletalMesh)
-		{
-			SkeletalMeshComponent->SetSkeletalMesh(LoadedItemData.AssetData.SkeletalMesh);
-			SkeletalMeshComponent->SetVisibility(true);
-			StaticMeshComponent->SetVisibility(false);
 		}
 	}
 }
 
-void AItemBase::PrimaryAction(ASPTPlayerCharacter* PlayerCharacter)
+void AItemBase::UpdateMeshForState(EItemState NewState)
 {
-	// 기본적으로 PrimaryAction은 하위 클래스에서 오버라이드하여 사용
-	UE_LOG(LogTemp, Warning, TEXT("%s: PrimaryAction()가 구현되지 않음!"), *ItemData->GetItemData().TextData.ItemName.ToString());
+	ItemState = NewState;
+
+	if (!ItemData)
+	{
+		return;
+	}
+
+	const FItemData& Data = ItemData->GetItemData();
+	// StaticMesh 사용
+	if (Data.AssetData.StaticMesh)
+	{
+		StaticMeshComponent->SetStaticMesh(Data.AssetData.StaticMesh);
+		StaticMeshComponent->SetVisibility(true);
+	}
+}
+
+AItemBase* AItemBase::CreateItemCopy() const
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CreateItemCopy failed: World is null."));
+		return nullptr;
+	}
+
+	// 현재 액터의 transform을 그대로 사용하여 복제
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AItemBase* NewItem = World->SpawnActor<AItemBase>(GetClass(), GetActorTransform(), SpawnParams);
+	if (NewItem && ItemData)
+	{
+		NewItem->SetItemData(ItemData->CreateItemCopy());
+		NewItem->SetItemState(ItemState);
+	}
+
+	return NewItem;
 }
 
 EItemState AItemBase::GetItemState() const
@@ -62,6 +89,7 @@ void AItemBase::SetItemState(EItemState NewItemState)
 	if (NewItemState != EItemState::EIS_MAX)
 	{
 		ItemState = NewItemState;
+		UpdateMeshForState(NewItemState);
 	}
 }
 

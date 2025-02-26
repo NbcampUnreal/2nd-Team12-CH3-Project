@@ -18,6 +18,7 @@ public:
 	/* 기본 생성자 */
 	UItemDataObject();
 
+	/* 데이터 테이블에서 아이템 초기화 */
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void InitializeFromDataTable(
 		UDataTable* InItemDataTable,
@@ -38,8 +39,6 @@ public:
 	/* 무기 데이터 가져오기 */
 	UFUNCTION(BlueprintCallable, Category = "Item|Weapons")
 	const FWeaponItemData& GetWeaponData() const;
-	UFUNCTION(BlueprintCallable, Category = "Item|Weapons")
-	void SetWeaponData(const FWeaponItemData& NewWeaponData);
 
 	/* 소비 아이템 데이터 가져오기 */
 	// UFUNCTION(BlueprintCallable, Category = "Item|Weapons")

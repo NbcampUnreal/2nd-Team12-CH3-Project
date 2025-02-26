@@ -26,15 +26,26 @@ class SPT_API AItemBase : public AActor
 	GENERATED_BODY()
 	
 public:	
-
+	/* 기본 생성자 */
 	AItemBase();
 
 	/* 아이템 초기화 (데이터 테이블에서 로드) */
 	void InitializeItem(FName ItemRowName);
 
+
+	void InitializeItem(FName ItemRowName,
+		UDataTable* ItemDataTable,
+		UDataTable* WeaponTable,
+		UDataTable* ConsumableTable);
+
 	/* 마우스 좌클릭 시 실행할 기본 동작 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Item")
-	virtual void PrimaryAction(class ASPTPlayerCharacter* PlayerCharacter);
+	virtual void PrimaryAction(class ASPTPlayerCharacter* PlayerCharacter) PURE_VIRTUAL(AItemBase::PrimaryAction, );
+
+	/* 상태에 따라 메시 업데이트 */
+	void UpdateMeshForState(EItemState NewState);
+
+	/* 아이템 복제 */
+	AItemBase* CreateItemCopy() const;
 
 	/* Getter & Setter */
 	EItemState GetItemState() const;
@@ -55,9 +66,5 @@ protected:
 	/* 아이템 메시 (월드에서 시각적 표현) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item | Mesh")
 	UStaticMeshComponent* StaticMeshComponent;
-
-	/* SkeletalMesh (무기 전용) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item | Mesh")
-	USkeletalMeshComponent* SkeletalMeshComponent;
 
 };

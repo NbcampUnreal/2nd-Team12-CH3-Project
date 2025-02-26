@@ -6,6 +6,8 @@
 #include "UObject/Interface.h"
 #include "WeaponItemInterface.generated.h"
 
+class ASPTPlayerCharacter;
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UWeaponItemInterface : public UInterface
@@ -23,11 +25,11 @@ public:
 	virtual void Attack() = 0;
 
 	/* 무기 장착 기능 */
-	virtual void Equip() = 0;
+	virtual void Equip(ASPTPlayerCharacter* PlayerCharacter) = 0;
 
 	/* 무기 해제 기능 */
-	virtual void UnEquip() = 0;
+	virtual void UnEquip(ASPTPlayerCharacter* PlayerCharacter) = 0;
 
 	/* 무기 드롭 기능 */
-	virtual void Drop() = 0;
+	virtual void Drop(ASPTPlayerCharacter* PlayerCharacter) = 0;
 };

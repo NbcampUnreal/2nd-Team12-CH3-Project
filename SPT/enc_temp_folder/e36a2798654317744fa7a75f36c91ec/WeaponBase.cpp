@@ -60,11 +60,6 @@ const FWeaponItemData& AWeaponBase::GetWeaponData() const
 	return WeaponData;
 }
 
-void AWeaponBase::SetWeaponData(const FWeaponItemData& NewWeaponData)
-{
-	WeaponData = NewWeaponData;
-}
-
 void AWeaponBase::GetDropLocation(ASPTPlayerCharacter* PlayerCharacter, FVector& OutDropLocation, FRotator& OutDropRotation)
 {
 	UWorld* World = GetWorld();

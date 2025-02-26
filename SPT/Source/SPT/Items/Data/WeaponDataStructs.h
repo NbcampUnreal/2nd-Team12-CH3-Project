@@ -12,7 +12,7 @@ enum class EWeaponType : uint8
 {
 	EWT_Firearm UMETA(DisplayName = "Firearm Weapon"),	// 원거리 무기
 	EWT_Melee UMETA(DisplayName = "Melee Weapon"),		// 근접 무기
-	EWT_Grenade UMETA(DisplayName = "Grenade Weapon"),	// 투척 무기
+	EWT_Throwable UMETA(DisplayName = "Throwable Weapon"),	// 투척 무기
 	EWT_MAX UMETA(Hidden)
 };
 
@@ -52,6 +52,10 @@ struct FFirearmStats
 	float Recoil;	// 반동
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
 	bool bHasAutomaticFireMode; // 자동 사격 가능 여부
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|ADS")
+	float AimZoomLevel;	// 조준 시 확대 비율
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|ADS")
+	float AimSpeed;	// 조준 속도
 };
 
 /* 근접 무기 데이터 구조체 */
@@ -72,11 +76,11 @@ struct FGrenadeStats
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grenade")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Throwable")
 	float ExplosionRadius;	// 폭발 범위
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grenade")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Throwable")
 	float FuseTime;		// 폭발까지 소요 시간
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grenade")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Throwable")
 	float ThrowForce;	// 투척력
 };
 
@@ -103,7 +107,7 @@ struct FWeaponItemData : public FTableRowBase
 	FMeleeWeaponStats MeleeStats;
 
 	/* 수류탄 데이터 (수류탄일 경우에만 할당) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Grenade", meta = (EditCondition = "WeaponType == EWT_Grenade"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Throwable", meta = (EditCondition = "WeaponType == EWT_Grenade"))
 	FGrenadeStats GrenadeStats;
 
 	/* 무기 전용 Physics Asset */
