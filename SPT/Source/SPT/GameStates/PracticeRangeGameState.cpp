@@ -4,6 +4,7 @@
 #include "PracticeRangeGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "AISpawnVolume.h"
+#include "BaseCharacter.h"
 
 APracticeRangeGameState::APracticeRangeGameState()
 {
@@ -29,17 +30,37 @@ void APracticeRangeGameState::BeginPlay()
     }
 
     // 테스트 코드
-	ProficiencyTestingStart(ProficiencyTestSpawnAICount);
+    ProficiencyTestingStart();
 }
 
-void APracticeRangeGameState::ProficiencyTestingStart(int32 SpawnCount)
+void APracticeRangeGameState::ProficiencyTestingStart()
 {
+    // 특정 시간 안에 AI를 잡는 로직 구현
+    
     // 스폰해야하는 횟수만큼 반복
-	for (int32 i = 0; i < SpawnCount; ++i)
-	{
-        if (ProficiencyTestSpawnVolume)
+    for (int32 i = 0; i < ProficiencyTestSpawnAICount; ++i)
+    {
+        // AI 스폰
+        ProficiencyTestingAISpawn();
+    }
+}
+
+void APracticeRangeGameState::ProficiencyTestingAISpawn()
+{
+    if (ProficiencyTestSpawnVolume)
+    {
+        ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(ProficiencyTestSpawnVolume->SpawnAI());
+
+        if (BaseCharacter)
         {
-            ProficiencyTestSpawnVolume->SpawnAI();
+            // 스폰 시킨 AI가 사망된 후 스폰 함수 다시 호출
+            BaseCharacter->OnDethMulticastDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAISpawn);
+            BaseCharacter->OnDethMulticastDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAIKillCount);
         }
-	}
+    }
+}
+
+void APracticeRangeGameState::ProficiencyTestingAIKillCount()
+{
+    // AI가 처치됐다면 UI에 반영하는 로직
 }
