@@ -24,23 +24,19 @@ class SPT_API ASPTPlayerCharacter : public ABaseCharacter
 public:
 	ASPTPlayerCharacter();
 
-
-
+	// 인벤토리 관련 함수
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItemToInventory(AItemActor* Item);
-	// 미작성
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void ToggleInventory();
 	UFUNCTION()
 	void TryPickupItem();
-	// 미작성
 	UFUNCTION()
 	void DropItem(UInventoryItem* InventoryItem);
-
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	AInventoryManager* GetInventory() const;
 
-	// 인벤토리 적용
+	// 캐릭터에 인벤토리 할당
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TSubclassOf<AInventoryManager> InventoryManagerClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")

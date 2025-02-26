@@ -54,6 +54,7 @@ AItemActor::AItemActor()
 	ItemDescription = "This is just trash";
 	ItemID = 0;
 	ItemAmount = 1;
+
 }
 
 

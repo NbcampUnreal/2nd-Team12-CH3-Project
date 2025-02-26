@@ -8,6 +8,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SceneCaptureComponent2D.h"     // 캐릭터 프리뷰 캡쳐용도 입니다.
+#include "Engine/TextureRenderTarget2D.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
@@ -164,7 +166,6 @@ void ASPTPlayerCharacter::BeginPlay()
     {
         InventoryManager->SetInventoryWidget(InventoryMainWidgetInstance);
     }
-
 }
 
 void ASPTPlayerCharacter::Tick(float DeltaTime)
