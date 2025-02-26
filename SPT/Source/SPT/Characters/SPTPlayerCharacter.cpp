@@ -95,19 +95,28 @@ void ASPTPlayerCharacter::TryPickupItem()
 
     if (bHit)
     {
-        AItemActor* Item = Cast<AItemActor>(HitResult.GetActor());
-        if (Item && InventoryManager)
+        AItemActor* ItemActor = Cast<AItemActor>(HitResult.GetActor());
+        if (ItemActor && InventoryManager)
         {
-            InventoryManager->AddItemToInventory(Item);
+            UInventoryItem* ItemData = ItemActor->GetItemData();
+            if (ItemData)
+            {
+                InventoryManager->AddItemToInventory(ItemData);
+
+                ItemActor->Destroy();
+            }
         }
     }
 }
 
 void ASPTPlayerCharacter::DropItem(UInventoryItem* InventoryItem)
 {
-    if (InventoryManager && InventoryItem)
+    if (InventoryManager)
     {
-        InventoryManager->DropItemFromInventory(InventoryItem);
+        UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : DropItem"));
+
+        FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 200.0f;
+        InventoryManager->DropItem(InventoryItem, DropLocation);
     }
 }
 

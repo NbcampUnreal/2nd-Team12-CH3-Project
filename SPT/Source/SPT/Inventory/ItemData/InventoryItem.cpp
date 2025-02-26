@@ -3,3 +3,7 @@
 
 #include "InventoryItem.h"
 
+void UInventoryItem::UseItem()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ItemData : UseItem"));
+}

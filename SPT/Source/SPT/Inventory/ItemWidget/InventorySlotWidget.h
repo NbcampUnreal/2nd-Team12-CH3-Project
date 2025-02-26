@@ -39,17 +39,24 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UButton* CancelButton;
 
+
+    // 아이템 데이터 확인용(지워도됨)
+    UPROPERTY()
+    UInventoryItem* ItemData;
+
+    
+    UFUNCTION()
     void UpdateItem(UInventoryItem* InventoryItem);
 
     // 아이템 클릭 시 개별 메뉴 버튼 관련
-    //UFUNCTION()
-    //void OnItemSelectClicked();
-    //UFUNCTION()
-    //void OnUseClicked();
+    UFUNCTION()
+    void OnItemSelectClicked();
+    UFUNCTION()
+    void OnUseClicked();
 
-    //UFUNCTION()
-    //void OnDropClicked();
+    UFUNCTION()
+    void OnDropClicked();
 
-    //UFUNCTION()
-    //void OnCancelClicked();
+    UFUNCTION()
+    void OnCancelClicked();
 };

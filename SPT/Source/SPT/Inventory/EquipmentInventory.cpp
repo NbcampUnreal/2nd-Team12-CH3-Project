@@ -31,6 +31,18 @@ bool AEquipmentInventory::HasItem(FName ItemName)
 	});
 }
 
+bool AEquipmentInventory::RemoveItem(UInventoryItem* Item)
+{
+	if (!Item) return false;
+
+	if (EquipmentItems.Remove(Cast<UEquipmentItem>(Item)) > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 const TArray<UInventoryItem*>& AEquipmentInventory::GetInventory() const
 {
 	return reinterpret_cast<const TArray<UInventoryItem*>&>(EquipmentItems);

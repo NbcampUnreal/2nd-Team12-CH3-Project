@@ -49,6 +49,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	UInventoryItem* GetItemData() const;
 
+	//void InitializeItem(UInventoryItem* ItemData);
+
 
 	// 아이템 상호작용
 	UFUNCTION(BlueprintCallable, Category = "Item")

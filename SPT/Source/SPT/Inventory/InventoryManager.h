@@ -23,7 +23,9 @@ public:
 
 	void RegisterInventory(AActor* InventoryActor);
 	void AddItemToInventory(UInventoryItem* Item);
-
+	void UseItem(UInventoryItem* Item);
+	void DropItem(UInventoryItem* Item, FVector DropLocation);
+	void RemoveItem(UInventoryItem* Item);
 	void SetInventoryWidget(UInventoryMainWidget* NewWidget);
 
 	UPROPERTY()

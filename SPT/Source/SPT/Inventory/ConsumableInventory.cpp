@@ -30,6 +30,18 @@ bool AConsumableInventory::HasItem(FName ItemName)
 		});
 }
 
+bool AConsumableInventory::RemoveItem(UInventoryItem* Item)
+{
+	if (!Item) return false;
+
+	if (ConsumableItems.Remove(Cast<UConsumableItem>(Item)) > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 const TArray<UInventoryItem*>& AConsumableInventory::GetInventory() const
 {
 	return reinterpret_cast<const TArray<UInventoryItem*>&>(ConsumableItems);

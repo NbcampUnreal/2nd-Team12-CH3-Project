@@ -32,36 +32,16 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
     }
 
     bool bItemAdded = false;
-
-    // 장비 아이템 추가
-    if (UEquipmentItem* EquipmentItem = Cast<UEquipmentItem>(Item))
+    
+    for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
     {
-        for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
+        if (Inventory)
         {
-            AEquipmentInventory* EquipmentInventory = Cast<AEquipmentInventory>(Inventory.GetObject());
-            if (EquipmentInventory)
-            {
-                EquipmentInventory->AddItem(EquipmentItem);  // 장비 아이템 추가
-                UE_LOG(LogTemp, Warning, TEXT("Added to EquipmentInventory"));
-                bItemAdded = true;
-                break;  // 첫 번째 장비 인벤토리만 추가
-            }
-        }
-    }
-
-    // 소모품 아이템 추가
-    if (!bItemAdded && Cast<UConsumableItem>(Item))
-    {
-        for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
-        {
-            AConsumableInventory* ConsumableInventory = Cast<AConsumableInventory>(Inventory.GetObject());
-            if (ConsumableInventory)
-            {
-                ConsumableInventory->AddItem(Cast<UConsumableItem>(Item));  // 소모품 아이템 추가
-                UE_LOG(LogTemp, Warning, TEXT("Added to ConsumableInventory"));
-                bItemAdded = true;
-                break;  // 첫 번째 소모품 인벤토리만 추가
-            }
+            // 모든 인벤토리에서 AddItem 호출
+            Inventory->AddItem(Item);
+            UE_LOG(LogTemp, Warning, TEXT("Added to Inventory"));
+            bItemAdded = true;
+            break;  // 첫 번째 인벤토리만 추가
         }
     }
 
@@ -92,6 +72,79 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
     }
 }
 
+void AInventoryManager::UseItem(UInventoryItem* Item)
+{
+    if (!Item) return;
+    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem"));
+    Item->UseItem();
+}
+
+void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
+{
+    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : DropItem"));
+
+    if (!Item || !Item->ItemActorClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DropItem: Invalid item or missing ItemActorClass"));
+        return;
+    }
+
+    // 아이템을 스폰
+    AItemActor* SpawnedItem = GetWorld()->SpawnActor<AItemActor>(Item->ItemActorClass, DropLocation, FRotator::ZeroRotator);
+
+    if (SpawnedItem)
+    {
+
+        // 아이템을 가시화하고 충돌 가능하게 설정
+        SpawnedItem->SetActorHiddenInGame(false);
+        SpawnedItem->SetActorEnableCollision(true);
+
+        UE_LOG(LogTemp, Warning, TEXT("Item dropped at location: %s"), *DropLocation.ToString());
+
+        // 인벤토리에서 아이템 제거
+        RemoveItem(Item);
+    }
+    else {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to spawn dropped item."));
+    }
+}
+
+void AInventoryManager::RemoveItem(UInventoryItem* Item)
+{
+    if (!Item)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("RemoveItem: Item is nullptr!"));
+        return;
+    }
+
+    bool bItemRemoved = false;
+
+    // 모든 인벤토리를 순회하면서 아이템 제거 시도
+    for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
+    {
+        if (Inventory->RemoveItem(Item))  // 인터페이스를 통해 제거
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Removed Item from Inventory"));
+            bItemRemoved = true;
+            break;  // 한 개의 인벤토리에서만 제거
+        }
+    }
+
+    // 아이템이 제거되었으면 UI 갱신
+    if (bItemRemoved && InventoryMainWidgetInstance)
+    {
+        TArray<UInventoryItem*> AllItems;
+        for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
+        {
+            AllItems.Append(Inventory->GetInventory());
+        }
+        InventoryMainWidgetInstance->UpdateInventoryList(AllItems);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("RemoveItem: Item not found in any inventory."));
+    }
+}
 
 void AInventoryManager::SetInventoryWidget(UInventoryMainWidget* NewWidget)
 {

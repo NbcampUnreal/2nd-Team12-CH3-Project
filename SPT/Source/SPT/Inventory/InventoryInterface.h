@@ -23,6 +23,7 @@ public:
 	virtual void AddItem(UInventoryItem* Item) = 0;
 	virtual void DropItem(UInventoryItem* Item) = 0;
 	virtual bool HasItem(FName ItemName) = 0;
+	virtual bool RemoveItem(UInventoryItem* Item) = 0;
 	virtual const TArray<UInventoryItem*>& GetInventory() const = 0;
 
 };

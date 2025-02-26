@@ -23,8 +23,8 @@ public:
 	virtual void AddItem(UInventoryItem* Item) override;
 	virtual void DropItem(UInventoryItem* Item) override;
 	virtual bool HasItem(FName ItemName) override;
+	virtual bool RemoveItem(UInventoryItem* Item) override;
 	virtual const TArray<UInventoryItem*>& GetInventory() const override;
-	void EquipItem();
 
 	
 protected:

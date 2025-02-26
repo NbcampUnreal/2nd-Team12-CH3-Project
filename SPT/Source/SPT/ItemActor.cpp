@@ -39,8 +39,16 @@ AItemActor::AItemActor()
 	PickupWidgetComponent->SetDrawSize(FVector2D(200, 50));
 	PickupWidgetComponent->SetVisibility(false);
 
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/Resources/Items/Weapons/FPS_Weapon_Bundle/Meshes/Accessories/SM_Vertgrip.SM_Vertgrip"));
+	if (MeshAsset.Succeeded()) {
+		StaticMesh->SetStaticMesh(MeshAsset.Object);
+	}
+	static ConstructorHelpers::FObjectFinder<UMaterial> MaterialAsset(TEXT("/Game/Resources/Items/Weapons/FPS_Weapon_Bundle/Materials/Accessories/M_V_Grip.M_V_Grip"));
+	if (MaterialAsset.Succeeded()) {
+		StaticMesh->SetMaterial(0, MaterialAsset.Object);
+	}
 
-
+	Scene->SetWorldScale3D(FVector(5.0f, 5.0f, 5.0f));
 
 	ItemName = "Can";
 	ItemDescription = "This is just trash";
@@ -82,10 +90,21 @@ UInventoryItem* AItemActor::GetItemData() const
 	return ItemData; // 기본 아이템 반환
 }
 
+//void AItemActor::InitializeItem(UInventoryItem* ItemData)
+//{
+//	if (!ItemData) return;
+//
+//	// 기존 아이템 데이터 대신 참조를 저장
+//	this->ItemData = ItemData;
+//
+//	// 필요하면 UI 갱신 등의 로직 추가
+//}
+
 
 
 void AItemActor::UseItem()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ItemActor : UseItem"));
 }
 
 
@@ -96,10 +115,6 @@ void AItemActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor
 	if (Player && PickupWidget)
 	{
 		ShowPickupPrompt(true);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, TEXT("Overlap!"));
-		}
 	}
 }
 
@@ -109,10 +124,6 @@ void AItemActor::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* 
 	if (Player && PickupWidget)
 	{
 		ShowPickupPrompt(false);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, TEXT("Range Out"));
-		}
 	}
 }
 
@@ -139,6 +150,7 @@ void AItemActor::BeginPlay()
 		EquipmentItem->AttackPower = 50;
 		EquipmentItem->DefensePower = 10;
 		EquipmentItem->EquipmentSlot = FName("Weapon");
+		EquipmentItem->ItemActorClass = AItemActor::StaticClass();
 
 		ItemData = EquipmentItem;
 	}

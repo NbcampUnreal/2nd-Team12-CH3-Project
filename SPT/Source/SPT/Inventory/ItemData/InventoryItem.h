@@ -24,11 +24,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
 	int32 ItemPrice;
 
-	// 액터를 저장하고 불러오는 용도
-	UPROPERTY()
-	AItemActor* ItemActor;  // 아이템 액터를 저장
+	// 아이템을 생성할 때 필요(DropItem을 사용할 때)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
+	TSubclassOf<AItemActor> ItemActorClass;
 
-	void SetItemActor(AItemActor* NewActor) { ItemActor = NewActor; }
-	AItemActor* GetItemActor() const { return ItemActor; }
 
+	FString GetItemName() const { return ItemName; }
+	void UseItem();
 };
