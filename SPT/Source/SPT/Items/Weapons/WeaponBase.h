@@ -34,6 +34,8 @@ public:
 	/* 무기 데이터 반환 */
 	UFUNCTION(BlueprintCallable, Category = "Item|Weapons")
 	virtual const FWeaponItemData& GetWeaponData() const;
+	UFUNCTION(BlueprintCallable, Category = "Item|Weapons")
+	void SetWeaponData(const FWeaponItemData& NewWeaponData);
 
 protected:
 	/* 공통 무기 데이터 */
