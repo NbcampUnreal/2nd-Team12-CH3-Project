@@ -38,6 +38,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
 	void SpawnMissile();
 
+	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
+	void StartMissileAttack();
+
+	FTimerHandle MissileTimerHandle;
 
 	// 미사일 발사 위치를 위한 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss")
@@ -52,6 +56,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Missiles")
 	float MissileSpeed = 600.0f; // 미사일 속도
 
+	int CurrentMissileCount;
 
 
 	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
@@ -72,7 +77,12 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void SpawnBombs();
+	void StartSpawnBombs();
+	
+	UFUNCTION()
+	void SpawnBombs(FVector TargetLocation);
+	FTimerHandle SpawnSmallBombDelayTimerHandle;
+
 
 	UPROPERTY(EditAnywhere, Category = "Bomb")
 	TSubclassOf<AActor> BombClass;
@@ -85,4 +95,83 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Bomb")
 	float BombDropInterval = 0.5f;  // 미사일이 떨어지는 간격
+
+
+	UPROPERTY(EditAnywhere, Category = "BigBomb")
+	TSubclassOf<AActor> BigBombClass;
+
+	UFUNCTION(BlueprintCallable, Category = "BigBomb")
+	void SpawnBigBomb();
+
+
+	// 총을 쏘는 함수
+	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
+	void FireRandomShots();
+
+	// 총알 스폰용 함수
+	void SpawnBullet(FVector SpawnLocation, FRotator SpawnRotation);
+
+	// 타이머 핸들러 (여러 발 연속 발사 시 사용)
+	FTimerHandle ShootingTimerHandle;
+
+	// 총알 클래스
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	TSubclassOf<AActor> BulletClass;
+
+	// 발사 속성
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	int32 BulletCount = 20; // 총알 개수
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float BulletSpreadAngle = 45.0f; // 부채꼴 범위 (도)
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	float FireRate = 0.2f; // 연속 발사 간격
+
+	// 공격 실행 함수
+	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
+	void StartRandomShooting();
+
+	int CurrentBulletCount;
+
+	/** 폭발 범위를 나타내는 데칼 */
+	UPROPERTY()
+	UDecalComponent* WarningDecal;
+
+	//Base
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UMaterialInterface* RandomShootingFirstMaterial;
+
+	//시간에 따라 확장
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UMaterialInterface* RandomShootingSecondMaterial;
+
+	void ShowFireRandomShotsWarning();
+	FTimerHandle ShootingDelayTimerHandle;
+
+	void StartFiring();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UMaterialInterface* BigBombFirstMaterial;
+
+	//시간에 따라 확장
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UMaterialInterface* BigBombSecondMaterial;
+
+	void ShowBigBombWarning();
+
+
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UMaterialInterface* SmallBombFirstMaterial;
+
+	//시간에 따라 확장
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UMaterialInterface* SmallBombSecondMaterial;
+
+	void ShowSmallBombWarning();
+
 };
+
