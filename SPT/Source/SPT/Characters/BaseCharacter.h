@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDethMulticastDelegate);
+
 UCLASS()
 class SPT_API ABaseCharacter : public ACharacter
 {
@@ -21,10 +23,21 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	// 사망 처리 함수 (체력이 0 이하가 되었을 때 호출)
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual void OnDeath();
+
+public:
+	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
+	FOnDethMulticastDelegate OnDethMulticastDelegate;
+
+protected:
 	// 기본 최대 체력
-	float MaxHP;
+	float MaxHealth;
 	// 현재 체력
-	float HP;
+	float Health;
 
 	// 기본 걷기 속도
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = true))

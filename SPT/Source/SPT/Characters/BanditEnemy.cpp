@@ -30,7 +30,6 @@ void ABanditEnemy::Attack()
         if (AnimInstance)
         {
             UE_LOG(LogTemp, Warning, TEXT("[BanditEnemy] Playing Attack Montage for: %s"), *GetName());
-            OnAttackEnd.Broadcast();  // 애니메이션 종료 시 호출
             //AnimInstance->Montage_Play(AttackMontage);
 
             //// 델리게이트 변수 명시적으로 생성
@@ -50,6 +49,59 @@ void ABanditEnemy::Attack()
 
             //// 델리게이트 등록
             //AnimInstance->Montage_SetEndDelegate(MontageEndDelegate);
+            OnAttackEnd.Broadcast();  // 애니메이션 종료 시 호출
+        }
+    }
+}
+
+void ABanditEnemy::EquippedWeapon()
+{
+    Super::EquippedWeapon();
+    if (EquipMontage)
+    {
+        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+        if (AnimInstance)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BanditEnemy] Equip Weapon Montage"));
+            bool IsEquippingWeapon = true;
+            //if (RifleClass) // Rifle의 UClass* 참조
+            //{
+            //    FActorSpawnParameters SpawnParams;
+            //    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Default;
+
+            //    // 현재 액터 위치에서 스폰
+            //    FTransform SpawnTransform = GetActorTransform();
+            //    ABP_Rifle* SpawnedRifle = GetWorld()->SpawnActor<ABP_Rifle>(RifleClass, SpawnTransform, SpawnParams);
+
+            //    if (SpawnedRifle)
+            //    {
+            //        // 스폰된 무기를 손에 부착
+            //        FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+            //        SpawnedRifle->AttachToComponent(GetMesh(), AttachRules, FName("hand_r_rifle_socket"));
+
+            //        UE_LOG(LogTemp, Warning, TEXT("[BanditEnemy] Rifle Attached Successfully"));
+            //    }
+            //}
+            return;
+        }
+    }
+}
+
+void ABanditEnemy::UnEquippedWeapon()
+{
+    Super::UnEquippedWeapon();
+    if (UnEquipMontage)
+    {
+        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+        if (AnimInstance)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BanditEnemy] UnEquip Weapon Montage"));
+            //if (EquippedRifle)
+            //{
+            //    EquippedRifle->Destroy();
+            //    EquippedRifle = nullptr;
+            //}
+            return;
         }
     }
 }

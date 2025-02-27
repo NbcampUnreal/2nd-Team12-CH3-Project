@@ -12,6 +12,7 @@ class SPT_API UBTT_ClearFocus : public UBTTaskNode
 public:
 	UBTT_ClearFocus();
 
+protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 };
