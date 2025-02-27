@@ -102,7 +102,20 @@ void AWorldWeapon::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 		}
 
 		ItemData->InitializeItemData(ItemID);
+
 		UpdateMesh();
+		// 피직스 애셋 설정 (물리 시뮬레이션 활성화)
+		if (SkeletalMeshComponent && ItemData->GetWeaponData().PhysicsAsset)
+		{
+			SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset); // 피직스 애셋 연결
+			SkeletalMeshComponent->SetSimulatePhysics(true); // 물리 시뮬레이션 활성화
+			SkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 충돌 활성화
+			SkeletalMeshComponent->SetCollisionObjectType(ECC_PhysicsBody); // 물리 바디 타입 설정
+			SkeletalMeshComponent->SetCollisionResponseToAllChannels(ECR_Block); // 모든 채널에서 충돌 처리
+			SkeletalMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // Pawn 클래스 충돌 무시
+			SkeletalMeshComponent->SetEnableGravity(true); // 중력 적용 채널에서 충돌 처리
+		}
+
 		UE_LOG(LogTemp, Log, TEXT("PostEditChangeProperty - ItemData updated for %s"), *ItemID.ToString());
 	}
 }
@@ -122,19 +135,6 @@ void AWorldWeapon::OnConstruction(const FTransform& Transform)
 
 	ItemData->SetItemData(ItemData->GetItemData());
 	UE_LOG(LogTemp, Log, TEXT("OnConstruction: Item data loaded for %s"), *GetName());
-
-
-	// 피직스 애셋 설정 (물리 시뮬레이션 활성화)
-	if (SkeletalMeshComponent && ItemData->GetWeaponData().PhysicsAsset)
-	{
-		SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset); // 피직스 애셋 연결
-		SkeletalMeshComponent->SetSimulatePhysics(true); // 물리 시뮬레이션 활성화
-		SkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 충돌 활성화
-		SkeletalMeshComponent->SetCollisionObjectType(ECC_PhysicsBody); // 물리 바디 타입 설정
-		SkeletalMeshComponent->SetCollisionResponseToAllChannels(ECR_Block); // 모든 채널에서 충돌 처리
-		SkeletalMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // Pawn 클래스 충돌 무시
-		SkeletalMeshComponent->SetEnableGravity(true); // 중력 적용 채널에서 충돌 처리
-	}
 
 	// 메쉬 업데이트
 	UpdateMesh();
