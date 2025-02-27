@@ -111,7 +111,7 @@ void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
 
 void AFirearmWeapon::Begin_Equip()
 {
-	/* 기존에 장착된 총기가 있다면 먼저 해제
+	// 기존에 장착된 총기가 있다면 먼저 해제
 	if (AWeaponBase* EquippedWeapon = Owner->GetEquippedWeapon())
 	{
 		if (EquippedWeapon && EquippedWeapon->IsA(AFirearmWeapon::StaticClass()))
@@ -119,9 +119,6 @@ void AFirearmWeapon::Begin_Equip()
 			Drop(Owner);
 		}
 	}
-	*/
-	Owner->EquipWeapon(this);
-	UpdateMesh();
 
 	// 장착된 위치로 이동
 	// PlayerCharacter->EquipWeapon(this); 대신
@@ -310,33 +307,4 @@ void AFirearmWeapon::SetWeaponData(const FWeaponItemData& NewWeaponData)
 	bIsFiring = false;
 	bIsAiming = false;
 	CurrentRecoil = 0.0f;
-}
-
-void AFirearmWeapon::UpdateMesh()
-{
-	// 피직스 및 충돌 비활성화
-	if (SkeletalMeshComponent)
-	{
-		// 기본 애셋 설정
-		SkeletalMeshComponent->SetSkeletalMeshAsset(ItemData->GetItemData().AssetData.SkeletalMesh);
-		SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset);
-		SkeletalMeshComponent->SetVisibility(true);
-
-		SetActorLocation(FVector::ZeroVector);
-		SetActorRotation(FRotator::ZeroRotator);
-
-		// 물리 시뮬레이션 비활성화
-		SkeletalMeshComponent->SetSimulatePhysics(false);
-
-		// 충돌 비활성화 (장착된 상태에서는 충돌을 비활성화)
-		SkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SkeletalMeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
-	}
-
-	// 기본 피직스 애셋 설정 (필요시)
-	if (ItemData)
-	{
-		SkeletalMeshComponent->SetSkeletalMesh(ItemData->GetItemData().AssetData.SkeletalMesh);
-		SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset);
-	}
 }

@@ -16,29 +16,43 @@ class SPT_API AFirearmWeapon : public AWeaponBase
 public:
 	AFirearmWeapon();
 
+	virtual void BeginPlay() override;
+
 	/* 기본 총기 공격 */
+	bool CanFire();
+	void Begin_Fire();
+	void End_Fire();
+	UFUNCTION()
 	virtual void Attack() override;
 
-	/* 무기 장착 기능 */
+	/* 무기 장착 */
+	bool CanEquip();
 	virtual void Equip(ASPTPlayerCharacter* PlayerCharacter) override;
+	void Begin_Equip();
+	void End_Equip();
 
-	/* 무기 해제 기능 */
+	/* 무기 해제 */
+	bool CanUnEquip();
 	virtual void UnEquip(ASPTPlayerCharacter* PlayerCharacter) override;
-
+	
 	/* 무기 드롭 기능 */
 	virtual void Drop(ASPTPlayerCharacter* PlayerCharacter) override;
 
 	/* 재장전 */
+	bool CanRelad();
+	void Begin_Reload();
 	void Reload();
+	void End_Reload();
+
+	/* 조준 기능 */
+	bool bIsInAim();
+	bool CanAim();
+	void AimDownSights();
+	void StopAiming();
 
 	/* 현재 탄약 개수 반환 */
 	int32 GetCurrentAmmo() const;
 
-	/* 조준 기능 */
-	void AimDownSights();
-
-	/* 조준 해제 */
-	void StopAiming();
 
 protected:
 
@@ -48,7 +62,7 @@ protected:
 
 	/* 개별 무기가 유지해야 하는 속성 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Firearm")
-	int32 CurrentAmmo;  // 현재 탄약 개수
+	bool bIsEquipping;  // 현재 장착 진행 중인지 여부
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Firearm")
 	bool bIsReloading;  // 현재 재장전 중인지 여부
@@ -68,5 +82,10 @@ protected:
 
 	/* 총기 데이터를 불러와 초기화 */
 	virtual void SetWeaponData(const FWeaponItemData& NewWeaponData) override;
+
+	void UpdateMesh();
+
+public:
+	class ASPTPlayerCharacter* Owner;
 
 };
