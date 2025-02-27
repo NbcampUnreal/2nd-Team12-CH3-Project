@@ -12,6 +12,7 @@ class UEquipmentItem;
 class UConsumableItem;
 class UInventoryMainWidget;
 
+class UItemDataObject;
 
 UCLASS()
 class SPT_API AInventoryManager : public AActor

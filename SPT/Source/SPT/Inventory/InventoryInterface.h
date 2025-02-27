@@ -7,6 +7,7 @@
 #include "InventoryInterface.generated.h"
 
 class UInventoryItem;
+class UItemDataObject;
 
 UINTERFACE(MinimalAPI)
 class UInventoryInterface : public UInterface

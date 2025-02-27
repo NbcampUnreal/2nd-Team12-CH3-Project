@@ -5,7 +5,7 @@
 #include "InventoryInterface.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
-#include "InventoryMainWidget.h"
+#include "SPT/Inventory/ItemWidget/InventoryMainWidget.h"
 
 // Sets default values
 AInventoryManager::AInventoryManager()
@@ -30,8 +30,6 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
         UE_LOG(LogTemp, Warning, TEXT("AddItem: Item is nullptr!"));
         return;
     }
-
-    bool bItemAdded = false;
     
     for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
     {
@@ -40,35 +38,25 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
             // 모든 인벤토리에서 AddItem 호출
             Inventory->AddItem(Item);
             UE_LOG(LogTemp, Warning, TEXT("Added to Inventory"));
-            bItemAdded = true;
             break;  // 첫 번째 인벤토리만 추가
         }
     }
 
-    // 아이템이 추가되었으면 UI 갱신
-    if (bItemAdded && InventoryMainWidgetInstance)
+    // 아이템 추가 직후 UI 갱신 보장
+    if (InventoryMainWidgetInstance)
     {
-        // 모든 인벤토리에서 아이템 목록을 가져와 병합
         TArray<UInventoryItem*> AllItems;
-
         for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
         {
-            if (AEquipmentInventory* EquipmentInventory = Cast<AEquipmentInventory>(Inventory.GetObject()))
+            if (Inventory)
             {
-                AllItems.Append(EquipmentInventory->GetInventory());
-            }
-            else if (AConsumableInventory* ConsumableInventory = Cast<AConsumableInventory>(Inventory.GetObject()))
-            {
-                AllItems.Append(ConsumableInventory->GetInventory());
+                TArray<UInventoryItem*> Items = Inventory->GetInventory();
+                AllItems.Append(Items);
             }
         }
 
-        // UI에 병합된 아이템 목록을 전달
+        UE_LOG(LogTemp, Warning, TEXT("Inventory UI Update - Item Count: %d"), AllItems.Num());
         InventoryMainWidgetInstance->UpdateInventoryList(AllItems);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Item not added to any inventory."));
     }
 }
 

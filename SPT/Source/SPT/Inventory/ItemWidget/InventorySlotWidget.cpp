@@ -2,7 +2,7 @@
 
 
 #include "InventorySlotWidget.h"
-#include "InventoryItem.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "InventoryManager.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
@@ -11,6 +11,14 @@
 
 void UInventorySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
+    UE_LOG(LogTemp, Warning, TEXT("NativeOnListItemObjectSet called"));
+
+    if (!ListItemObject)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ListItemObject is nullptr"));
+        return;
+    }
+
 	UInventoryItem* InventoryItem = Cast<UInventoryItem>(ListItemObject);
 	if (InventoryItem)
 	{
@@ -21,6 +29,10 @@ void UInventorySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 		UpdateItem(InventoryItem);
 	}
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ItemData is nullptr"));
+    }
 
     if (ItemSelectButton)
     {

@@ -2,6 +2,7 @@
 
 
 #include "ItemBase.h"
+#include "Components/SphereComponent.h"
 #include "SPTPlayerCharacter.h"
 
 // Sets default values
@@ -12,6 +13,29 @@ AItemBase::AItemBase()
 	// Static Mesh Component 생성
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = StaticMeshComponent;
+
+	// 콜리전 영역 생성
+	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+	Collision->InitSphereRadius(50.0f);
+	Collision->SetCollisionProfileName(TEXT("Trigger"));
+	Collision->SetupAttachment(StaticMeshComponent);
+
+	// 오버랩 될 시 함수 작동
+	Collision->OnComponentBeginOverlap.AddDynamic(this, &AItemBase::OnOverlapBegin);
+	Collision->OnComponentEndOverlap.AddDynamic(this, &AItemBase::OnOverlapEnd);
+
+	// 해당 채널끼리 적용
+	Collision->SetCollisionObjectType(ECC_GameTraceChannel1);
+	Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+
+	// 위젯 생성
+	PickupWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidgetComponent"));
+	PickupWidgetComponent->SetupAttachment(StaticMeshComponent);
+
+	PickupWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	PickupWidgetComponent->SetDrawSize(FVector2D(200, 50));
+	PickupWidgetComponent->SetVisibility(false);
 
 	// 기본 상태는 월드 상태
 	ItemState = EItemState::EIS_World;
@@ -32,6 +56,21 @@ void AItemBase::BeginPlay()
 			return;  // 충돌 방지
 		}
 	}
+
+	if (PickupWidgetClass)
+	{
+		PickupWidget = CreateWidget<UUserWidget>(GetWorld(), PickupWidgetClass);
+		if (PickupWidget)
+		{
+			PickupWidget->AddToViewport();
+			PickupWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PickupWidgetClass is NULL!"));
+	}
+
 
 	ItemData->InitializeItemData(ItemData->GetItemData().ItemID);
 }
@@ -120,5 +159,31 @@ void AItemBase::SetItemData(UItemDataObject* NewItemData)
 	{
 		ItemData = NewItemData;
 		UE_LOG(LogTemp, Warning, TEXT("AItemBase::SetItemData called. Keeping existing item state."));
+	}
+}
+
+void AItemBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ASPTPlayerCharacter* Player = Cast<ASPTPlayerCharacter>(OtherActor);
+	if (Player && PickupWidget)
+	{
+		ShowPickupPrompt(true);
+	}
+}
+
+void AItemBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	ASPTPlayerCharacter* Player = Cast<ASPTPlayerCharacter>(OtherActor);
+	if (Player && PickupWidget)
+	{
+		ShowPickupPrompt(false);
+	}
+}
+
+void AItemBase::ShowPickupPrompt(bool bShow)
+{
+	if (PickupWidgetComponent)
+	{
+		PickupWidgetComponent->SetVisibility(bShow);
 	}
 }

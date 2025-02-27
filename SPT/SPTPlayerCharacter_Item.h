@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "SPT/Interfaces/InteractableInterface.h" //// Ãß°¡
-#include "SPTPlayerCharacter.generated.h"
+#include "SPTPlayerCharacter_Item.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;

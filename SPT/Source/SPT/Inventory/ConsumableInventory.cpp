@@ -11,7 +11,7 @@ AConsumableInventory::AConsumableInventory()
 
 void AConsumableInventory::AddItem(UInventoryItem* Item)
 {
-	if (UConsumableItem* Consumable = Cast<UConsumableItem>(Item))
+	if (UConsumableItemDataObject* Consumable = Cast<UConsumableItemDataObject>(Item))
 	{
 		ConsumableItems.Add(Consumable);
 	}
@@ -19,12 +19,12 @@ void AConsumableInventory::AddItem(UInventoryItem* Item)
 
 void AConsumableInventory::DropItem(UInventoryItem* Item)
 {
-	ConsumableItems.Remove(Cast<UConsumableItem>(Item));
+	ConsumableItems.Remove(Cast<UConsumableItemDataObject>(Item));
 }
 
 bool AConsumableInventory::HasItem(FName ItemName)
 {
-	return ConsumableItems.ContainsByPredicate([ItemName](UConsumableItem* Item)
+	return ConsumableItems.ContainsByPredicate([ItemName](UConsumableItemDataObject* Item)
 		{
 			return Item->ItemName == ItemName;
 		});
@@ -34,7 +34,7 @@ bool AConsumableInventory::RemoveItem(UInventoryItem* Item)
 {
 	if (!Item) return false;
 
-	if (ConsumableItems.Remove(Cast<UConsumableItem>(Item)) > 0)
+	if (ConsumableItems.Remove(Cast<UConsumableItemDataObject>(Item)) > 0)
 	{
 		return true;
 	}

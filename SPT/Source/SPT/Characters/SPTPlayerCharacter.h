@@ -11,6 +11,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class AItemBase;
 class AEquipmentInventory;
 class AConsumableInventory;
 

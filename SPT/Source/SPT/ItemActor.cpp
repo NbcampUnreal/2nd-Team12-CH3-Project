@@ -4,7 +4,7 @@
 
 #include "ItemActor.h"
 #include "Inventory/ItemData/EquipmentItem.h"
-#include "Inventory/ItemData/ConsumableItem.h"
+#include "Inventory/ItemData/ConsumableItemDataObject.h"
 #include "Components/SphereComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/CanvasPanelSlot.h"
@@ -39,6 +39,12 @@ AItemActor::AItemActor()
 	PickupWidgetComponent->SetDrawSize(FVector2D(200, 50));
 	PickupWidgetComponent->SetVisibility(false);
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClass(TEXT("/Game/Blueprints/Inventory/UI/BP_PickUp"));
+	if (WidgetClass.Succeeded())
+	{
+		PickupWidgetClass = WidgetClass.Class;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/Resources/Items/Weapons/FPS_Weapon_Bundle/Meshes/Accessories/SM_Vertgrip.SM_Vertgrip"));
 	if (MeshAsset.Succeeded()) {
 		StaticMesh->SetStaticMesh(MeshAsset.Object);
@@ -54,6 +60,11 @@ AItemActor::AItemActor()
 	ItemDescription = "This is just trash";
 	ItemID = 0;
 	ItemAmount = 1;
+	static ConstructorHelpers::FObjectFinder<UTexture2D> IconTexture(TEXT("/Game/Fire.Fire"));
+	if (IconTexture.Succeeded())
+	{
+		ItemIcon = IconTexture.Object;
+	}
 
 }
 
@@ -83,7 +94,7 @@ UInventoryItem* AItemActor::GetItemData() const
 
 	// 소모품 아이템일 경우 (추가적으로 다른 아이템 처리 가능)
 	// 어차피 장비아이템으로 취급할 것이기에  큰 의미는 없긴함
-	if (UConsumableItem* ConsumableItem = Cast<UConsumableItem>(ItemData))
+	if (UConsumableItemDataObject* ConsumableItem = Cast<UConsumableItemDataObject>(ItemData))
 	{
 		return ConsumableItem;
 	}
@@ -152,6 +163,7 @@ void AItemActor::BeginPlay()
 		EquipmentItem->DefensePower = 10;
 		EquipmentItem->EquipmentSlot = FName("Weapon");
 		EquipmentItem->ItemActorClass = AItemActor::StaticClass();
+		EquipmentItem->ItemIcon = ItemIcon;
 
 		ItemData = EquipmentItem;
 	}
@@ -164,6 +176,10 @@ void AItemActor::BeginPlay()
 			PickupWidget->AddToViewport();
 			PickupWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PickupWidgetClass is NULL!"));
 	}
 
 	Collision->OnComponentBeginOverlap.AddDynamic(this, &AItemActor::OnOverlapBegin);

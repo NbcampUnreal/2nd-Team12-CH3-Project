@@ -65,7 +65,7 @@ void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
 	}
 	*/
 	// 새 총기 장착
-	PlayerCharacter->EquipWeapon(this);
+	//PlayerCharacter->EquipWeapon(this);
 
 	// 피직스 및 충돌 비활성화
 	if (SkeletalMeshComponent)

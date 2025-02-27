@@ -5,6 +5,7 @@
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
 #include "InventoryManager.h"
+#include "SPT/Items/Base/Itembase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -89,6 +90,7 @@ void ASPTPlayerCharacter::ToggleInventory()
 
 void ASPTPlayerCharacter::TryPickupItem()
 {
+    UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Start"));
     FVector Start = GetActorLocation();
     FVector ForwardVector = GetActorForwardVector();
     FVector End = Start + (ForwardVector * 200.0f);
@@ -102,12 +104,30 @@ void ASPTPlayerCharacter::TryPickupItem()
 
     if (bHit)
     {
+        UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Hit"));
         AItemActor* ItemActor = Cast<AItemActor>(HitResult.GetActor());
         if (ItemActor && InventoryManager)
         {
             UInventoryItem* ItemData = ItemActor->GetItemData();
             if (ItemData)
             {
+                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Complete"));
+                InventoryManager->AddItemToInventory(ItemData);
+
+                ItemActor->Destroy();
+            }
+        }
+    }
+    if (bHit)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Hit"));
+        AItemActor* ItemActor = Cast<AItemActor>(HitResult.GetActor());
+        if (ItemActor && InventoryManager)
+        {
+            UInventoryItem* ItemData = ItemActor->GetItemData();
+            if (ItemData)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Complete"));
                 InventoryManager->AddItemToInventory(ItemData);
 
                 ItemActor->Destroy();

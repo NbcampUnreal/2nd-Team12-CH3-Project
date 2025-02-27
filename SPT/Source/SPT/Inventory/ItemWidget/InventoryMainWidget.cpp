@@ -3,7 +3,7 @@
 
 #include "InventoryMainWidget.h"
 #include "InventorySlotWidget.h"
-#include "InventoryItem.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "Components/ListView.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
@@ -19,16 +19,14 @@ void UInventoryMainWidget::UpdateInventoryList(const TArray<UInventoryItem*>& It
 
 	UE_LOG(LogTemp, Warning, TEXT("UpdateInventoryList called! Items count: %d"), Items.Num());
 
-	InventoryListView->ClearListItems();
+	InventoryListView->SetListItems(Items); 
 
-	for (UInventoryItem* Item : Items)
-	{
-		InventoryListView->AddItem(Item);
-	}
 }
 
 void UInventoryMainWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+
 
 }

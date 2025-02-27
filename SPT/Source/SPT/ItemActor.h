@@ -39,6 +39,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	int32 ItemAmount;			// 아이템의 수량
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UTexture2D* ItemIcon;		// 아이템의 아이콘
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	UInventoryItem* ItemData;	// 아이템 데이터
 
 

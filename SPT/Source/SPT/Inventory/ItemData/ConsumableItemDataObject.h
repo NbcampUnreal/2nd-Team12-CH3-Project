@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "InventoryItem.h"
-#include "ConsumableItem.generated.h"
+#include "ConsumableItemDataObject.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SPT_API UConsumableItem : public UInventoryItem
+class SPT_API UConsumableItemDataObject : public UInventoryItem
 {
 	GENERATED_BODY()
 	
