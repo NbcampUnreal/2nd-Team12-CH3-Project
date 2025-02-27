@@ -22,9 +22,14 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
     SpringArmComp->CameraLagSpeed = 20.f;
     SpringArmComp->bEnableCameraRotationLag = true;
     SpringArmComp->CameraRotationLagSpeed = 20.f;
+    SpringArmComp->SocketOffset = FVector(0.f, 75.f, 100.f);
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
+
+    bUseControllerRotationYaw = false;
+
+    GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 }
 
 void ASPTPlayerCharacter::BeginPlay()
@@ -49,7 +54,9 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
         {
             if (PlayerController->MoveAction)
             {
+                EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Started, this, &ASPTPlayerCharacter::StartMove);
                 EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::Move);
+                EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopMove);
             }
 
             if (PlayerController->JumpAction)
@@ -102,20 +109,40 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
     }
 }
 
+void ASPTPlayerCharacter::StartMove(const FInputActionValue& value)
+{
+    if (UCharacterMovementComponent* CharacterMovementComp = GetCharacterMovement())
+    {
+        CharacterMovementComp->bUseControllerDesiredRotation = true;
+    }
+}
+
 void ASPTPlayerCharacter::Move(const FInputActionValue& value)
 {
-    if (!Controller) return;
-
-    const FVector2D MoveInput = value.Get<FVector2D>();
-
-    if (!FMath::IsNearlyZero(MoveInput.X))
+    if (Controller)
     {
-        AddMovementInput(GetActorForwardVector(), MoveInput.X);
+        const FVector2D MoveInput = value.Get<FVector2D>();
+        const FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
+
+        if (MoveInput.X != 0.0f)
+        {
+            const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
+            AddMovementInput(MovementDirection, MoveInput.X);
+        }
+
+        if (MoveInput.Y != 0.0f)
+        {
+            const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
+            AddMovementInput(MovementDirection, MoveInput.Y);
+        }
     }
+}
 
-    if (!FMath::IsNearlyZero(MoveInput.Y))
+void ASPTPlayerCharacter::StopMove(const FInputActionValue& value)
+{
+    if (UCharacterMovementComponent* CharacterMovementComp = GetCharacterMovement())
     {
-        AddMovementInput(GetActorRightVector(), MoveInput.Y);
+        CharacterMovementComp->bUseControllerDesiredRotation = false;
     }
 }
 
