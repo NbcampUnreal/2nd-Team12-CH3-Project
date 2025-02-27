@@ -8,7 +8,7 @@ AConsumableItem::AConsumableItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// ±âº» »óÅÂ´Â ¿ùµå »óÅÂ¤¤
+	// ê¸°ë³¸ ìƒíƒœëŠ” ì›”ë“œ ìƒíƒœ
 	ItemState = EItemState::EIS_World;
 }
 
@@ -33,13 +33,13 @@ void AConsumableItem::StartUse(ASPTPlayerCharacter* PlayerCharacter)
 		return;
 	}
 
-	// ÇÃ·¹ÀÌ¾î ¾Ö´Ï¸ÞÀÌ¼Ç ½ÇÇà
+	// í”Œë ˆì´ì–´ ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
 	if (UAnimMontage*  UseAnimation = ItemData->GetItemData().AnimationData.UseAnimation)
 	{
 		PlayerCharacter->PlayAnimMontage(UseAnimation);
 	}
 
-	// ÀÏÁ¤ ½Ã°£ ÈÄ ÀÚµ¿ »èÁ¦
+	// ì¼ì • ì‹œê°„ í›„ ìžë™ ì‚­ì œ
 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 		{
 			FinishUse();
