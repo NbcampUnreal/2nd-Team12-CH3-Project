@@ -8,10 +8,6 @@ AConsumableItem::AConsumableItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Static Mesh Component 생성
-	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-	RootComponent = StaticMeshComponent;
-
 	// 기본 상태는 월드 상태ㄴ
 	ItemState = EItemState::EIS_World;
 }

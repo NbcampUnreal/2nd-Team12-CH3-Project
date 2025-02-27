@@ -36,12 +36,6 @@ public:
 	/* 메시 업데이트 */
 	void UpdateMesh();
 
-	/* 에디터에서 아이템 데이터 테이블 업데이트 */
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	void OnConstruction(const FTransform& Transform);
-#endif
-
 	/* 아이템 데이터 테이블 */
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Item|Data")
 	UDataTable* ItemDataTable;
