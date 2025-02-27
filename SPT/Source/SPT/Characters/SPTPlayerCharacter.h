@@ -68,7 +68,11 @@ public:
 
 protected:
 	UFUNCTION()
+	void StartMove(const FInputActionValue& value);
+	UFUNCTION()
 	void Move(const FInputActionValue& value);
+	UFUNCTION()
+	void StopMove(const FInputActionValue& value);
 	UFUNCTION()
 	void Look(const FInputActionValue& value);
 	UFUNCTION()

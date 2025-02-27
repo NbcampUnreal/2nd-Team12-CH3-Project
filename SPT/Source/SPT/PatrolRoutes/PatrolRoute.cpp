@@ -3,13 +3,26 @@
 
 APatrolRoute::APatrolRoute()
 {
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultScenRoot"));
     Path = CreateDefaultSubobject<USplineComponent>(TEXT("Path"));
     Path->SetupAttachment(RootComponent);
 }
 
-void APatrolRoute::BeginPlay()
+FVector APatrolRoute::GetNextPatrolPoint(AActor* Requester)
 {
-    Super::BeginPlay();
+    if (!Path || Path->GetNumberOfSplinePoints() == 0)
+    {
+        return FVector::ZeroVector;
+    }
+
+    // 개별 AI마다 순찰 인덱스를 관리해야 한다면 맵을 활용
+    int32& CurrentIndex = PatrolIndexes.FindOrAdd(Requester, 0);
+    FVector PatrolPoint = Path->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+
+    // 인덱스 순환
+    CurrentIndex = (CurrentIndex + 1) % Path->GetNumberOfSplinePoints();
+
+    return PatrolPoint;
 }
 
 // C++ 변수 초기화는 생성자에서
