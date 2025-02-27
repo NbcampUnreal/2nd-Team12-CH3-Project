@@ -39,9 +39,8 @@ void AWorldItemBase::OnDrop(ASPTPlayerCharacter* PlayerCharacter)
 		return;
 	}
 
-	FVector DropLocation;
-	FRotator DropRotation;
-	GetDropLocation(PlayerCharacter, DropLocation, DropRotation);
+	FVector DropLocation = GetActorLocation();
+	FRotator DropRotation = GetActorRotation();;
 
 	// 새로운 AWorldItemBase 생성
 	AWorldItemBase* DroppedItem = GetWorld()->SpawnActor<AWorldItemBase>(AWorldItemBase::StaticClass(), DropLocation, DropRotation);
@@ -98,94 +97,6 @@ void AWorldItemBase::Interact(ASPTPlayerCharacter* PlayerCharacter)
 		UE_LOG(LogTemp, Warning, TEXT("Calling Interact override on interface test actor."));
 		OnPickup(PlayerCharacter);
 	}
-}
-
-void AWorldItemBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	// 변경된 프로퍼티가 존재하는지 확인
-	const FName ChangedPropertyName = PropertyChangedEvent.Property ? FName(*PropertyChangedEvent.Property->GetName()) : NAME_None;
-
-	// ItemID가 변경된 경우에만 데이터 테이블을 업데이트
-	if (ChangedPropertyName == GET_MEMBER_NAME_CHECKED(AWorldItemBase, ItemID))
-	{
-		if (!ItemData)
-		{
-			ItemData = NewObject<UItemDataObject>(this, UItemDataObject::StaticClass());
-		}
-
-		ItemData->InitializeItemData(ItemID);
-		UpdateMesh();
-		UE_LOG(LogTemp, Log, TEXT("PostEditChangeProperty - ItemData updated for %s"), *ItemID.ToString());
-	}
-}
-
-void AWorldItemBase::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-
-	if (!ItemDataTable || ItemID.IsNone())
-	{
-		UE_LOG(LogTemp, Log, TEXT("AWorldItemBase::OnConstruction: There is No ItemDataTable or ItemID for %s"), *GetName());
-		return;
-	}
-
-	if (!ItemData)
-	{
-		ItemData = NewObject<UItemDataObject>(this, UItemDataObject::StaticClass());
-	}
-
-	ItemData->SetItemData(ItemData->GetItemData());
-	UE_LOG(LogTemp, Log, TEXT("OnConstruction: Item data loaded for %s"), *GetName());
-
-	UpdateMesh();
-}
-
-FVector AWorldItemBase::GetDropLocation(ASPTPlayerCharacter* PlayerCharacter, FVector& OutDropLocation, FRotator& OutDropRotation)
-{
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		UE_LOG(LogTemp, Error, TEXT("GetDropLocation: World is null"));
-		return PlayerCharacter->GetActorLocation();
-	}
-
-	// 현재 위치를 기준으로 드랍
-	FVector ItemLocation = PlayerCharacter->GetActorLocation();
-	OutDropLocation = ItemLocation;
-	OutDropRotation = PlayerCharacter->GetActorRotation();
-
-	// 바닥 감지를 위한 LineTrace 설정
-	FHitResult HitResult;
-	FVector TraceStart = ItemLocation;
-	FVector TraceEnd = TraceStart + FVector(0.f, 0.f, -500.f);
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-	QueryParams.AddIgnoredActor(PlayerCharacter);
-
-	bool bHit = World->LineTraceSingleByChannel(
-		HitResult,
-		TraceStart,
-		TraceEnd,
-		ECC_WorldStatic,
-		QueryParams);
-
-	if (bHit)
-	{
-		OutDropLocation = HitResult.ImpactPoint + FVector(0.f, 0.f, 10.f);
-		UE_LOG(LogTemp, Log, TEXT("GetDropLocation: Found ground at %s"), *OutDropLocation.ToString());
-	}
-	else
-	{
-		OutDropLocation = ItemLocation + FVector(0.f, 0.f, 0.f);
-		UE_LOG(LogTemp, Warning, TEXT("GetDropLocation: No ground found, dropping at default location %s"), *OutDropLocation.ToString());
-	}
-
-	// 랜덤 회전 적용
-	OutDropRotation += FRotator(FMath::RandRange(-20.f, 20.f), FMath::RandRange(-180.f, 180.f), 0.f);
-
-	return OutDropLocation;
 }
 
 void AWorldItemBase::UpdateMesh()

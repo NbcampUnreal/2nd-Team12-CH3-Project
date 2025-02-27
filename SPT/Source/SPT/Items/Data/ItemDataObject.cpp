@@ -36,11 +36,9 @@ void UItemDataObject::InitializeItemData(FName RowName)
 		UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: %s for %s"), *RowName.ToString(), *GetName());
 		if (FItemData* FoundData = ItemDataTable->FindRow<FItemData>(RowName, TEXT("")))
 		{
-			if (ItemData.ItemID.IsNone()) 
-			{
-				ItemData = *FoundData;
-				Quantity = 1;
-			}
+			ItemData = *FoundData;
+			Quantity = 1;
+			bHasWeaponData = false;
 		}
 		else
 		{
@@ -76,9 +74,17 @@ void UItemDataObject::InitializeItemData(FName RowName)
 		FConsumableItemData* ConsumableInfo = ConsumableDataTable->FindRow<FConsumableItemData>(RowName, TEXT(""));
 		if (ConsumableInfo)
 		{
-			ConsumableData = *ConsumableInfo;
-			Quantity = ConsumableData.Quantity;
-			bHasConsumableData = true;
+			if (!bHasConsumableData)
+			{
+				ConsumableData = *ConsumableInfo;
+				Quantity = ConsumableData.Quantity;
+				bHasConsumableData = true;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: Failed to load the ConsumableDataTable for %s"), *GetName());
+				return;
+			}
 		}
 	}
 }
