@@ -29,6 +29,8 @@ ABossCharacterProjectile::ABossCharacterProjectile()
     ProjectileMovement->bRotationFollowsVelocity = true;
     ProjectileMovement->bShouldBounce = false;
 
+
+
     InitialLifeSpan = 3.0f;
 }
 
@@ -37,6 +39,28 @@ void ABossCharacterProjectile::BeginPlay()
 {
     Super::BeginPlay();
 
+    UParticleSystemComponent* Particle = nullptr; // 파티클 컴포넌트 초기화
+
+    if (ShotParticle)  // ExplosionParticle이 파티클 시스템 에셋일 때
+    {
+        Particle = UGameplayStatics::SpawnEmitterAtLocation(
+            GetWorld(),              // 월드
+            ShotParticle,       // 파티클 시스템 에셋
+            GetActorLocation(),      // 파티클이 생성될 위치
+            GetActorRotation(),      // 파티클이 생성될 회전
+            false                    // 월드 공간에서 생성할지 여부 (true = 월드 공간, false = 로컬 공간)
+        );
+    }
+
+    // 사운드 재생
+    if (ShotSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(
+            this,
+            ShotSound,
+            GetActorLocation()
+        );
+    }
 }
 
 // Called every frame
@@ -50,8 +74,14 @@ void ABossCharacterProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* Other
     UPrimitiveComponent* OtherComp, FVector NormalImpulse,
     const FHitResult& Hit)
 {
+    if (OtherActor == GetOwner())
+    {
+        return;
+    }
     if (OtherActor && OtherActor != this) // 자기 자신 제외
     {
+        FString Message = "Hitted!";
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Message);
         // 데미지 적용
         UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
 
