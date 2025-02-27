@@ -19,11 +19,12 @@ public:
 	virtual void BeginPlay() override;
 
 	/* 기본 총기 공격 */
+	virtual void Attack() override;
 	bool CanFire();
 	void Begin_Fire();
 	void End_Fire();
 	UFUNCTION()
-	virtual void Attack() override;
+	void OnFiring();
 
 	/* 무기 장착 */
 	bool CanEquip();
@@ -87,5 +88,6 @@ protected:
 
 public:
 	class ASPTPlayerCharacter* Owner;
+	FTimerHandle FireTimerHandle;
 
 };

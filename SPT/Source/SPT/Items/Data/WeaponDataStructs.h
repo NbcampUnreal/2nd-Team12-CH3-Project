@@ -90,11 +90,20 @@ struct FFirearmStats
 	UPROPERTY(EditAnywhere, Category = "Firearm")
 	FWeaponAimData AimData;
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
-	float BulletSpread;	// ÅºÂø±º (¸íÁß·ü, ¹Ì±¸Çö)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
-	float Recoil;	// ¹Ýµ¿
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UMaterialInterface* HitDecal;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UParticleSystem* HitParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UParticleSystem* FlashParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UParticleSystem* EjectParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class USoundWave* FireSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	float RecoilAngle;	// ÅºÂø±º Cone °¢µµ
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	// TSubclassOf<class UMatineeCameraShake> CameraShakeClass; // ( ¹Ì±¸Çö )
 
 };
 
