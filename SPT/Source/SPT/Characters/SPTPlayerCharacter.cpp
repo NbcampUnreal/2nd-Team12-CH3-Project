@@ -36,6 +36,8 @@ void ASPTPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+    SetHealth(100.f);
+    MaxHealth = Health;
 }
 
 void ASPTPlayerCharacter::Tick(float DeltaTime)

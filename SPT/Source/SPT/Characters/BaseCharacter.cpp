@@ -36,8 +36,9 @@ float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	Health = FMath::Clamp(Health - ActualDamage, 0.0f, MaxHealth);
-	
+	float NewHealth = FMath::Clamp(Health - ActualDamage, 0.0f, MaxHealth);
+
+	SetHealth(NewHealth);
 
 	if (Health <= 0.f)
 	{
@@ -55,4 +56,11 @@ void ABaseCharacter::OnDeath()
 
 	// 바인드 된 함수에 대해 연결 해제
 	OnDethMulticastDelegate.Clear();
+}
+
+void ABaseCharacter::SetHealth(float NewHP)
+{
+	Health = NewHP;
+
+	OnHealthChangedDelegate.Broadcast(NewHP, MaxHealth);
 }

@@ -3,6 +3,10 @@
 
 #include "SPTPlayerController.h"
 #include "EnhancedInputSubsystems.h"
+#include "BaseCharacter.h"
+#include "Blueprint/UserWidget.h"
+#include "PlayerMainHUD.h"
+
 
 ASPTPlayerController::ASPTPlayerController()
 {
@@ -25,6 +29,29 @@ void ASPTPlayerController::BeginPlay()
                 // 우선순위(Priority)는 0이 가장 높은 우선순위
                 Subsystem->AddMappingContext(IMC, 0);
             }
+        }
+    }
+
+    ShowPlayerMainHUD();
+}
+
+void ASPTPlayerController::ShowPlayerMainHUD()
+{
+    if (HUDWidgetClass)
+    {
+        HUDWidgetInstance = CreateWidget<UPlayerMainHUD>(this, HUDWidgetClass);
+
+        if (HUDWidgetInstance)
+        {
+            HUDWidgetInstance->AddToViewport();
+            
+            if (ABaseCharacter* CurChar = GetPawn<ABaseCharacter>())
+            {
+                CurChar->OnHealthChangedDelegate.AddDynamic(HUDWidgetInstance, &UPlayerMainHUD::HPUpdate);
+            }
+
+            SetShowMouseCursor(false);
+            SetInputMode(FInputModeGameOnly());
         }
     }
 }
