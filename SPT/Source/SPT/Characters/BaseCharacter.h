@@ -7,6 +7,7 @@
 #include "BaseCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDethMulticastDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangedDelegate, float, NewHP, float, MaxHP);
 
 UCLASS()
 class SPT_API ABaseCharacter : public ACharacter
@@ -22,6 +23,8 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+///////////////////////////////////////////////////////////////////////
+// 데미지 처리
 protected:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -30,8 +33,17 @@ protected:
 	virtual void OnDeath();
 
 public:
+	// 체력 수정 함수
+	void SetHealth(float NewHP);
+
+public:
 	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
 	FOnDethMulticastDelegate OnDethMulticastDelegate;
+
+	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
+	FOnHealthChangedDelegate OnHealthChangedDelegate;
+
+///////////////////////////////////////////////////////////////////////
 
 protected:
 	// 기본 최대 체력

@@ -191,6 +191,9 @@ void ASPTPlayerCharacter::BeginPlay()
     {
         InventoryManager->SetInventoryWidget(InventoryMainWidgetInstance);
     }
+
+    SetHealth(100.f);
+    MaxHealth = Health;
 }
 
 void ASPTPlayerCharacter::Tick(float DeltaTime)

@@ -61,4 +61,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Missile")
     float MissileSpeed = 600.0f;
 
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+    UParticleSystem* ExplosionParticle;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+    USoundBase* ExplosionSound;
+
+    FTimerHandle DestroyParticleTimerHandle; // 클래스 멤버 변수로 이동
+
 };

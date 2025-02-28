@@ -23,6 +23,9 @@ ABossMonsterHomingMissile::ABossMonsterHomingMissile()
     CollisionComponent->SetSphereRadius(15.0f);
     CollisionComponent->OnComponentHit.AddDynamic(this, &ABossMonsterHomingMissile::OnHit);
 
+    CollisionComponent->SetCollisionObjectType(ECC_GameTraceChannel1);
+    CollisionComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+
     // 미사일 메시
     Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
     Mesh->SetupAttachment(RootComponent);
@@ -83,56 +86,55 @@ void ABossMonsterHomingMissile::OnHit(UPrimitiveComponent* HitComp, AActor* Othe
     UPrimitiveComponent* OtherComp, FVector NormalImpulse,
     const FHitResult& Hit)
 {
-    FString Message1 = "Exploded";
-
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Message1);
-    // 미사일이 충돌한 순간 폭발 처리
     Explode();
-
 }
 
 void ABossMonsterHomingMissile::Explode()
 {
+    UParticleSystemComponent* Particle = nullptr; // 파티클 컴포넌트 초기화
+
+    if (ExplosionParticle)  // ExplosionParticle이 파티클 시스템 에셋일 때
+    {
+        Particle = UGameplayStatics::SpawnEmitterAtLocation(
+            GetWorld(),              // 월드
+            ExplosionParticle,       // 파티클 시스템 에셋
+            GetActorLocation(),      // 파티클이 생성될 위치
+            GetActorRotation(),      // 파티클이 생성될 회전
+            false                    // 월드 공간에서 생성할지 여부 (true = 월드 공간, false = 로컬 공간)
+        );
+    }
+
+    // 충돌 감지 설정 보장
+    ExplosionCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    ExplosionCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    ExplosionCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
     TArray<AActor*> OverlappingActors;
+    ExplosionCollision->GetOverlappingActors(OverlappingActors);
 
-    // ExplosionCollision 컴포넌트가 유효한지 확인
-    if (ExplosionCollision)
+    for (AActor* Actor : OverlappingActors)
     {
-        ExplosionCollision->GetOverlappingActors(OverlappingActors);
-
-        // 배열에 값이 들어왔는지 확인
-        if (OverlappingActors.Num() > 0)
+        if (Actor && Actor->ActorHasTag("Player"))
         {
-            for (AActor* Actor : OverlappingActors)
-            {
-                // 액터가 유효하고 "Player" 태그가 있는지 확인
-                if (Actor && Actor->ActorHasTag("Player"))
-                {
-                    // 데미지를 발생시켜 Actor->TakeDamage()가 실행되도록 함
-                    UGameplayStatics::ApplyDamage(
-                        Actor,                      // 데미지를 받을 액터
-                        ExplosionDamage,            // 데미지 양
-                        nullptr,                    // 데미지를 유발한 주체 (지뢰를 설치한 캐릭터가 없으므로 nullptr)
-                        this,                       // 데미지를 유발한 오브젝트(지뢰)
-                        UDamageType::StaticClass()  // 기본 데미지 유형
-                    );
-
-                    UE_LOG(LogTemp, Warning, TEXT("Damaged!"));
-                }
-            }
-        }
-        else
-        {
-            // 배열이 비어 있는 경우 디버그 로그
-            UE_LOG(LogTemp, Warning, TEXT("No actors overlapping in explosion area"));
+            UGameplayStatics::ApplyDamage(
+                Actor,
+                ExplosionDamage,
+                nullptr,
+                this,
+                UDamageType::StaticClass()
+            );
         }
     }
-    else
+
+    // 사운드 재생
+    if (ExplosionSound)
     {
-        // ExplosionCollision이 유효하지 않으면 로그 찍기
-        UE_LOG(LogTemp, Warning, TEXT("ExplosionCollision component is invalid"));
+        UGameplayStatics::PlaySoundAtLocation(
+            this,
+            ExplosionSound,
+            GetActorLocation()
+        );
     }
 
-    // 미사일 파괴
     Destroy();
 }

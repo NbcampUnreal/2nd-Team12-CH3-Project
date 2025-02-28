@@ -35,4 +35,12 @@ public:
         UPrimitiveComponent* OtherComp, FVector NormalImpulse,
         const FHitResult& Hit);
 
+
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+    UParticleSystem* ShotParticle;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+    USoundBase* ShotSound;
+
+    FTimerHandle DestroyParticleTimerHandle; // 클래스 멤버 변수로 이동
 };

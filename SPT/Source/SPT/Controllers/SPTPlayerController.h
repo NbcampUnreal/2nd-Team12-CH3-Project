@@ -8,6 +8,7 @@
 
 class UInputMappingContext;
 class UInputAction;
+class UPlayerMainHUD;
 
 UCLASS()
 class SPT_API ASPTPlayerController : public APlayerController
@@ -40,4 +41,17 @@ public:
 	TObjectPtr<UInputAction> InventoryAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> ReloadAction;
+
+///////////////////////////////////////////////////////////////////////
+// HUD
+public:
+	void ShowPlayerMainHUD();
+
+private:
+	// HUD UI
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = true))
+	TSubclassOf<UUserWidget> HUDWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UPlayerMainHUD> HUDWidgetInstance;
+///////////////////////////////////////////////////////////////////////
 };
