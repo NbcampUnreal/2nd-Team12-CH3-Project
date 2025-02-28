@@ -117,20 +117,19 @@ void ASPTPlayerCharacter::TryPickupItem()
                 ItemActor->Destroy();
             }
         }
-    }
-    if (bHit)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Hit"));
-        AItemActor* ItemActor = Cast<AItemActor>(HitResult.GetActor());
-        if (ItemActor && InventoryManager)
+
+        AItemBase* ItemBase = Cast<AItemBase>(HitResult.GetActor());
+        if (ItemBase && InventoryManager)
         {
-            UInventoryItem* ItemData = ItemActor->GetItemData();
+            UInventoryItem* ItemData = ItemBase->GetItemInventoryData();
             if (ItemData)
             {
+                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : InventoryItem ItemName is %s"), *ItemData->ItemName);
+
                 UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Complete"));
                 InventoryManager->AddItemToInventory(ItemData);
 
-                ItemActor->Destroy();
+                ItemBase->Destroy();
             }
         }
     }
@@ -386,6 +385,7 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
     // 인벤토리를 켜거나 끈다.
     if (value.Get<bool>())
     {
+        UE_LOG(LogTemp, Warning, TEXT("ASPTPlayerCharacter : Input I key"));
         if (InventoryMainWidgetInstance)
         {
             bool bIsVisible = InventoryMainWidgetInstance->IsVisible();

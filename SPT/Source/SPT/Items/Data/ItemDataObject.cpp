@@ -4,6 +4,9 @@
 #include "ItemDataObject.h"
 #include "SPTPlayerCharacter.h"
 #include "SPT/Items/Consumables/ConsumableItem.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
+#include "SPT/Inventory/ItemData/EquipmentItem.h"
+#include "SPT/Inventory/ItemData/ConsumableItemDataObject.h"
 
 UItemDataObject::UItemDataObject()
 {
@@ -30,6 +33,15 @@ UItemDataObject::UItemDataObject()
 
 void UItemDataObject::InitializeItemData(FName RowName)
 {
+	// ItemDataTable이 존재하는지 확인
+	if (!ItemDataTable)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ItemDataObject::InitializeItemData: ItemDataTable is NULL for %s"), *GetName());
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: Attempting to load %s for %s"), *RowName.ToString(), *GetName());
+
 	// 기본 아이템 데이터 로드
 	if (ItemDataTable)
 	{
@@ -46,6 +58,17 @@ void UItemDataObject::InitializeItemData(FName RowName)
 			return;
 		}
 	}
+
+	if (ItemData.ItemActorClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InitializeItemData: ItemActorClass for %s is %s"),
+			*RowName.ToString(), *ItemData.ItemActorClass->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InitializeItemData: ItemActorClass is NULL for %s"), *RowName.ToString());
+	}
+
 
 	// 무기 데이터 로드 (무기일 경우)
 	if (IsWeapon())
@@ -247,4 +270,78 @@ UItemDataObject* UItemDataObject::SplitStack(int32 SplitQuantity)
 		NewStack->bHasConsumableData = bHasConsumableData;
 	}
 	return NewStack;
+}
+
+UInventoryItem* UItemDataObject::ConvertToInventoryItem() const
+{
+	UE_LOG(LogTemp, Warning, TEXT("ConvertToInventoryItem: Checking ItemActorClass for %s"), *ItemData.TextData.ItemName.ToString());
+
+	if (ItemData.ItemActorClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ConvertToInventoryItem: ItemActorClass is %s for %s"),
+			*ItemData.ItemActorClass->GetName(), *ItemData.TextData.ItemName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ConvertToInventoryItem: ItemActorClass is NULL for %s"), *ItemData.TextData.ItemName.ToString());
+	}
+
+
+	UInventoryItem* InventoryItem = nullptr;
+
+	// 아이템 타입에 따라 처리
+	switch (ItemData.ItemType)
+	{
+	case EItemType::EIT_Weapon:
+	{
+		// 무기 아이템인 경우
+		UEquipmentItem* WeaponItem = NewObject<UEquipmentItem>();
+
+		// 기본 아이템 데이터 설정
+		WeaponItem->ItemName = ItemData.TextData.ItemName.ToString();  // ItemName 설정
+		WeaponItem->Description = ItemData.TextData.InteractionText.ToString();  // FText -> FString으로 변환
+		WeaponItem->ItemPrice = ItemData.NumericData.Weight;  // 예시로 Weight를 가격으로 사용
+		WeaponItem->ItemIcon = ItemData.AssetData.Icon;  // 아이템 아이콘 설정
+
+		// 무기 아이템 특화된 속성 설정
+		WeaponItem->AttackPower = ItemData.NumericData.Weight;  // 예시로 Weight를 AttackPower로 사용
+		WeaponItem->DefensePower = ItemData.NumericData.MaxStackSize;  // 예시로 MaxStackSize를 DefensePower로 사용
+		WeaponItem->EquipmentSlot = FName("WeaponSlot");  // 예시로 WeaponSlot 지정
+
+		WeaponItem->ItemActorClass = ItemData.ItemActorClass;
+
+		if (WeaponItem->ItemActorClass)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ConvertToInventoryItem: Successfully assigned ItemActorClass for %s"), *WeaponItem->ItemName);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ConvertToInventoryItem: Failed to assign ItemActorClass for %s"), *WeaponItem->ItemName);
+		}
+
+
+		InventoryItem = WeaponItem;  // 변환된 무기 아이템을 InventoryItem으로 반환
+		UE_LOG(LogTemp, Warning, TEXT("ItemDataObject : ConvertToInventoryItem : InventoryItem(WeaponItem) ItemName is %s"), *WeaponItem->ItemName);
+		break;
+	}
+	case EItemType::EIT_Consumable:
+	{
+		// 소비 아이템인 경우
+		UConsumableItemDataObject* ConsumableItem = NewObject<UConsumableItemDataObject>();
+
+		// 소비 아이템 특화된 속성 설정 (필요시 추가)
+		ConsumableItem->ItemName = ItemData.TextData.ItemName.ToString();
+		ConsumableItem->Description = ItemData.TextData.InteractionText.ToString();
+		ConsumableItem->ItemPrice = ItemData.NumericData.Weight;
+		ConsumableItem->ItemIcon = ItemData.AssetData.Icon;
+
+		InventoryItem = ConsumableItem;  // 변환된 소비 아이템을 InventoryItem으로 반환
+		break;
+	}
+	// 추가적인 아이템 타입 처리 (예: 부착 아이템 등)
+	default:
+		break;
+	}
+
+	return InventoryItem;
 }

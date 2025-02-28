@@ -30,7 +30,18 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
         UE_LOG(LogTemp, Warning, TEXT("AddItem: Item is nullptr!"));
         return;
     }
-    
+
+    if (Item->ItemActorClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AddItem: ItemActorClass is valid for item %s"), *Item->ItemName);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("AddItem: ItemActorClass is nullptr for item %s"), *Item->ItemName);
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : AddItemToInventory : ItemName is %s"), *Item->ItemName);
+
     for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
     {
         if (Inventory)
@@ -71,6 +82,12 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
 {
     UE_LOG(LogTemp, Warning, TEXT("InventoryManager : DropItem"));
 
+    if (!Item->ItemActorClass)
+    {
+        UE_LOG(LogTemp, Error, TEXT("DropItem: Missing ItemActorClass for item %s"), *Item->ItemName);
+        return;
+    }
+
     if (!Item || !Item->ItemActorClass)
     {
         UE_LOG(LogTemp, Warning, TEXT("DropItem: Invalid item or missing ItemActorClass"));
@@ -78,7 +95,7 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
     }
 
     // 아이템을 스폰
-    AItemActor* SpawnedItem = GetWorld()->SpawnActor<AItemActor>(Item->ItemActorClass, DropLocation, FRotator::ZeroRotator);
+    AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(Item->ItemActorClass, DropLocation, FRotator::ZeroRotator);
 
     if (SpawnedItem)
     {

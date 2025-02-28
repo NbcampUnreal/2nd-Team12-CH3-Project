@@ -34,6 +34,7 @@ public:
 	virtual void BeginPlay() override;
 
 	/* 아이템 초기화 (데이터 테이블에서 로드) */
+	UFUNCTION(BlueprintCallable)
 	void InitializeItem(FName ItemRowName);
 
 	/* 마우스 좌클릭 시 실행할 기본 동작 */
@@ -51,8 +52,8 @@ public:
 	UItemDataObject* GetItemData() const;
 	void SetItemData(UItemDataObject* NewItemData);
 
-
-
+	// 아이템 데이터를 인벤토리 데이터로 변환시켜 호출
+	UInventoryItem* GetItemInventoryData() const;
 
 	// 위젯 추가
 	UPROPERTY(EditAnywhere, Category = "Widget")

@@ -71,14 +71,23 @@ void AItemBase::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("PickupWidgetClass is NULL!"));
 	}
 
-
-	ItemData->InitializeItemData(ItemData->GetItemData().ItemID);
+	FName ItemID = ItemData->GetItemData().ItemID;
+	if (ItemID.IsNone())
+	{
+		UE_LOG(LogTemp, Error, TEXT("ItemID is None! InitializeItemData skipped."));
+	}
+	else
+	{
+		ItemData->InitializeItemData(ItemID);
+	}
 }
 
 void AItemBase::InitializeItem(FName ItemRowName)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AItemBase : InitializeItem : run"));
 	if (ItemData)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("AItemBase : InitializeItem : play"));
 		// ItemDataObject에서 데이터 초기화
 		ItemData->InitializeItemData(ItemRowName);
 
@@ -160,6 +169,25 @@ void AItemBase::SetItemData(UItemDataObject* NewItemData)
 		ItemData = NewItemData;
 		UE_LOG(LogTemp, Warning, TEXT("AItemBase::SetItemData called. Keeping existing item state."));
 	}
+}
+
+
+
+
+
+
+
+
+UInventoryItem* AItemBase::GetItemInventoryData() const
+{
+	if (ItemData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemBase : GetItemInventoryData : play"));
+		// ItemDataObject가 유효한 경우, UItemDataObject에서 UInventoryItem으로 변환
+		return ItemData->ConvertToInventoryItem();
+	}
+
+	return nullptr;
 }
 
 void AItemBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

@@ -10,6 +10,7 @@
 #include "ItemDataObject.generated.h"
 
 class ASPTPlayerCharacter;
+class UInventoryItem;
 
 UCLASS()
 class SPT_API UItemDataObject : public UObject
@@ -69,6 +70,18 @@ public:
 	int32 MergeStack(UItemDataObject* OtherItem);
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	UItemDataObject* SplitStack(int32 SplitQuantity);
+
+
+
+
+	// 인벤토리 아이템 데이터로 변환
+	UInventoryItem* ConvertToInventoryItem() const;
+	// 아이템을 생성할 때 필요(DropItem을 사용할 때)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
+	TSubclassOf<AItemBase> ItemActorClass;
+
+
+
 
 protected:
 	/* 아이템 데이터 */

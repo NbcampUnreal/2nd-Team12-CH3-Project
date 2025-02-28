@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SPT/ItemActor.h"
+#include "SPT/Items/Base/ItemBase.h"
 #include "UObject/NoExportTypes.h"
 #include "InventoryItem.generated.h"
 
@@ -26,7 +27,7 @@ public:
 
 	// 아이템을 생성할 때 필요(DropItem을 사용할 때)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
-	TSubclassOf<AItemActor> ItemActorClass;
+	TSubclassOf<AItemBase> ItemActorClass;
 
 
 	FString GetItemName() const { return ItemName; }

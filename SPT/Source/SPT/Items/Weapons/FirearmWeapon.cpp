@@ -238,7 +238,7 @@ void AFirearmWeapon::Begin_Equip()
 {
 	// Equip 함수와 반대가 된 거 같기도 합니다만,
 	// 캐릭터에서 Equip(this)로 넘기고 있기에 그냥 사용하였습니다.
-	Owner->EquipWeapon(this);
+	//Owner->EquipWeapon(this);
 	UpdateMesh();
 
 	if (FirearmStats.RightHandSocketName.IsValid())
