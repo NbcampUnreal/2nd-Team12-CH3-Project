@@ -26,8 +26,25 @@ struct FWeaponStats
 	float AttackRate;	// 공격 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float Damage;	// 기본 공격력
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	float Range;	// 공격 범위
+};
+
+/* 총기 에임 */
+USTRUCT()
+struct FWeaponAimData
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	float TargetArmLength;
+	UPROPERTY(EditAnywhere)
+	FVector SocketOffset;
+	UPROPERTY(EditAnywhere)
+	float FieldOfView;
+
+public:
+	void SetData(class ASPTPlayerCharacter* InOwner);
+	void SetDataByNoneCurve(ASPTPlayerCharacter* InOwner);
 };
 
 /* 총기 데이터 구조체 */
@@ -45,17 +62,49 @@ struct FFirearmStats
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
 	float ReloadTime;	// 재장전 시간
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
-	float BulletSpread;	// 탄착군 (명중률)
+	float HitDistance;	// 공격 범위
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
 	float ProjectileSpeed;	// 총알 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
-	float Recoil;	// 반동
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
 	bool bHasAutomaticFireMode; // 자동 사격 가능 여부
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|ADS")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	FName HolsterSocketName;	// 장착 해제 시 소켓
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	class UAnimMontage* EquipMontage;	// 장착 몽타주
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	float EquipMontage_PlayRate;	// 장착에 걸리는 시간
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	FName RightHandSocketName;	// 장착 소켓
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	FVector LeftHandLocation;	// 왼손 위치
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Aim")
 	float AimZoomLevel;	// 조준 시 확대 비율
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|ADS")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Aim")
 	float AimSpeed;	// 조준 속도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Aim")
+	class UCurveFloat* AimCurve;	// 조준 커브
+	UPROPERTY(EditAnywhere, Category = "Firearm")
+	FWeaponAimData BaseData;
+	UPROPERTY(EditAnywhere, Category = "Firearm")
+	FWeaponAimData AimData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UMaterialInterface* HitDecal;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UParticleSystem* HitParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UParticleSystem* FlashParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class UParticleSystem* EjectParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	class USoundWave* FireSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	float RecoilAngle;	// 탄착군 Cone 각도
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	// TSubclassOf<class UMatineeCameraShake> CameraShakeClass; // ( 미구현 )
+
 };
 
 /* 근접 무기 데이터 구조체 */
