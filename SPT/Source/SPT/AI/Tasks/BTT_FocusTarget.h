@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "BTT_FocusTarget.generated.h"
 
 class ASPTEnemyCharacter;

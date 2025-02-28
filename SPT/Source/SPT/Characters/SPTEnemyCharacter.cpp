@@ -9,8 +9,8 @@ ASPTEnemyCharacter::ASPTEnemyCharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	IdleSpeed = 0.0f;
-    WalkSpeed = 30.0f;
-	JogSpeed = 200.0f;
+    WalkSpeed = 120.0f;
+	JogSpeed = 500.0f;
 }
 
 void ASPTEnemyCharacter::BeginPlay()
@@ -33,7 +33,7 @@ void ASPTEnemyCharacter::SetMovementSpeed(EMovementSpeed NewSpeed)
         GetCharacterMovement()->MaxWalkSpeed = IdleSpeed;
         break;
     case EMovementSpeed::Walking:
-        GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
         break;
     case EMovementSpeed::Jogging:
         GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
