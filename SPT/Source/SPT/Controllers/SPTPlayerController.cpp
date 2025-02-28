@@ -19,6 +19,21 @@ ASPTPlayerController::ASPTPlayerController()
 
 void ASPTPlayerController::BeginPlay()
 {
+    // 매핑 추가
+    AddMapping();
+
+    // PlayerMainHUD 생성 및 뷰포트 추가
+    ShowPlayerMainHUD();
+
+    if (ABaseCharacter* CurChar = GetPawn<ABaseCharacter>())
+    {
+        CurChar->OnDeathDelegate.AddDynamic(this, &ASPTPlayerController::RemoveMapping);
+    }
+}
+
+void ASPTPlayerController::AddMapping()
+{
+    // 매핑 추가
     if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
     {
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
@@ -31,12 +46,23 @@ void ASPTPlayerController::BeginPlay()
             }
         }
     }
+}
 
-    ShowPlayerMainHUD();
+void ASPTPlayerController::RemoveMapping()
+{
+    // 모든 매핑 제거
+    if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+    {
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            Subsystem->ClearAllMappings();
+        }
+    }
 }
 
 void ASPTPlayerController::ShowPlayerMainHUD()
 {
+    // PlayerMainHUD 생성 및 뷰포트 추가
     if (HUDWidgetClass)
     {
         HUDWidgetInstance = CreateWidget<UPlayerMainHUD>(this, HUDWidgetClass);
@@ -47,7 +73,12 @@ void ASPTPlayerController::ShowPlayerMainHUD()
             
             if (ABaseCharacter* CurChar = GetPawn<ABaseCharacter>())
             {
+                // 체력 변경시 업데이트 함수가 호출되도록 델리게이트
                 CurChar->OnHealthChangedDelegate.AddDynamic(HUDWidgetInstance, &UPlayerMainHUD::HPUpdate);
+
+                // 플레이어 캐릭터 사망시 
+                CurChar->OnDeathDelegate.AddDynamic(HUDWidgetInstance, &UPlayerMainHUD::HidePlayUI);
+                CurChar->OnDeathDelegate.AddDynamic(HUDWidgetInstance, &UPlayerMainHUD::ShowDeathUI);
             }
 
             SetShowMouseCursor(false);

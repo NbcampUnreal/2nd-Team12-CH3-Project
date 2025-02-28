@@ -20,6 +20,13 @@ public:
 
 	virtual void BeginPlay() override;
 
+///////////////////////////////////////////////////////////////////////
+// ют╥б
+public:
+	void AddMapping();
+	UFUNCTION()
+	void RemoveMapping();
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC;

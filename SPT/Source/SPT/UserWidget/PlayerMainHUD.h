@@ -18,6 +18,14 @@ class SPT_API UPlayerMainHUD : public UUserWidget
 public:
 	virtual void NativeOnInitialized() override;
 
+///////////////////////////////////////////////////////////////////////
+// Play UI
+	UFUNCTION()
+	void ShowPlayUI();
+
+	UFUNCTION()
+	void HidePlayUI();
+
 	UFUNCTION()
 	void HPUpdate(float NewHP, float MaxHP);
 
@@ -28,6 +36,9 @@ public:
 	void AmmoUpdate(int NewAmmouCount, int MaxAmmouCount);
 	
 private:
+	// Play CanvasPanel
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	TObjectPtr<UCanvasPanel> PlayUI;
 	// Ã¼·Â
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
 	TObjectPtr<UTextBlock> HPText;
@@ -45,4 +56,24 @@ private:
 	TObjectPtr<UTextBlock> MagAmmo;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
 	TObjectPtr<UTextBlock> RemainAmmo;
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+// Death UI
+
+public:
+	UFUNCTION()
+	void ShowDeathUI();
+
+	UFUNCTION()
+	void HideDeathUI();
+
+private:
+	// Death CanvasPanel
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	TObjectPtr<UCanvasPanel> DeathUI;
+
+	// Death CanvasPanel
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	TObjectPtr<UUserWidget> DeathMenu;
+///////////////////////////////////////////////////////////////////////
 };

@@ -83,3 +83,18 @@ void USPTPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		
 	}
 }
+
+void USPTPlayerAnimInstance::AnimNotify_Death()
+{
+	// 현재 캐릭터가 플레이어의 조종을 받을 경우
+	if (TryGetPawnOwner()->IsPlayerControlled())
+	{
+		Character->GetMesh()->SetVisibility(false);
+	}
+	// 현재 캐릭터가 AI의 조종을 받을 경우
+	else
+	{
+		Character->Destroy();
+	}
+	
+}
