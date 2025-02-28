@@ -34,4 +34,27 @@ public:
     void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, FVector NormalImpulse,
         const FHitResult& Hit);
+
+
+
+
+    /** 폭발 반경 */
+    UPROPERTY(EditDefaultsOnly, Category = "Damage")
+    float ExplosionRadius = 50.0f;
+
+    /** 폭발 피해량 */
+    UPROPERTY(EditDefaultsOnly, Category = "Damage")
+    float ExplosionDamage = 100.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Component")
+    USphereComponent* ExplosionCollision;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+    UParticleSystem* ExplosionParticle;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+    USoundBase* ExplosionSound;
+
+    FTimerHandle DestroyParticleTimerHandle; // 클래스 멤버 변수로 이동
+
+    void Explode();
 };

@@ -31,3 +31,36 @@ void ABaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	float NewHealth = FMath::Clamp(Health - ActualDamage, 0.0f, MaxHealth);
+
+	SetHealth(NewHealth);
+
+	if (Health <= 0.f)
+	{
+		OnDeath();
+	}
+
+	return 0.0f;
+}
+
+void ABaseCharacter::OnDeath()
+{
+	// 사망 후 로직
+	// 바인드 된 함수 호출
+	OnDethMulticastDelegate.Broadcast();
+
+	// 바인드 된 함수에 대해 연결 해제
+	OnDethMulticastDelegate.Clear();
+}
+
+void ABaseCharacter::SetHealth(float NewHP)
+{
+	Health = NewHP;
+
+	OnHealthChangedDelegate.Broadcast(NewHP, MaxHealth);
+}

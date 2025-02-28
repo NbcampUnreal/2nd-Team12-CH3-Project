@@ -10,6 +10,8 @@ ASplineAISpawnPoint::ASplineAISpawnPoint()
 
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	SetRootComponent(Scene);
+
+	RespawnDelay = 1.f;
 }
 
 void ASplineAISpawnPoint::BeginPlay()
@@ -19,11 +21,11 @@ void ASplineAISpawnPoint::BeginPlay()
 	SpawnAI();
 }
 
-ACharacter* ASplineAISpawnPoint::SpawnAI()
+void ASplineAISpawnPoint::SpawnAI()
 {
 	// 현재 스폰시키는 클래스가 멤버변수로 있다.
 	// 나중에 데이터 테이블로 관리한다면 수정해야한다.
-	if (!SpawnAIClass) return nullptr;
+	if (!SpawnAIClass) return;
 
 	FVector SpawnLocation = GetActorLocation();
 	FRotator SpawnRotation = GetActorRotation();
@@ -32,7 +34,13 @@ ACharacter* ASplineAISpawnPoint::SpawnAI()
 	if (ASPTEnemyCharacter* SPTEnemyCharacter = Cast<ASPTEnemyCharacter>(SpawnAI))
 	{
 		SPTEnemyCharacter->PatrolRoute = this->PatrolRoute;
+		SPTEnemyCharacter->OnDethMulticastDelegate.AddDynamic(this, &ASplineAISpawnPoint::Respawn);
 	}
+}
 
-	return SpawnAI;
+void ASplineAISpawnPoint::Respawn()
+{
+	// AI를 특정 시간 후 리스폰 시키는 로직
+
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASplineAISpawnPoint::SpawnAI, RespawnDelay, false);
 }

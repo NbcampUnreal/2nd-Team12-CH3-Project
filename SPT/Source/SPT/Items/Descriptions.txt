@@ -1,0 +1,30 @@
+### 아이템 및 무기 시스템의 기본 프레임워크 추가
+
+Items
+ ├── Base
+ │   ├── ItemBase.h / ItemBase.cpp  // 모든 아이템의 부모 클래스
+ │
+ ├── WorldItems
+ │   ├── WorldItemBase.h / WorldItemBase.cpp  // 월드에서 줍기 가능한 아이템
+ │   ├── WorldWeapon.h / WorldWeapon.cpp  // 월드에서 배치될 무기
+ │   ├── WorldConsumable.h / WorldConsumable.cpp  // 월드에서 배치될 소비 아이템
+ │
+ ├── Weapons
+ │   ├── WeaponBase.h / WeaponBase.cpp  // 무기의 공통 부모 클래스
+ │   ├── Firearms  // 총기류
+ │   │   ├── FirearmWeapon.h / FirearmWeapon.cpp  // 기본 총기 (총기 공통 기능)
+ │
+ ├── Consumables
+ │   ├── ConsumableItem.h / ConsumableItem.cpp  // 소비 아이템 (힐링 포션, 스태미너 부스트 등)
+ │
+ ├── Data
+ │   ├── ItemDataStructs.h  // 모든 아이템 데이터 구조체
+ │   ├── WeaponDataStructs.h  // 무기 데이터 구조체
+ │   ├── ConsumableDataStructs.h  // 소비 아이템 데이터 구조체
+ │   ├── ItemDataObject.h / ItemDataObject.cpp  // 아이템 데이터를 관리하는 오브젝트
+ │
+
+ Interfaces
+ │   ├── InteractableInterface.h  // 상호작용 인터페이스 (줍기, 드롭 등)
+ │   ├── WeaponItemInterface.h  // 무기 인터페이스 (공격 관련 기능 추가)
+ │   ├── ItemUsableInterface.h  // 사용 가능한 아이템 인터페이스
