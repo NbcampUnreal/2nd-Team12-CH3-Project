@@ -9,7 +9,7 @@
 UBTT_MoveRandomLocation::UBTT_MoveRandomLocation()
 {
     bCreateNodeInstance = true;
-    NodeName = "Move To Random Location Within Spawn Volume";
+    NodeName = "BTT_Move To Random Location Within Spawn Volume";
 }
 
 EBTNodeResult::Type UBTT_MoveRandomLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -33,6 +33,8 @@ EBTNodeResult::Type UBTT_MoveRandomLocation::ExecuteTask(UBehaviorTreeComponent&
 
     // AI가 속한 스폰 볼륨 찾기
     AAISpawnVolume* SpawnVolume = nullptr;
+    // UWorld 내에서 특정 클래스의 액터를 순회(iterate)하는 데 사용
+    // UGameplayStatics::GetAllActorsOfClass보다 더 최적화된 방식
     for (TActorIterator<AAISpawnVolume> It(AIC->GetWorld()); It; ++It)
     {
         SpawnVolume = *It;

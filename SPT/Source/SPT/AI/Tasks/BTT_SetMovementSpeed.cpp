@@ -4,7 +4,7 @@
 
 UBTT_SetMovementSpeed::UBTT_SetMovementSpeed()
 {
-    NodeName = "Set Movement Speed";
+    NodeName = "BTT_Set Movement Speed";
 }
 
 EBTNodeResult::Type UBTT_SetMovementSpeed::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
