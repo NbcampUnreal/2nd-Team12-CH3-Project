@@ -20,6 +20,9 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	UFUNCTION()
+	void AnimNotify_Death();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "References")
 	TObjectPtr<ACharacter> Character;

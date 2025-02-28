@@ -3,6 +3,8 @@
 
 #include "BaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -50,12 +52,19 @@ float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 void ABaseCharacter::OnDeath()
 {
+	// 콜리전 설정 변경
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("DeathCharacter"));
+	GetMesh()->SetCollisionProfileName(TEXT("DeathCharacter"));
+
+	// 사망 애니메이션 재생
+	PlayDeathAnim();
+
 	// 사망 후 로직
 	// 바인드 된 함수 호출
-	OnDethMulticastDelegate.Broadcast();
+	OnDeathDelegate.Broadcast();
 
 	// 바인드 된 함수에 대해 연결 해제
-	OnDethMulticastDelegate.Clear();
+	OnDeathDelegate.Clear();
 }
 
 void ABaseCharacter::SetHealth(float NewHP)
@@ -63,4 +72,12 @@ void ABaseCharacter::SetHealth(float NewHP)
 	Health = NewHP;
 
 	OnHealthChangedDelegate.Broadcast(NewHP, MaxHealth);
+}
+
+void ABaseCharacter::PlayDeathAnim()
+{
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->Montage_Play(DeathAnim);
+	}
 }

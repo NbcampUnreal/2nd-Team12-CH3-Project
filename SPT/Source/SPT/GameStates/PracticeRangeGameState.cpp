@@ -54,8 +54,8 @@ void APracticeRangeGameState::ProficiencyTestingAISpawn()
         if (BaseCharacter)
         {
             // 스폰 시킨 AI가 사망된 후 스폰 함수 다시 호출
-            BaseCharacter->OnDethMulticastDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAISpawn);
-            BaseCharacter->OnDethMulticastDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAIKillCount);
+            BaseCharacter->OnDeathDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAISpawn);
+            BaseCharacter->OnDeathDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAIKillCount);
         }
     }
 }
