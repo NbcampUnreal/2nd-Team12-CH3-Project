@@ -32,14 +32,13 @@ void UDeathMenu::HandleReStartButtonClicked()
 		CurPlayerController->SetShowMouseCursor(false);
 	}
 
-	UGameplayStatics::OpenLevel(GetWorld(), GetWorld()->GetCurrentLevel()->GetFName());
+	UGameplayStatics::OpenLevel(GetWorld(), FName::FName(UGameplayStatics::GetCurrentLevelName(GetWorld())));
 }
 
 void UDeathMenu::HandleMainMenuButtonClicked()
 {
 	if (APlayerController* CurPlayerController = GetOwningPlayer())
 	{
-		CurPlayerController->SetPause(true);
 		CurPlayerController->SetInputMode(FInputModeUIOnly());
 		CurPlayerController->SetShowMouseCursor(true);
 	}

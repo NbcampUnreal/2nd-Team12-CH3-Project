@@ -71,7 +71,6 @@ void UPlayerMainHUD::ShowDeathUI()
 {
 	if (APlayerController* CurPlayerController = GetOwningPlayer())
 	{
-		CurPlayerController->SetPause(true);
 		CurPlayerController->SetInputMode(FInputModeUIOnly());
 		CurPlayerController->SetShowMouseCursor(true);
 	}
