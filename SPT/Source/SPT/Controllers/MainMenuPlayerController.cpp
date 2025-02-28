@@ -22,7 +22,6 @@ void AMainMenuPlayerController::BeginPlay()
 		{
 			MainMenuWidgetInstance->AddToViewport();
 
-			SetPause(true);
 			SetShowMouseCursor(true);
 			SetInputMode(FInputModeUIOnly());
 		}
