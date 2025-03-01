@@ -8,6 +8,8 @@
 // #include "AttachmentDataStructs.h"
 #include "ItemDataStructs.generated.h"
 
+class AItemBase;
+
 /* 아이템 타입 Enum */
 UENUM(BlueprintType)
 enum class EItemType : uint8
@@ -140,4 +142,10 @@ struct FItemData : public FTableRowBase
 	/* 부착 아이템 데이터(부착 아이템인 경우에만 할당) */
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Attachment", meta = (EditCondition = "ItemType == EIT_Attachment"))
 	// FAttachmentItemData AttachmentData;
+
+
+	// 인벤토리 관련 추가된 변수
+	// 아이템을 생성할 때 필요(DropItem을 사용할 때)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
+	TSubclassOf<AItemBase> ItemBaseClass;
 };

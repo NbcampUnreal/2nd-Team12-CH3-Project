@@ -4,10 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
+#include "InventoryManager.h"
+#include "ItemWidget/InventoryMainWidget.h"
 #include "SPTPlayerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
+class AItemBase;
+class AEquipmentInventory;
+class AConsumableInventory;
 
 struct FInputActionValue;
 
@@ -63,4 +68,38 @@ private:
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCameraComponent> CameraComp;
+
+
+
+
+public:
+	// 인벤토리 관련 함수
+	UFUNCTION()
+	void TryPickupItem();
+	UFUNCTION()
+	void DropItem(UInventoryItem* InventoryItem);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	AInventoryManager* GetInventory() const;
+
+	// 캐릭터에 인벤토리 할당
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AInventoryManager> InventoryManagerClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
+	UPROPERTY()
+	AInventoryManager* InventoryManager;
+	UPROPERTY()
+	AEquipmentInventory* EquipmentInventory;
+	UPROPERTY()
+	AConsumableInventory* ConsumableInventory;
+
+	// 인벤토리 위젯 적용
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UInventoryMainWidget> InventoryMainWidgetClass;
+	UPROPERTY()
+	UInventoryMainWidget* InventoryMainWidgetInstance;
+
+
 };
