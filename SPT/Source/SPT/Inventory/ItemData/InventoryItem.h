@@ -31,6 +31,8 @@ public:
 	FText GetItemName() const;
 
 	UTexture2D* GetItemIcon() const;
+
+	USkeletalMesh* GetSkeletalMesh() const;
 	
 
 	// 아이템의 타입을 판별

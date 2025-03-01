@@ -72,17 +72,7 @@ public:
 	UItemDataObject* SplitStack(int32 SplitQuantity);
 
 
-
-	// 아이템을 생성할 때 필요하여 추가하였습니다.
-	// 필요여부 확인되지 않음(확인 후 제거할 지 유지할 지 결정)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
-	TSubclassOf<AItemBase> ItemBaseClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	UTexture2D* Icon;
-
-
-	// 임시로 인벤토리에서 사용하기 위해 퍼블릭으로 전환하였습니다. (이후 get 함수를 추가 한 뒤 다시 protected로 되돌릴 예정)
-public:	
+protected:
 	/* 아이템 데이터 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
 	FItemData ItemData;

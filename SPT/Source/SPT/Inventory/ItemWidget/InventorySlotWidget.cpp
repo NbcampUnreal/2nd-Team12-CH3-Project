@@ -11,8 +11,6 @@
 
 void UInventorySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
-    UE_LOG(LogTemp, Warning, TEXT("NativeOnListItemObjectSet called"));
-
     if (!ListItemObject)
     {
         UE_LOG(LogTemp, Warning, TEXT("ListItemObject is nullptr"));
@@ -22,11 +20,6 @@ void UInventorySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	UInventoryItem* InventoryItem = Cast<UInventoryItem>(ListItemObject);
 	if (InventoryItem)
 	{
-        // 아이템 데이터 확인용(없어도됨)
-        ItemData = InventoryItem;
-        UE_LOG(LogTemp, Warning, TEXT("Slot Assigned Item : % s"), *ItemData->GetItemName().ToString());
-
-
 		UpdateItem(InventoryItem);
 	}
     else
@@ -77,8 +70,6 @@ void UInventorySlotWidget::OnItemSelectClicked()
 
 void UInventorySlotWidget::OnUseClicked()
 {
-    UE_LOG(LogTemp, Warning, TEXT("OnUseClicked"));
-    
     if (ItemData)
     {
         UE_LOG(LogTemp, Warning, TEXT("Use %s"), *ItemData->GetItemName().ToString());
@@ -102,7 +93,6 @@ void UInventorySlotWidget::OnUseClicked()
 
 void UInventorySlotWidget::OnDropClicked()
 {
-    UE_LOG(LogTemp, Warning, TEXT("OnDropClicked"));
     if (ItemData)
     {
         ASPTPlayerCharacter* PlayerCharacter = Cast<ASPTPlayerCharacter>(GetOwningPlayerPawn());

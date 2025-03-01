@@ -73,7 +73,6 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
 {
     if (!Item || !Item->GetItemBaseClass())
     {
-        UE_LOG(LogTemp, Warning, TEXT("DropItem: Invalid item or missing ItemBaseClass"));
         return;
     }
 
@@ -96,12 +95,12 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
         SpawnedItem->SetItemData(ItemCopy);
 
         // 아이템의 에셋을 적용
-        if (ItemCopy->ItemData.AssetData.SkeletalMesh)
+        if (ItemCopy->GetItemData().AssetData.SkeletalMesh)
         {
             USkeletalMeshComponent* SkeletalMeshComp = NewObject<USkeletalMeshComponent>(SpawnedItem);
             if (SkeletalMeshComp)
             {
-                SkeletalMeshComp->SetSkeletalMesh(ItemCopy->ItemData.AssetData.SkeletalMesh);
+                SkeletalMeshComp->SetSkeletalMesh(ItemCopy->GetItemData().AssetData.SkeletalMesh);
                 SkeletalMeshComp->RegisterComponent();
 
                 // 기존 루트가 있으면 변경하지 않고 Attach만 수행
@@ -115,8 +114,6 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
                 }
             }
         }
-
-        UE_LOG(LogTemp, Warning, TEXT("Item dropped at location: %s"), *DropLocation.ToString());
 
         // 인벤토리에서 아이템 제거
         RemoveItemToInventory(Item);

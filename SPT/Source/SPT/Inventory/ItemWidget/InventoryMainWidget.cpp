@@ -17,10 +17,7 @@ void UInventoryMainWidget::UpdateInventoryList(const TArray<UInventoryItem*>& It
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("UpdateInventoryList called! Items count: %d"), Items.Num());
-
 	InventoryListView->SetListItems(Items); 
-
 }
 
 void UInventoryMainWidget::NativeConstruct()

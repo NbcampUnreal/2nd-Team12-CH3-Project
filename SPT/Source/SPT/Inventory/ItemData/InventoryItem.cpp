@@ -29,33 +29,27 @@ TSubclassOf<AItemBase> UInventoryItem::GetItemBaseClass() const
 {
     if (ItemDataObject)
     {
-        if (ItemDataObject->ItemData.ItemBaseClass)
+        if (ItemDataObject->GetItemData().ItemBaseClass)
         {
-            UE_LOG(LogTemp, Warning, TEXT("GetItemBaseClass: ItemBaseClass is valid"));
-            return ItemDataObject->ItemData.ItemBaseClass;
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("GetItemBaseClass: ItemBaseClass is nullptr"));
-            UE_LOG(LogTemp, Error, TEXT("GetItemBaseClass: ItemName is %s"), *GetItemName().ToString());
+            return ItemDataObject->GetItemData().ItemBaseClass;
         }
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("GetItemBaseClass: ItemDataObject is nullptr"));
-    }
-
     return nullptr;
 }
 
 FText UInventoryItem::GetItemName() const
 {
-	return ItemDataObject ? ItemDataObject->ItemData.TextData.ItemName : FText::FromString(TEXT("Unknown"));
+	return ItemDataObject ? ItemDataObject->GetItemData().TextData.ItemName : FText::FromString(TEXT("Unknown"));
 }
 
 UTexture2D* UInventoryItem::GetItemIcon() const
 {
-    return ItemDataObject ? ItemDataObject->Icon : nullptr;
+    return ItemDataObject ? ItemDataObject->GetItemData().AssetData.Icon : nullptr;
+}
+
+USkeletalMesh* UInventoryItem::GetSkeletalMesh() const
+{
+    return ItemDataObject ? ItemDataObject->GetItemData().AssetData.SkeletalMesh : nullptr;
 }
 
 // 아이템의 타입 판별
