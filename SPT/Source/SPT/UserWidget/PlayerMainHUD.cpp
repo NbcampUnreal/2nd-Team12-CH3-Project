@@ -11,6 +11,16 @@ void UPlayerMainHUD::NativeOnInitialized()
 	Super::NativeOnInitialized();
 }
 
+void UPlayerMainHUD::ShowPlayUI()
+{
+	PlayUI->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UPlayerMainHUD::HidePlayUI()
+{
+	PlayUI->SetVisibility(ESlateVisibility::Hidden);
+}
+
 void UPlayerMainHUD::HPUpdate(float NewHP, float MaxHP)
 {
 	if (HPBarFront)
@@ -55,4 +65,20 @@ void UPlayerMainHUD::AmmoUpdate(int NewAmmouCount, int MaxAmmouCount)
 	{
 		HPText->SetText(FText::FromString(FString::Printf(TEXT("%d"), MaxAmmouCount)));
 	}
+}
+
+void UPlayerMainHUD::ShowDeathUI()
+{
+	if (APlayerController* CurPlayerController = GetOwningPlayer())
+	{
+		CurPlayerController->SetInputMode(FInputModeUIOnly());
+		CurPlayerController->SetShowMouseCursor(true);
+	}
+
+	DeathUI->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+}
+
+void UPlayerMainHUD::HideDeathUI()
+{
+	DeathUI->SetVisibility(ESlateVisibility::Hidden);
 }

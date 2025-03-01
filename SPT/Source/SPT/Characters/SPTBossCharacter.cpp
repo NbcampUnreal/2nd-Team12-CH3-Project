@@ -73,7 +73,7 @@ void ASPTBossCharacter::SpawnMissile()
         {
             // 기본 스폰 위치
             FVector BaseSpawnLocation = GetActorLocation() + MissileSpawnOffset;
-            FVector RandomOffset = FVector(FMath::RandRange(-50.0f, 50.0f), FMath::RandRange(-500.0f, 500.0f), FMath::RandRange(0.0f, 50.0f));
+            FVector RandomOffset = FVector(FMath::RandRange(-500.0f, 500.0f), FMath::RandRange(-500.0f, 500.0f), FMath::RandRange(500.0f, 1000.0f));
             FVector SpawnLocation = BaseSpawnLocation + RandomOffset;
 
             // 플레이어 방향을 바라보는 회전값 계산

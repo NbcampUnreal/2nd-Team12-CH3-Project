@@ -34,7 +34,7 @@ void ASplineAISpawnPoint::SpawnAI()
 	if (ASPTEnemyCharacter* SPTEnemyCharacter = Cast<ASPTEnemyCharacter>(SpawnAI))
 	{
 		SPTEnemyCharacter->PatrolRoute = this->PatrolRoute;
-		SPTEnemyCharacter->OnDethMulticastDelegate.AddDynamic(this, &ASplineAISpawnPoint::Respawn);
+		SPTEnemyCharacter->OnDeathDelegate.AddDynamic(this, &ASplineAISpawnPoint::Respawn);
 	}
 }
 

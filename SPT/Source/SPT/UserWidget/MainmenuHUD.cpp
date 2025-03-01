@@ -31,9 +31,8 @@ void UMainmenuHUD::NativeOnInitialized()
 
 void UMainmenuHUD::HandlePlayButtonClicked()
 {
-	// TODO
 	// 나중에 플레이 할 레벨이 생성되면 오픈하도록 설정
-	//UGameplayStatics::OpenLevel(GetWorld(), FName(""));
+	UGameplayStatics::OpenLevel(GetWorld(), FName("Airport_Level"));
 }
 
 void UMainmenuHUD::HandleTrainingButtonClicked()

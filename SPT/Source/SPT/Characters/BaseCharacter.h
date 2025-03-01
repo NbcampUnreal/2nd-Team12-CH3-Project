@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDethMulticastDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangedDelegate, float, NewHP, float, MaxHP);
 
 UCLASS()
@@ -38,13 +38,24 @@ public:
 
 public:
 	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
-	FOnDethMulticastDelegate OnDethMulticastDelegate;
+	FOnDeathDelegate OnDeathDelegate;
 
 	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
 	FOnHealthChangedDelegate OnHealthChangedDelegate;
 
 ///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+// 애니메이션 몽타주
 
+private:
+	UFUNCTION()
+	void PlayDeathAnim();
+
+private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UAnimMontage> DeathAnim;
+
+///////////////////////////////////////////////////////////////////////
 protected:
 	// 기본 최대 체력
 	float MaxHealth;

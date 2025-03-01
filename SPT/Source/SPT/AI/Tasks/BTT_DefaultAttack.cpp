@@ -33,7 +33,7 @@ EBTNodeResult::Type UBTT_DefaultAttack::ExecuteTask(UBehaviorTreeComponent& Owne
         EnemyCharacterRef->OnAttackEnd.AddDynamic(this, &UBTT_DefaultAttack::OnAttackFinished);
 
         // 공격 시작 로그
-        UE_LOG(LogTemp, Warning, TEXT("[DefaultAttack] Starting Attack for: %s"), *EnemyCharacterRef->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("[DefaultAttack] %s Starts Attack"), *EnemyCharacterRef->GetName());
 
         // 다형성을 활용하여 해당 적 클래스의 Attack() 호출
         EnemyCharacterRef->Attack();
