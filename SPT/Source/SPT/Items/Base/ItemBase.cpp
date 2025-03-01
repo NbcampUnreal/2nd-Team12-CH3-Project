@@ -29,7 +29,11 @@ AItemBase::AItemBase()
 	Collision->SetCollisionObjectType(ECC_GameTraceChannel1);
 	Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
+	// 기본 상태는 월드 상태
+	ItemState = EItemState::EIS_World;
 
+
+	// 아이템 픽업 위젯을 할당하기 위해 추가한 코드입니다.
 	// 위젯 생성
 	PickupWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidgetComponent"));
 	PickupWidgetComponent->SetupAttachment(StaticMeshComponent);
@@ -38,8 +42,12 @@ AItemBase::AItemBase()
 	PickupWidgetComponent->SetDrawSize(FVector2D(200, 50));
 	PickupWidgetComponent->SetVisibility(false);
 
-	// 기본 상태는 월드 상태
-	ItemState = EItemState::EIS_World;
+	static ConstructorHelpers::FClassFinder<UUserWidget> WBP_PickUpWidget(TEXT("/Game/Blueprints/Inventory/UI/WBP_PickUpWidget"));
+	if (WBP_PickUpWidget.Succeeded())
+	{
+		PickupWidgetClass = WBP_PickUpWidget.Class;
+		PickupWidgetComponent->SetWidgetClass(PickupWidgetClass);
+	}
 }
 
 void AItemBase::BeginPlay()

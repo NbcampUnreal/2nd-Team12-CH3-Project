@@ -37,6 +37,33 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
     bUseControllerRotationYaw = false;
 
     GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
+
+
+
+    // 인벤토리 추가를 위해 추가로 작성된 코드들 입니다.
+    // 인벤토리 클래스 및 위젯 클래스 자동 할당
+    static ConstructorHelpers::FClassFinder<AInventoryManager> BP_InventoryManager(TEXT("/Game/Blueprints/Inventory/BP_InventoryManager"));
+    static ConstructorHelpers::FClassFinder<AEquipmentInventory> BP_EquipmentInventory(TEXT("/Game/Blueprints/Inventory/BP_EquipmentInventory"));
+    static ConstructorHelpers::FClassFinder<AConsumableInventory> BP_ConsumableInventory(TEXT("/Game/Blueprints/Inventory/BP_ConsumableInventory"));
+    static ConstructorHelpers::FClassFinder<UInventoryMainWidget> WBP_InventoryMainWidget(TEXT("/Game/Blueprints/Inventory/UI/WBP_InventoryMainWidget"));
+    
+    if (BP_InventoryManager.Succeeded())
+    {
+        InventoryManagerClass = BP_InventoryManager.Class;
+    }
+    if (BP_EquipmentInventory.Succeeded())
+    {
+        EquipmentInventoryClass = BP_EquipmentInventory.Class;
+    }
+    if (BP_ConsumableInventory.Succeeded())
+    {
+        ConsumableInventoryClass = BP_ConsumableInventory.Class;
+    }
+    if (WBP_InventoryMainWidget.Succeeded())
+    {
+        InventoryMainWidgetClass = WBP_InventoryMainWidget.Class;
+    }
+
 }
 
 // 라인트레이스 함수를 사용하여 캐릭터의 앞에 물체가 있는지 판별 후 아이템일 시 작동
