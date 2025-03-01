@@ -2,6 +2,8 @@
 
 
 #include "ConsumableInventory.h"
+#include "SPT/Items/Base/ItemBase.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
 
 AConsumableInventory::AConsumableInventory()
 {
@@ -11,22 +13,30 @@ AConsumableInventory::AConsumableInventory()
 
 void AConsumableInventory::AddItem(UInventoryItem* Item)
 {
-	if (UConsumableItemDataObject* Consumable = Cast<UConsumableItemDataObject>(Item))
-	{
-		ConsumableItems.Add(Consumable);
-	}
+    // 아이템이 소비 아이템인 경우 ConsumableItems에 추가
+    if (Item && Item->GetItemBaseClass())
+    {
+        if (Item->IsConsumable())  // 소비 아이템 체크
+        {
+            ConsumableItems.Add(Item);
+        }
+        else if (Item->IsWeapon())  // 무기 아이템인 경우 다른 배열에 추가
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Item is a weapon, cannot be added to ConsumableInventory"));
+        }
+    }
 }
 
 void AConsumableInventory::DropItem(UInventoryItem* Item)
 {
-	ConsumableItems.Remove(Cast<UConsumableItemDataObject>(Item));
+	ConsumableItems.Remove(Cast<UInventoryItem>(Item));
 }
 
 bool AConsumableInventory::HasItem(FName ItemName)
 {
-	return ConsumableItems.ContainsByPredicate([ItemName](UConsumableItemDataObject* Item)
+	return ConsumableItems.ContainsByPredicate([ItemName](UInventoryItem* Item)
 		{
-			return Item->ItemName == ItemName;
+			return FName(*Item->GetItemName().ToString()) == ItemName;
 		});
 }
 
@@ -34,7 +44,7 @@ bool AConsumableInventory::RemoveItem(UInventoryItem* Item)
 {
 	if (!Item) return false;
 
-	if (ConsumableItems.Remove(Cast<UConsumableItemDataObject>(Item)) > 0)
+	if (ConsumableItems.Remove(Cast<UInventoryItem>(Item)) > 0)
 	{
 		return true;
 	}

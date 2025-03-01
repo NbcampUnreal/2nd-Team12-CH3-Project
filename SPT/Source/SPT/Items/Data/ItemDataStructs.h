@@ -144,8 +144,8 @@ struct FItemData : public FTableRowBase
 	// FAttachmentItemData AttachmentData;
 
 
-
+	// 인벤토리 관련 추가된 변수
 	// 아이템을 생성할 때 필요(DropItem을 사용할 때)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
-	TSubclassOf<AItemBase> ItemActorClass;
+	TSubclassOf<AItemBase> ItemBaseClass;
 };

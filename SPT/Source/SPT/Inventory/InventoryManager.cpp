@@ -5,6 +5,8 @@
 #include "InventoryInterface.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
+#include "SPT/Items/Base/ItemBase.h"
 #include "SPT/Inventory/ItemWidget/InventoryMainWidget.h"
 
 // Sets default values
@@ -31,29 +33,18 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
         return;
     }
 
-    if (Item->ItemActorClass)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("AddItem: ItemActorClass is valid for item %s"), *Item->ItemName);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("AddItem: ItemActorClass is nullptr for item %s"), *Item->ItemName);
-    }
-
-    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : AddItemToInventory : ItemName is %s"), *Item->ItemName);
-
+    // 인벤토리 배열에 데이터를 저장(장비, 소모품 구분해서 저장)
     for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
     {
         if (Inventory)
         {
             // 모든 인벤토리에서 AddItem 호출
             Inventory->AddItem(Item);
-            UE_LOG(LogTemp, Warning, TEXT("Added to Inventory"));
-            break;  // 첫 번째 인벤토리만 추가
+            break;
         }
     }
 
-    // 아이템 추가 직후 UI 갱신 보장
+    // UI 갱신
     if (InventoryMainWidgetInstance)
     {
         TArray<UInventoryItem*> AllItems;
@@ -65,12 +56,11 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
                 AllItems.Append(Items);
             }
         }
-
-        UE_LOG(LogTemp, Warning, TEXT("Inventory UI Update - Item Count: %d"), AllItems.Num());
         InventoryMainWidgetInstance->UpdateInventoryList(AllItems);
     }
 }
 
+// 미구현(장비품 장착 혹은 소모품 사용)
 void AInventoryManager::UseItem(UInventoryItem* Item)
 {
     if (!Item) return;
@@ -78,43 +68,66 @@ void AInventoryManager::UseItem(UInventoryItem* Item)
     Item->UseItem();
 }
 
+// 아이템을 캐릭터의 앞에 생성하여 떨어뜨림
 void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
 {
-    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : DropItem"));
-
-    if (!Item->ItemActorClass)
+    if (!Item || !Item->GetItemBaseClass())
     {
-        UE_LOG(LogTemp, Error, TEXT("DropItem: Missing ItemActorClass for item %s"), *Item->ItemName);
+        UE_LOG(LogTemp, Warning, TEXT("DropItem: Invalid item or missing ItemBaseClass"));
         return;
     }
 
-    if (!Item || !Item->ItemActorClass)
+
+    // 인벤토리의 데이터를 복제
+    UItemDataObject* ItemCopy = Item->ItemDataObject->CreateItemCopy();
+    if (!ItemCopy)
     {
-        UE_LOG(LogTemp, Warning, TEXT("DropItem: Invalid item or missing ItemActorClass"));
+        UE_LOG(LogTemp, Error, TEXT("DropItem : Failed to create item copy!"));
         return;
     }
 
-    // 아이템을 스폰
-    AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(Item->ItemActorClass, DropLocation, FRotator::ZeroRotator);
 
+    // 아이템을 월드에 스폰
+    AItemBase* SpawnedItem = GetWorld()->SpawnActor<AItemBase>(Item->GetItemBaseClass(), DropLocation, FRotator::ZeroRotator);
+    // 아이템이 월드에 생성 되었을 시
     if (SpawnedItem)
     {
+        // 복사된 인벤토리 데이터를 스폰된 아이템에 복사
+        SpawnedItem->SetItemData(ItemCopy);
 
-        // 아이템을 가시화하고 충돌 가능하게 설정
-        SpawnedItem->SetActorHiddenInGame(false);
-        SpawnedItem->SetActorEnableCollision(true);
+        // 아이템의 에셋을 적용
+        if (ItemCopy->ItemData.AssetData.SkeletalMesh)
+        {
+            USkeletalMeshComponent* SkeletalMeshComp = NewObject<USkeletalMeshComponent>(SpawnedItem);
+            if (SkeletalMeshComp)
+            {
+                SkeletalMeshComp->SetSkeletalMesh(ItemCopy->ItemData.AssetData.SkeletalMesh);
+                SkeletalMeshComp->RegisterComponent();
+
+                // 기존 루트가 있으면 변경하지 않고 Attach만 수행
+                if (!SpawnedItem->GetRootComponent())
+                {
+                    SpawnedItem->SetRootComponent(SkeletalMeshComp);
+                }
+                else
+                {
+                    SkeletalMeshComp->AttachToComponent(SpawnedItem->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+                }
+            }
+        }
 
         UE_LOG(LogTemp, Warning, TEXT("Item dropped at location: %s"), *DropLocation.ToString());
 
         // 인벤토리에서 아이템 제거
-        RemoveItem(Item);
+        RemoveItemToInventory(Item);
     }
     else {
         UE_LOG(LogTemp, Warning, TEXT("Failed to spawn dropped item."));
     }
 }
 
-void AInventoryManager::RemoveItem(UInventoryItem* Item)
+// 인벤토리에서 아이템을 제거하는 함수
+void AInventoryManager::RemoveItemToInventory(UInventoryItem* Item)
 {
     if (!Item)
     {
@@ -129,9 +142,8 @@ void AInventoryManager::RemoveItem(UInventoryItem* Item)
     {
         if (Inventory->RemoveItem(Item))  // 인터페이스를 통해 제거
         {
-            UE_LOG(LogTemp, Warning, TEXT("Removed Item from Inventory"));
             bItemRemoved = true;
-            break;  // 한 개의 인벤토리에서만 제거
+            break;
         }
     }
 

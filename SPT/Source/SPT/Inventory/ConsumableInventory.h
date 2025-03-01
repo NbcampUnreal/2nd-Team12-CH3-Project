@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "InventoryInterface.h"
-#include "ItemData/ConsumableItemDataObject.h"
 #include "ConsumableInventory.generated.h"
 
 UCLASS()
@@ -14,7 +13,7 @@ class SPT_API AConsumableInventory : public AActor, public IInventoryInterface
 	GENERATED_BODY()
 	
 private:
-	TArray<UConsumableItemDataObject*> ConsumableItems;
+	TArray<UInventoryItem*> ConsumableItems;
 
 public:	
 	AConsumableInventory();

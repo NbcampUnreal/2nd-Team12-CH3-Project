@@ -3,12 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SPT/ItemActor.h"
-#include "SPT/Items/Base/ItemBase.h"
 #include "UObject/NoExportTypes.h"
 #include "InventoryItem.generated.h"
 
-
+class UItemDataObject;
+class AItemBase;
 
 UCLASS()
 class SPT_API UInventoryItem : public UObject
@@ -16,20 +15,32 @@ class SPT_API UInventoryItem : public UObject
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
-	FString ItemName;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
-	UTexture2D* ItemIcon;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
-	FString Description;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
-	int32 ItemPrice;
-
-	// 아이템을 생성할 때 필요(DropItem을 사용할 때)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemData")
-	TSubclassOf<AItemBase> ItemActorClass;
+	// 아이템 데이터 타입을 가져와 저장
+	UPROPERTY()
+	UItemDataObject* ItemDataObject;
 
 
-	FString GetItemName() const { return ItemName; }
+	// 아이템 데이터를 복사하여 인벤토리 데이터로 저장
+	void SetItemData(UItemDataObject* NewItemDataObject);
+
+
+
+	// 아이템 데이터를 호출하는 함수
+	TSubclassOf<AItemBase> GetItemBaseClass() const;
+
+	FText GetItemName() const;
+
+	UTexture2D* GetItemIcon() const;
+	
+
+	// 아이템의 타입을 판별
+	bool IsWeapon() const;
+
+	bool IsConsumable() const;
+
+
+
+
+	// 임시용 인벤토리 내 아이템 사용함수
 	void UseItem();
 };

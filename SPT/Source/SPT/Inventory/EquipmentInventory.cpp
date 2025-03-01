@@ -2,6 +2,8 @@
 
 
 #include "EquipmentInventory.h"
+#include "SPT/Items/Base/ItemBase.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
 
 AEquipmentInventory::AEquipmentInventory()
 {
@@ -11,23 +13,31 @@ AEquipmentInventory::AEquipmentInventory()
 
 void AEquipmentInventory::AddItem(UInventoryItem* Item)
 {
-	if (UEquipmentItem* Equipment = Cast<UEquipmentItem>(Item))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Equipment Inventory AddItem!"));
-		EquipmentItems.Add(Equipment);
-	}
+    // 아이템이 무기인 경우 EquipmentItems에 추가
+    if (Item && Item->GetItemBaseClass())
+    {
+        if (Item->IsWeapon())  // 무기 아이템 체크
+		{
+			// 무기 아이템이라면 EquipmentItems 배열에 추가
+			EquipmentItems.Add(Item);
+		}
+        else if (Item->IsConsumable())  // 소비 아이템인 경우 다른 배열에 추가
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Item is consumable, cannot be added to EquipmentInventory"));
+        }
+    }
 }
 
 void AEquipmentInventory::DropItem(UInventoryItem* Item)
 {
-	EquipmentItems.Remove(Cast<UEquipmentItem>(Item));
+	EquipmentItems.Remove(Cast<UInventoryItem>(Item));
 }
 
 bool AEquipmentInventory::HasItem(FName ItemName)
 {
-	return EquipmentItems.ContainsByPredicate([ItemName](UEquipmentItem* Item)
+	return EquipmentItems.ContainsByPredicate([ItemName](UInventoryItem* Item)
 	{
-		return Item->ItemName == ItemName;
+		return FName(*Item->GetItemName().ToString()) == ItemName;
 	});
 }
 
@@ -35,7 +45,7 @@ bool AEquipmentInventory::RemoveItem(UInventoryItem* Item)
 {
 	if (!Item) return false;
 
-	if (EquipmentItems.Remove(Cast<UEquipmentItem>(Item)) > 0)
+	if (EquipmentItems.Remove(Cast<UInventoryItem>(Item)) > 0)
 	{
 		return true;
 	}

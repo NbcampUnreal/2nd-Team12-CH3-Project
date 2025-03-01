@@ -52,10 +52,12 @@ public:
 	UItemDataObject* GetItemData() const;
 	void SetItemData(UItemDataObject* NewItemData);
 
-	// 아이템 데이터를 인벤토리 데이터로 변환시켜 호출
-	UInventoryItem* GetItemInventoryData() const;
 
-	// 위젯 추가
+
+
+	// 인벤토리 관련 추가된 변수 및 함수들 입니다.
+	
+	// 위젯을 아이템에 할당
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	TSubclassOf<class UUserWidget> PickupWidgetClass;
 
@@ -65,7 +67,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Widget")
 	UWidgetComponent* PickupWidgetComponent;
 
-	// 콜리전 영역에 캐릭터 접근 시
+	// 캐릭터가 콜리전 영역에 접근 여부를 판단하고 위젯을 띄우는 용도
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()

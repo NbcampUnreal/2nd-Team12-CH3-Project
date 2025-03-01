@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "InventoryInterface.h"
-#include "ItemData/EquipmentItem.h"
 #include "EquipmentInventory.generated.h"
 
 UCLASS()
@@ -15,7 +14,7 @@ class SPT_API AEquipmentInventory : public AActor, public IInventoryInterface
 	
 public:		// 저장 확인용으로 임시로 퍼블릭 (원래는 프라이빗)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TArray<UEquipmentItem*> EquipmentItems;
+	TArray<UInventoryItem*> EquipmentItems;
 
 public:	
 	AEquipmentInventory();

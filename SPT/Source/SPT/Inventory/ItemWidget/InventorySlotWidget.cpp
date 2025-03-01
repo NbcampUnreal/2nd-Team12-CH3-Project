@@ -24,7 +24,7 @@ void UInventorySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	{
         // 아이템 데이터 확인용(없어도됨)
         ItemData = InventoryItem;
-        UE_LOG(LogTemp, Warning, TEXT("Slot Assigned Item : % s"), *ItemData->GetItemName());
+        UE_LOG(LogTemp, Warning, TEXT("Slot Assigned Item : % s"), *ItemData->GetItemName().ToString());
 
 
 		UpdateItem(InventoryItem);
@@ -64,8 +64,8 @@ void UInventorySlotWidget::UpdateItem(UInventoryItem* InventoryItem)
 {
 	if (!InventoryItem) return;
 
-	ItemNameText->SetText(FText::FromString(InventoryItem->ItemName));
-	ItemIconImage->SetBrushFromTexture(InventoryItem->ItemIcon);
+	ItemNameText->SetText(FText::FromString(InventoryItem->GetItemName().ToString()));
+	ItemIconImage->SetBrushFromTexture(InventoryItem->GetItemIcon());
 }
 
 void UInventorySlotWidget::OnItemSelectClicked()
@@ -81,7 +81,7 @@ void UInventorySlotWidget::OnUseClicked()
     
     if (ItemData)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Use %s"), *ItemData->GetItemName());
+        UE_LOG(LogTemp, Warning, TEXT("Use %s"), *ItemData->GetItemName().ToString());
     }
     else
     {

@@ -3,6 +3,7 @@
 
 #include "ItemBase.h"
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
 #include "SPTPlayerCharacter.h"
 
 // Sets default values
@@ -164,11 +165,27 @@ UItemDataObject* AItemBase::GetItemData() const
 
 void AItemBase::SetItemData(UItemDataObject* NewItemData)
 {
-	if (NewItemData)
-	{
-		ItemData = NewItemData;
-		UE_LOG(LogTemp, Warning, TEXT("AItemBase::SetItemData called. Keeping existing item state."));
-	}
+    if (NewItemData)
+    {
+        ItemData = NewItemData;
+
+		// 아이템 생성 시 인벤토리 데이터를 할당하기 위해 추가한 부분
+        // 데이터가 제대로 설정되었는지 확인하고 초기화
+        FName ItemID = ItemData->GetItemData().ItemID;
+        if (!ItemID.IsNone())
+        {
+            // 아이템 ID가 유효한 경우 초기화
+            ItemData->InitializeItemData(ItemID);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("ItemID is None! InitializeItemData skipped."));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("SetItemData: NewItemData is nullptr!"));
+    }
 }
 
 
@@ -176,20 +193,7 @@ void AItemBase::SetItemData(UItemDataObject* NewItemData)
 
 
 
-
-
-UInventoryItem* AItemBase::GetItemInventoryData() const
-{
-	if (ItemData)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemBase : GetItemInventoryData : play"));
-		// ItemDataObject가 유효한 경우, UItemDataObject에서 UInventoryItem으로 변환
-		return ItemData->ConvertToInventoryItem();
-	}
-
-	return nullptr;
-}
-
+// 아이템 오버랩 관련 함수
 void AItemBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ASPTPlayerCharacter* Player = Cast<ASPTPlayerCharacter>(OtherActor);

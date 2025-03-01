@@ -5,6 +5,7 @@
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
 #include "InventoryManager.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/Itembase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -38,59 +39,10 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
     GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 }
 
-void ASPTPlayerCharacter::AddItemToInventory(AItemActor* Item)
-{
-    // 아이템이 유효한지 확인
-    if (!Item)
-    {
-        return;
-    }
-
-    // 아이템 매니저가 유효한지 확인
-    if (InventoryManager)
-    {
-        // 아이템을 아이템 매니저에 추가
-        InventoryManager->AddItemToInventory(Item->GetItemData());
-    }
-}
-
-void ASPTPlayerCharacter::ToggleInventory()
-{
-    if (InventoryMainWidgetInstance)
-    {
-        bool bIsVisible = InventoryMainWidgetInstance->IsVisible();
-        InventoryMainWidgetInstance->SetVisibility(bIsVisible ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
-
-        if (!bIsVisible)
-        {
-            APlayerController* PlayerController = Cast<APlayerController>(GetController());
-            if (PlayerController)
-            {
-                FInputModeGameAndUI InputMode;
-                InputMode.SetWidgetToFocus(InventoryMainWidgetInstance->TakeWidget());
-                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-                PlayerController->SetInputMode(InputMode);
-                PlayerController->bShowMouseCursor = true;
-                //PlayerController->SetPause(true);
-            }
-        }
-        else
-        {
-            APlayerController* PlayerController = Cast<APlayerController>(GetController());
-            if (PlayerController)
-            {
-                PlayerController->SetInputMode(FInputModeGameOnly());
-                PlayerController->bShowMouseCursor = false;
-                //PlayerController->SetPause(false);
-            }
-        }
-    }
-}
-
+// 라인트레이스 함수를 사용하여 캐릭터의 앞에 물체가 있는지 판별 후 아이템일 시 작동
 void ASPTPlayerCharacter::TryPickupItem()
 {
-    UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Start"));
+    // 캐릭터가 아이템이 있는지 탐색하는 범위를 설정
     FVector Start = GetActorLocation();
     FVector ForwardVector = GetActorForwardVector();
     FVector End = Start + (ForwardVector * 200.0f);
@@ -99,48 +51,33 @@ void ASPTPlayerCharacter::TryPickupItem()
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(this);
 
+    // 아이템의 탐색여부를 확인
     bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, Params);
 
 
     if (bHit)
     {
-        UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Hit"));
-        AItemActor* ItemActor = Cast<AItemActor>(HitResult.GetActor());
-        if (ItemActor && InventoryManager)
-        {
-            UInventoryItem* ItemData = ItemActor->GetItemData();
-            if (ItemData)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Complete"));
-                InventoryManager->AddItemToInventory(ItemData);
-
-                ItemActor->Destroy();
-            }
-        }
-
         AItemBase* ItemBase = Cast<AItemBase>(HitResult.GetActor());
         if (ItemBase && InventoryManager)
         {
-            UInventoryItem* ItemData = ItemBase->GetItemInventoryData();
+            // 아이템이 있을 시 아이템의 데이터를 인벤토리 데이터로 복사
+            UInventoryItem* ItemData = NewObject<UInventoryItem>();
+            ItemData->SetItemData(ItemBase->GetItemData());
+            // 아이템 복사 성공 시 아이템을 인벤토리로 추가하는 함수 호출 후 추가된 아이템 제거
             if (ItemData)
             {
-                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : InventoryItem ItemName is %s"), *ItemData->ItemName);
-
-                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Complete"));
                 InventoryManager->AddItemToInventory(ItemData);
-
                 ItemBase->Destroy();
             }
         }
     }
 }
 
+// 아이템을 생성하여 캐릭터의 앞에 떨어뜨리는 함수
 void ASPTPlayerCharacter::DropItem(UInventoryItem* InventoryItem)
 {
     if (InventoryManager)
     {
-        UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : DropItem"));
-
         FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 200.0f;
         InventoryManager->DropItem(InventoryItem, DropLocation);
     }
@@ -374,6 +311,8 @@ void ASPTPlayerCharacter::ItemUse(const FInputActionValue& value)
 void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
 {
     // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
+    // 현재는 아이템을 줍는 동작만 존재
+    // 다른 상호작용 추가 필요(예시: 훈련모드에서 사용할 훈련 메뉴 선택기)
     if (value.Get<bool>())
     {
         TryPickupItem();
@@ -385,12 +324,13 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
     // 인벤토리를 켜거나 끈다.
     if (value.Get<bool>())
     {
-        UE_LOG(LogTemp, Warning, TEXT("ASPTPlayerCharacter : Input I key"));
         if (InventoryMainWidgetInstance)
         {
+            // 인벤토리의 현재 상태를 확인하여 켜고 끄는 동작 작동
             bool bIsVisible = InventoryMainWidgetInstance->IsVisible();
             InventoryMainWidgetInstance->SetVisibility(bIsVisible ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
 
+            // 인벤토리의 상태에 따라 입력모드를 전환
             if (!bIsVisible)
             {
                 APlayerController* PlayerController = Cast<APlayerController>(GetController());

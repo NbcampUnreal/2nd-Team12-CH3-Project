@@ -6,7 +6,6 @@
 #include "BaseCharacter.h"
 #include "InventoryManager.h"
 #include "ItemWidget/InventoryMainWidget.h"
-#include "SPT/ItemActor.h"		// 테스트용 아이템 액터 정식 아이템 추가시 폐기
 #include "SPTPlayerCharacter.generated.h"
 
 class USpringArmComponent;
@@ -26,10 +25,6 @@ public:
 	ASPTPlayerCharacter();
 
 	// 인벤토리 관련 함수
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void AddItemToInventory(AItemActor* Item);
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void ToggleInventory();
 	UFUNCTION()
 	void TryPickupItem();
 	UFUNCTION()
