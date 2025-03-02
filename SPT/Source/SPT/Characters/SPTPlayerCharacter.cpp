@@ -312,6 +312,8 @@ void ASPTPlayerCharacter::StopSprint(const FInputActionValue& value)
 
 void ASPTPlayerCharacter::StartCrouch(const FInputActionValue& value)
 {
+    if (GetCharacterMovement()->IsFalling()) return;
+
     if (value.Get<bool>())
     {
         Crouch();
@@ -320,6 +322,8 @@ void ASPTPlayerCharacter::StartCrouch(const FInputActionValue& value)
 
 void ASPTPlayerCharacter::StopCrouch(const FInputActionValue& value)
 {
+    if (GetCharacterMovement()->IsFalling()) return;
+
     if (!value.Get<bool>())
     {
         UnCrouch();
