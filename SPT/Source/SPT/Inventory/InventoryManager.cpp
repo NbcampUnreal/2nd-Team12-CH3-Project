@@ -29,7 +29,7 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
 {
     if (!Item)
     {
-        UE_LOG(LogTemp, Warning, TEXT("AddItem: Item is nullptr!"));
+        UE_LOG(LogTemp, Warning, TEXT("InventoryManager : AddItem: Item is nullptr!"));
         return;
     }
 
@@ -63,8 +63,11 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
 // 미구현(장비품 장착 혹은 소모품 사용)
 void AInventoryManager::UseItem(UInventoryItem* Item)
 {
-    if (!Item) return;
-    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem"));
+    if (!Item)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : ItemData is null"));
+        return;
+    }
     Item->UseItem();
 }
 

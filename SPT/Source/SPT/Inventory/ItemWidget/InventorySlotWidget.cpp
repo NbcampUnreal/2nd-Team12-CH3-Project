@@ -20,6 +20,7 @@ void UInventorySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	UInventoryItem* InventoryItem = Cast<UInventoryItem>(ListItemObject);
 	if (InventoryItem)
 	{
+        ItemData = InventoryItem;
 		UpdateItem(InventoryItem);
 	}
     else
