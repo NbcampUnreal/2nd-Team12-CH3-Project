@@ -356,6 +356,7 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
             // 인벤토리의 현재 상태를 확인하여 켜고 끄는 동작 작동
             bool bIsVisible = InventoryMainWidgetInstance->IsVisible();
             InventoryMainWidgetInstance->SetVisibility(bIsVisible ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+            InventoryMainWidgetInstance->FindPreviewCharacter();
 
             // 인벤토리의 상태에 따라 입력모드를 전환
             if (!bIsVisible)

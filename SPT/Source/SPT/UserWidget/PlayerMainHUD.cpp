@@ -75,10 +75,10 @@ void UPlayerMainHUD::ShowDeathUI()
 		CurPlayerController->SetShowMouseCursor(true);
 	}
 
-	DeathUI->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	//DeathUI->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 void UPlayerMainHUD::HideDeathUI()
 {
-	DeathUI->SetVisibility(ESlateVisibility::Hidden);
+	//DeathUI->SetVisibility(ESlateVisibility::Hidden);
 }

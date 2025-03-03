@@ -28,6 +28,13 @@ APreviewCharacter::APreviewCharacter()
     CaptureComp = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("CaptureComponent"));
     CaptureComp->SetupAttachment(SpringArmComp);
 
+    static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset(TEXT("/Game/Resources/Characters/Player/Meshes/SK_Bandit"));
+    if (SkeletalMeshAsset.Succeeded())
+    {
+        PreviewCharacterMesh->SetSkeletalMesh(SkeletalMeshAsset.Object);
+    }
+
+
 }
 
 void APreviewCharacter::BeginPlay()

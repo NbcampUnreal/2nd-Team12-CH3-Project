@@ -24,21 +24,23 @@ void UInventoryMainWidget::UpdateInventoryList(const TArray<UInventoryItem*>& It
 
 void UInventoryMainWidget::FindPreviewCharacter()
 {
-    if (GetWorld() == nullptr) return;
-
-    for (TActorIterator<APreviewCharacter> It(GetWorld()); It; ++It)
+    if (!PreviewCharacterClass)
     {
-        PreviewCharacter = *It;
-        break; // 첫 번째 찾은 프리뷰 캐릭터를 저장
+        UE_LOG(LogTemp, Error, TEXT("PreviewCharacterClass is not set!"));
+        return;
     }
 
-    if (PreviewCharacter)
+    if (!PreviewCharacter)
     {
-        UE_LOG(LogTemp, Log, TEXT("프리뷰 캐릭터를 찾았습니다: %s"), *PreviewCharacter->GetName());
+        FActorSpawnParameters SpawnParams;
+        FVector SpawnLocation = FVector(0.0f, 11184650.0f, 0.0f);
+        FRotator SpawnRotation = FRotator(0.0f, 90.0f, 0.0f);
+        PreviewCharacter = GetWorld()->SpawnActor<APreviewCharacter>(PreviewCharacterClass, SpawnLocation, SpawnRotation, SpawnParams);
     }
     else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("프리뷰 캐릭터를 찾을 수 없습니다."));
+    {;
+        FRotator SpawnRotation = FRotator(0.0f, 90.0f, 0.0f);
+        PreviewCharacter->SetActorRotation(SpawnRotation);
     }
 }
 
@@ -56,11 +58,9 @@ FReply UInventoryMainWidget::NativeOnMouseMove(const FGeometry& InGeometry, cons
 
 FReply UInventoryMainWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-    UE_LOG(LogTemp, Warning, TEXT("NativeOnMouseButtonDown call!"));
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
         bIsDragging = !bIsDragging; // 마우스 버튼이 올라갈 때 입력 누락이 발생하여 내려갈 때 전환하도록 변경
-        UE_LOG(LogTemp, Warning, TEXT("bIsDragging true!"));
     }
 
     return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
@@ -82,5 +82,4 @@ FReply UInventoryMainWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 void UInventoryMainWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-    FindPreviewCharacter();
 }

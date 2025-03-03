@@ -24,24 +24,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void UpdateInventoryList(const TArray<UInventoryItem*>& Items);
 
-	// 캐릭터 프리뷰
+
+
+	// 캐릭터 프리뷰이미지를 할당
 	UPROPERTY(meta = (BindWidget))
 	class UImage* CharacterPreviewImage;
+
+
 
 	// 프리뷰 캐릭터에게 장비를 반영시키기 위한 용도의 변수 (기능은 미구현)
 	UMaterialInstanceDynamic* DynamicMaterial;
 	
+
+
 	// 프리뷰 캐릭터 할당
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Preview")
+	TSubclassOf<APreviewCharacter> PreviewCharacterClass;
 	APreviewCharacter* PreviewCharacter;
-	// 
+
+
+
+	// 캐릭터를 회전시킬 때
 	FVector2D LastMousePosition;
-
+	// 프리뷰 캐릭터가 없을 시 생성하고 있을 시에는 회전 값을 초기화
 	void FindPreviewCharacter();
-
-
 	// 프리뷰 캐릭터를 마우스 움직임으로 회전시키는 함수
 	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-
+	// 마우스 클릭 시 프리뷰 캐릭터를 회전 모드로 전환하는 함수
 	FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 
 	// 마우스 드래그가 끝날 시에도 호출이 되지않는 문제가 발생하여 주석처리

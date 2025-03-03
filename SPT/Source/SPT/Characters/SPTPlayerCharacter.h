@@ -100,6 +100,4 @@ public:
 	TSubclassOf<UInventoryMainWidget> InventoryMainWidgetClass;
 	UPROPERTY()
 	UInventoryMainWidget* InventoryMainWidgetInstance;
-
-
 };
