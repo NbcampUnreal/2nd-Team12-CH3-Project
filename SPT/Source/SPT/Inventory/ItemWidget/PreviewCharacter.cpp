@@ -52,7 +52,7 @@ void APreviewCharacter::Tick(float DeltaTime)
 void APreviewCharacter::RotatePreview(float DeltaYaw)
 {
     FRotator NewRotation = PreviewCharacterMesh->GetComponentRotation();
-    NewRotation.Yaw += DeltaYaw;
+    NewRotation.Yaw -= DeltaYaw;
     PreviewCharacterMesh->SetWorldRotation(NewRotation);
 }
 

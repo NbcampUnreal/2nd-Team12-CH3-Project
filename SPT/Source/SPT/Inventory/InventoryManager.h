@@ -39,6 +39,8 @@ public:
 	void SetInventoryWidget(UInventoryMainWidget* NewWidget);
 	// UI에서 표시될 인벤토리를 설정하는 함수(필터링)
 	TArray<UInventoryItem*> GetDisplayInventoryItems() const;
+	// UI를 업데이트 하는 함수
+	void UpdateInventoryUI();
 
 	UPROPERTY()
 	UInventoryMainWidget* InventoryMainWidgetInstance;

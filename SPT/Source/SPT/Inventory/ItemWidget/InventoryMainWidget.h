@@ -9,6 +9,9 @@
 class UListView;
 class UInventoryItem;
 class APreviewCharacter;
+class UEquipmentPanelWidget;
+class AEquipmentSlotInventory;
+class UImage;
 
 UCLASS()
 class SPT_API UInventoryMainWidget : public UUserWidget
@@ -23,13 +26,17 @@ public:
 	// 인벤토리 내부의 목록을 업데이트
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void UpdateInventoryList(const TArray<UInventoryItem*>& Items);
-
-
+	// 장비슬롯을 업데이트
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void UpdateEquipmentSlots(AEquipmentSlotInventory* EquipmentSlotInventory);
 
 	// 캐릭터 프리뷰이미지를 할당
 	UPROPERTY(meta = (BindWidget))
-	class UImage* CharacterPreviewImage;
+	UImage* CharacterPreviewImage;
 
+	// 장비 슬롯
+	UPROPERTY(meta = (BindWidget))
+	UEquipmentPanelWidget* EquipmentPanel;
 
 
 	// 프리뷰 캐릭터에게 장비를 반영시키기 위한 용도의 변수 (기능은 미구현)

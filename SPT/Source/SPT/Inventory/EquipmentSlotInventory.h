@@ -30,7 +30,7 @@ public:
 
 	bool EquipItem(UInventoryItem* Item, int32 Slot);
 	UInventoryItem* UnequipItem(int32 Slot);
-	UInventoryItem* IsEquippedSlot(UInventoryItem* Item);
+	UInventoryItem* GetEquippedSlot(UInventoryItem* Item);
 
 
 protected:

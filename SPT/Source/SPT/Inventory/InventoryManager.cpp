@@ -5,7 +5,7 @@
 #include "InventoryInterface.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
-#include "SPT/EquipmentSlotInventory.h"
+#include "SPT/Inventory/EquipmentSlotInventory.h"
 #include "SPT/Inventory/EquipmentInventory.h"
 #include "SPT/Inventory/ConsumableInventory.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
@@ -16,7 +16,7 @@
 AInventoryManager::AInventoryManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 }
 
@@ -50,16 +50,8 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
     // UI 갱신
     if (InventoryMainWidgetInstance)
     {
-        TArray<UInventoryItem*> AllItems;
-        for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
-        {
-            if (Inventory)
-            {
-                TArray<UInventoryItem*> Items = Inventory->GetInventory();
-                AllItems.Append(Items);
-            }
-        }
-        InventoryMainWidgetInstance->UpdateInventoryList(AllItems);
+        TArray<UInventoryItem*> DisplayItems = GetDisplayInventoryItems();
+        InventoryMainWidgetInstance->UpdateInventoryList(DisplayItems);
     }
 }
 
@@ -88,7 +80,7 @@ void AInventoryManager::UseItem(UInventoryItem* Item)
         {
             int32 Slot = Item->GetSlotType();
 
-            UInventoryItem* ExistingItem = EquipmentSlotInventory->IsEquippedSlot(Item);
+            UInventoryItem* ExistingItem = EquipmentSlotInventory->GetEquippedSlot(Item);
             if (ExistingItem)
             {
                 // 기존에 장착되어 있던 아이템을 해제하고 인벤토리로 반환
@@ -117,6 +109,11 @@ void AInventoryManager::UseItem(UInventoryItem* Item)
     {
         // 소모품 아이템은 사용
         Item->UseItem();
+    }
+    // UI 갱신
+    if (InventoryMainWidgetInstance)
+    {
+        UpdateInventoryUI();
     }
 }
 
@@ -199,12 +196,7 @@ void AInventoryManager::RemoveItemToInventory(UInventoryItem* Item)
     // 아이템이 제거되었으면 UI 갱신
     if (bItemRemoved && InventoryMainWidgetInstance)
     {
-        TArray<UInventoryItem*> AllItems;
-        for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
-        {
-            AllItems.Append(Inventory->GetInventory());
-        }
-        InventoryMainWidgetInstance->UpdateInventoryList(AllItems);
+        UpdateInventoryUI();
     }
     else
     {
@@ -230,6 +222,20 @@ TArray<UInventoryItem*> AInventoryManager::GetDisplayInventoryItems() const
         DisplayItems.Remove(EquippedItem);
     }
     return DisplayItems;
+}
+
+
+void AInventoryManager::UpdateInventoryUI()
+{
+    if (InventoryMainWidgetInstance)
+    {
+        // 장착되지 않은 아이템 리스트 갱신
+        TArray<UInventoryItem*> DisplayItems = GetDisplayInventoryItems();
+        InventoryMainWidgetInstance->UpdateInventoryList(DisplayItems);
+
+        // 장착된 아이템(장비 슬롯) 갱신
+        InventoryMainWidgetInstance->UpdateEquipmentSlots(EquipmentSlotInventory);
+    }
 }
 
 // Called when the game starts or when spawned

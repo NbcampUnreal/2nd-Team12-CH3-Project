@@ -91,7 +91,7 @@ UInventoryItem* AEquipmentSlotInventory::UnequipItem(int32 Slot)
     return UnequippedItem;
 }
 
-UInventoryItem* AEquipmentSlotInventory::IsEquippedSlot(UInventoryItem* Item)
+UInventoryItem* AEquipmentSlotInventory::GetEquippedSlot(UInventoryItem* Item)
 {
     if (!Item) return nullptr;
 

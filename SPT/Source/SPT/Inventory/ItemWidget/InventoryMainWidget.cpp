@@ -5,6 +5,7 @@
 #include "InventorySlotWidget.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Inventory/ItemWidget/PreviewCharacter.h"
+#include "SPT/Inventory/ItemWidget/EquipmentPanelWidget.h"
 #include "Components/ListView.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
@@ -19,7 +20,15 @@ void UInventoryMainWidget::UpdateInventoryList(const TArray<UInventoryItem*>& It
 		return;
 	}
 
-	InventoryListView->SetListItems(Items); 
+	InventoryListView->SetListItems(Items);
+}
+
+void UInventoryMainWidget::UpdateEquipmentSlots(AEquipmentSlotInventory* EquipmentSlotInventory)
+{
+    if (EquipmentPanel && EquipmentSlotInventory)
+    {
+        EquipmentPanel->UpdateEquipmentSlots(EquipmentSlotInventory);
+    }
 }
 
 void UInventoryMainWidget::FindPreviewCharacter()

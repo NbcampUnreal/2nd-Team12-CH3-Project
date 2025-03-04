@@ -4,7 +4,7 @@
 #include "SPTPlayerCharacter.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
-#include "SPT/EquipmentSlotInventory.h"
+#include "SPT/Inventory/EquipmentSlotInventory.h"
 #include "InventoryManager.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/Itembase.h"
