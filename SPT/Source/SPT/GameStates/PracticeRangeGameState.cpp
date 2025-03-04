@@ -4,6 +4,7 @@
 #include "PracticeRangeGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "AISpawnVolume.h"
+#include "PracticeScoreBoard.h"
 #include "BaseCharacter.h"
 
 APracticeRangeGameState::APracticeRangeGameState()
@@ -17,10 +18,10 @@ void APracticeRangeGameState::BeginPlay()
 	Super::BeginPlay();
 
     // 스폰 불륨 찾기
-    TArray<AActor*> FoundVolumes;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAISpawnVolume::StaticClass(), FoundVolumes);
+    TArray<AActor*> FoundArr;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAISpawnVolume::StaticClass(), FoundArr);
 
-    for (AActor* Found : FoundVolumes)
+    for (AActor* Found : FoundArr)
     {
         // 찾은 액터가 ProficiencyTesting용 스폰 불륨이라면
         if (Found->ActorHasTag("ProficiencyTest"))
@@ -29,8 +30,15 @@ void APracticeRangeGameState::BeginPlay()
         }
     }
 
-    // 테스트 코드
-    ProficiencyTestingStart();
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APracticeScoreBoard::StaticClass(), FoundArr);
+    for (AActor* Found : FoundArr)
+    {
+        // 찾은 액터가 APracticeScoreBoard라면
+        if (Found->ActorHasTag("PracticeScoreBoard"))
+        {
+            PracticeScoreBoardActor = Cast<APracticeScoreBoard>(Found);
+        }
+    }
 }
 
 void APracticeRangeGameState::ProficiencyTestingStart()
@@ -43,6 +51,19 @@ void APracticeRangeGameState::ProficiencyTestingStart()
         // AI 스폰
         ProficiencyTestingAISpawn();
     }
+
+    // 남은 시간 및 점수 카운트
+    if (PracticeScoreBoardActor)
+    {
+        PracticeScoreBoardActor->StartScoreBoard(10.f);
+        PracticeScoreBoardActor->OnPracticeTestEndDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAIDestroy);
+    }
+}
+
+void APracticeRangeGameState::ProficiencyTestingEnd()
+{
+    ProficiencyTestingAIDestroy();
+    PracticeScoreBoardActor->EndScoreBoard();
 }
 
 void APracticeRangeGameState::ProficiencyTestingAISpawn()
@@ -55,12 +76,24 @@ void APracticeRangeGameState::ProficiencyTestingAISpawn()
         {
             // 스폰 시킨 AI가 사망된 후 스폰 함수 다시 호출
             BaseCharacter->OnDeathDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAISpawn);
-            BaseCharacter->OnDeathDelegate.AddDynamic(this, &APracticeRangeGameState::ProficiencyTestingAIKillCount);
+            BaseCharacter->OnDeathDelegate.AddDynamic(PracticeScoreBoardActor, &APracticeScoreBoard::AddScore);
         }
     }
 }
 
-void APracticeRangeGameState::ProficiencyTestingAIKillCount()
+void APracticeRangeGameState::ProficiencyTestingAIDestroy()
 {
-    // AI가 처치됐다면 UI에 반영하는 로직
+    // 스폰 AI 찾기
+    TArray<AActor*> FoundAI;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseCharacter::StaticClass(), FoundAI);
+
+    for (AActor* Found : FoundAI)
+    {
+        // 찾은 액터가 ProficiencyTestAI라면
+        if (Found->ActorHasTag("ProficiencyTestAI"))
+        {
+            ABaseCharacter* CurChar = Cast<ABaseCharacter>(Found);
+            CurChar->Destroy();
+        }
+    }
 }
