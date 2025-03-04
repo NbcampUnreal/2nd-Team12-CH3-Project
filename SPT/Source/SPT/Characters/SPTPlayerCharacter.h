@@ -12,6 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class AItemBase;
 class AEquipmentInventory;
+class AEquipmentSlotInventory;
 class AConsumableInventory;
 
 struct FInputActionValue;
@@ -88,12 +89,16 @@ public:
 	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AEquipmentSlotInventory> EquipmentSlotInventoryClass;
 	UPROPERTY()
 	AInventoryManager* InventoryManager;
 	UPROPERTY()
 	AEquipmentInventory* EquipmentInventory;
 	UPROPERTY()
 	AConsumableInventory* ConsumableInventory;
+	UPROPERTY()
+	AEquipmentSlotInventory* EquipmentSlotInventory;
 
 	// 인벤토리 위젯 적용
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")

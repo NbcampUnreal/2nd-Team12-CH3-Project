@@ -4,6 +4,7 @@
 #include "SPTPlayerCharacter.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
+#include "SPT/EquipmentSlotInventory.h"
 #include "InventoryManager.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/Itembase.h"
@@ -136,6 +137,12 @@ void ASPTPlayerCharacter::BeginPlay()
             {
                 ConsumableInventory = GetWorld()->SpawnActor<AConsumableInventory>(ConsumableInventoryClass);
                 InventoryManager->RegisterInventory(ConsumableInventory);
+            }
+
+            if (EquipmentSlotInventoryClass)
+            {
+                EquipmentSlotInventory = GetWorld()->SpawnActor<AEquipmentSlotInventory>(EquipmentSlotInventoryClass);
+                InventoryManager->RegisterInventory(EquipmentSlotInventory);
             }
         }
     }

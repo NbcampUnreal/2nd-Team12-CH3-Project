@@ -62,3 +62,16 @@ bool UInventoryItem::IsConsumable() const
 {
     return ItemDataObject && ItemDataObject->IsConsumable();
 }
+
+int32 UInventoryItem::GetSlotType() const
+{
+    // 임시로 무기는 0으로 하였습니다.
+    if (ItemDataObject->IsWeapon()) {
+        return 0;
+    }
+    // 임시로 소모품은 5로 하였습니다.
+    else if (ItemDataObject->IsConsumable()) {
+        return 5;
+    }
+    return -1;
+}

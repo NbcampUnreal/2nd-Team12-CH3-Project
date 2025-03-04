@@ -40,6 +40,7 @@ public:
 
 	bool IsConsumable() const;
 
+	int32 GetSlotType() const;
 
 
 

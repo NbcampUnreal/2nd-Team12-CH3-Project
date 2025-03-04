@@ -5,6 +5,7 @@
 #include "InventoryInterface.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
+#include "SPT/EquipmentSlotInventory.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/ItemBase.h"
 #include "SPT/Inventory/ItemWidget/InventoryMainWidget.h"
@@ -68,7 +69,41 @@ void AInventoryManager::UseItem(UInventoryItem* Item)
         UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : ItemData is null"));
         return;
     }
-    Item->UseItem();
+
+    // 아이템 타입에 따라 행동을 다르게 처리
+    if (Item->IsWeapon())
+    {
+        // 등록된 인벤토리에서 AEquipmentSlotInventory 타입을 찾음
+        AEquipmentSlotInventory* EquipmentSlotInventory = nullptr;
+        for (auto& Inventory : Inventories)
+        {
+            if (AEquipmentSlotInventory* Temp = Cast<AEquipmentSlotInventory>(Inventory.GetObject()))
+            {
+                EquipmentSlotInventory = Temp;
+                break;
+            }
+        }
+        if (EquipmentSlotInventory)
+        {
+            // 해당 슬롯에 장착 (예: 무기 슬롯)
+            EquipmentSlotInventory->EquipItem(Item, 0);
+
+            // 인벤토리 목록 중, 장비 슬롯 인벤토리가 아닌 다른 인벤토리에서 아이템 제거
+            for (auto& Inventory : Inventories)
+            {
+                // 만약 해당 인벤토리가 EquipmentSlotInventory가 아니라면
+                if (Inventory.GetObject() != EquipmentSlotInventory)
+                {
+                    Inventory->RemoveItem(Item);
+                }
+            }
+        }
+    }
+    else if (Item->IsConsumable())
+    {
+        // 소모품 아이템은 사용
+        Item->UseItem();
+    }
 }
 
 // 아이템을 캐릭터의 앞에 생성하여 떨어뜨림
