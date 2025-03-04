@@ -11,9 +11,6 @@
 class USpringArmComponent;
 class UCameraComponent;
 class AItemBase;
-class AEquipmentInventory;
-class AEquipmentSlotInventory;
-class AConsumableInventory;
 
 struct FInputActionValue;
 
@@ -87,7 +84,6 @@ public:
 	TSubclassOf<AInventoryManager> InventoryManagerClass;
 	UPROPERTY()
 	AInventoryManager* InventoryManager;
-
 
 	// 인벤토리 위젯 적용
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")

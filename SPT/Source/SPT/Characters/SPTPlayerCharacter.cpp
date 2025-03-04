@@ -2,17 +2,12 @@
 
 
 #include "SPTPlayerCharacter.h"
-#include "EquipmentInventory.h"
-#include "ConsumableInventory.h"
-#include "SPT/Inventory/EquipmentSlotInventory.h"
 #include "InventoryManager.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/Itembase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/SceneCaptureComponent2D.h"     // 캐릭터 프리뷰 캡쳐용도 입니다.
-#include "Engine/TextureRenderTarget2D.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
