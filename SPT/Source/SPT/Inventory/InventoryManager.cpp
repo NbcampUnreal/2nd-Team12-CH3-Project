@@ -6,6 +6,8 @@
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
 #include "SPT/EquipmentSlotInventory.h"
+#include "SPT/Inventory/EquipmentInventory.h"
+#include "SPT/Inventory/ConsumableInventory.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/ItemBase.h"
 #include "SPT/Inventory/ItemWidget/InventoryMainWidget.h"
@@ -74,7 +76,6 @@ void AInventoryManager::UseItem(UInventoryItem* Item)
     if (Item->IsWeapon())
     {
         // 등록된 인벤토리에서 AEquipmentSlotInventory 타입을 찾음
-        AEquipmentSlotInventory* EquipmentSlotInventory = nullptr;
         for (auto& Inventory : Inventories)
         {
             if (AEquipmentSlotInventory* Temp = Cast<AEquipmentSlotInventory>(Inventory.GetObject()))
@@ -85,8 +86,21 @@ void AInventoryManager::UseItem(UInventoryItem* Item)
         }
         if (EquipmentSlotInventory)
         {
-            // 해당 슬롯에 장착 (예: 무기 슬롯)
-            EquipmentSlotInventory->EquipItem(Item, 0);
+            int32 Slot = Item->GetSlotType();
+
+            UInventoryItem* ExistingItem = EquipmentSlotInventory->IsEquippedSlot(Item);
+            if (ExistingItem)
+            {
+                // 기존에 장착되어 있던 아이템을 해제하고 인벤토리로 반환
+                EquipmentSlotInventory->UnequipItem(Slot);
+                if (EquipmentInventory)
+                {
+                    EquipmentInventory->AddItem(ExistingItem);
+                }
+            }
+
+            // 해당 슬롯에 장착
+            EquipmentSlotInventory->EquipItem(Item, Slot);
 
             // 인벤토리 목록 중, 장비 슬롯 인벤토리가 아닌 다른 인벤토리에서 아이템 제거
             for (auto& Inventory : Inventories)
@@ -203,11 +217,44 @@ void AInventoryManager::SetInventoryWidget(UInventoryMainWidget* NewWidget)
     InventoryMainWidgetInstance = NewWidget;
 }
 
+TArray<UInventoryItem*> AInventoryManager::GetDisplayInventoryItems() const
+{
+    TArray<UInventoryItem*> DisplayItems = EquipmentInventory->GetInventory();
+    // 만약 소모품 인벤토리도 있다면 추가
+    DisplayItems.Append(ConsumableInventory->GetInventory());
+
+    // 이제 EquipmentSlotInventory에 있는 아이템을 제거
+    TArray<UInventoryItem*> EquippedItems = EquipmentSlotInventory->GetInventory();
+    for (UInventoryItem* EquippedItem : EquippedItems)
+    {
+        DisplayItems.Remove(EquippedItem);
+    }
+    return DisplayItems;
+}
+
 // Called when the game starts or when spawned
 void AInventoryManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+
+    if (EquipmentInventoryClass)
+    {
+        EquipmentInventory = GetWorld()->SpawnActor<AEquipmentInventory>(EquipmentInventoryClass);
+        RegisterInventory(EquipmentInventory);
+    }
+
+    if (ConsumableInventoryClass)
+    {
+        ConsumableInventory = GetWorld()->SpawnActor<AConsumableInventory>(ConsumableInventoryClass);
+        RegisterInventory(ConsumableInventory);
+    }
+
+    if (EquipmentSlotInventoryClass)
+    {
+        EquipmentSlotInventory = GetWorld()->SpawnActor<AEquipmentSlotInventory>(EquipmentSlotInventoryClass);
+        RegisterInventory(EquipmentSlotInventory);
+    }
 }
 
 // Called every frame

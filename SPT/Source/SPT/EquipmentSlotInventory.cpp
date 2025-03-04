@@ -14,6 +14,7 @@ AEquipmentSlotInventory::AEquipmentSlotInventory()
 
 void AEquipmentSlotInventory::AddItem(UInventoryItem* Item)
 {
+    // GetSlotType이 -1인 경우는 디폴트 값을 말함(장비가 아닌 경우)
     if (Item && Item->GetSlotType() != -1)
     {
         // 아이템이 장착 가능한 슬롯이 있으면 장착
@@ -88,6 +89,20 @@ UInventoryItem* AEquipmentSlotInventory::UnequipItem(int32 Slot)
         EquippedItems.Remove(Slot);
     }
     return UnequippedItem;
+}
+
+UInventoryItem* AEquipmentSlotInventory::IsEquippedSlot(UInventoryItem* Item)
+{
+    if (!Item) return nullptr;
+
+    int32 Slot = Item->GetSlotType();
+
+    // 해당 슬롯에 이미 장착된 아이템이 있는지 확인
+    if (EquippedItems.Contains(Slot))
+    {
+        return EquippedItems[Slot];
+    }
+    return nullptr;
 }
 
 // Called when the game starts or when spawned

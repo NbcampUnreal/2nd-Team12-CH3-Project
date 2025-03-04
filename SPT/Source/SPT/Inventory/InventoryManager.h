@@ -10,7 +10,10 @@ class IInventoryInterface;
 class UInventoryItem;
 class UEquipmentItem;
 class UConsumableItem;
+class AEquipmentInventory;
+class AConsumableInventory;
 class UInventoryMainWidget;
+class AEquipmentSlotInventory;
 
 class UItemDataObject;
 
@@ -34,10 +37,30 @@ public:
 	void RemoveItemToInventory(UInventoryItem* Item);
 	// 인벤토리 위젯을 할당하는 함수
 	void SetInventoryWidget(UInventoryMainWidget* NewWidget);
+	// UI에서 표시될 인벤토리를 설정하는 함수(필터링)
+	TArray<UInventoryItem*> GetDisplayInventoryItems() const;
 
 	UPROPERTY()
 	UInventoryMainWidget* InventoryMainWidgetInstance;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AEquipmentSlotInventory> EquipmentSlotInventoryClass;
+
+	UPROPERTY()
+	AEquipmentInventory* EquipmentInventory;
+
+	UPROPERTY()
+	AConsumableInventory* ConsumableInventory;
+
+	UPROPERTY()
+	AEquipmentSlotInventory* EquipmentSlotInventory;
 
 private:
 	UPROPERTY()

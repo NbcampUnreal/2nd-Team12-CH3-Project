@@ -85,20 +85,9 @@ public:
 	// 캐릭터에 인벤토리 할당
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TSubclassOf<AInventoryManager> InventoryManagerClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<AEquipmentSlotInventory> EquipmentSlotInventoryClass;
 	UPROPERTY()
 	AInventoryManager* InventoryManager;
-	UPROPERTY()
-	AEquipmentInventory* EquipmentInventory;
-	UPROPERTY()
-	AConsumableInventory* ConsumableInventory;
-	UPROPERTY()
-	AEquipmentSlotInventory* EquipmentSlotInventory;
+
 
 	// 인벤토리 위젯 적용
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
