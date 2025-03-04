@@ -52,6 +52,8 @@ public:
 	FVector SocketOffset;
 	UPROPERTY(EditAnywhere)
 	float FieldOfView;
+	UPROPERTY(EditAnywhere)
+	bool bEnableCameraLag;
 
 public:
 	void SetData(class ASPTPlayerCharacter* InOwner);
@@ -117,8 +119,10 @@ struct FFirearmStats
 	class USoundWave* FireSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
 	float RecoilAngle;	// ÅºÂø±º Cone °¢µµ
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
-	// TSubclassOf<class UMatineeCameraShake> CameraShakeClass; // ( ¹Ì±¸Çö )
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	TSubclassOf<UCameraShakeBase> CameraShakeClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	float RecoilRate;	// ¹Ýµ¿·ü
 
 };
 
