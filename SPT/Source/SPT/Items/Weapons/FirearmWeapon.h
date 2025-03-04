@@ -53,9 +53,12 @@ public:
 	void AimDownSights(float Output);
 	void EndAiming();
 
-	/* 현재 탄약 개수 반환 */
-	int32 GetCurrentAmmo() const;
 
+
+	/* Getter 함수 */
+	int32 GetMagazinCapacity() const;
+	int32 GetCurrentAmmo() const;
+	EFirearmType GetFirearmType() const;
 
 protected:
 

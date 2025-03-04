@@ -11,6 +11,9 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
+#include "SPT/Items/Weapons/WeaponBase.h"
+#include "SPT/Items/Worlds/WorldWeapon.h"
+#include "SPT/Items/Weapons/FirearmWeapon.h"
 
 ASPTPlayerCharacter::ASPTPlayerCharacter()
 {
@@ -67,7 +70,6 @@ void ASPTPlayerCharacter::TryPickupItem()
     // 아이템의 탐색여부를 확인
     bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, Params);
 
-
     if (bHit)
     {
         AItemBase* ItemBase = Cast<AItemBase>(HitResult.GetActor());
@@ -79,11 +81,51 @@ void ASPTPlayerCharacter::TryPickupItem()
             // 아이템 복사 성공 시 아이템을 인벤토리로 추가하는 함수 호출 후 추가된 아이템 제거
             if (ItemData)
             {
-                InventoryManager->AddItemToInventory(ItemData);
+                if (ItemData->IsWeapon())
+                {
+                    AWorldWeapon* WorldWeapon = Cast<AWorldWeapon>(ItemBase);
+                    if (WorldWeapon && ItemBase->GetItemData()->WeaponData.WeaponType == EWeaponType::EWT_Firearm)
+                    {
+                        WorldWeapon->OnPickup(this);
+                    }
+                }
+                else
+                {
+                    InventoryManager->AddItemToInventory(ItemData);
+                }
+
                 ItemBase->Destroy();
             }
         }
     }
+}
+
+bool ASPTPlayerCharacter::EquipWeapon(AWeaponBase* NewItem)
+{
+    if (!NewItem) return false;
+    if (EquippedWeapon)
+    {
+        UnEquipWeapon();
+    }
+
+    EquippedWeapon = NewItem;
+
+    if (!EquippedWeapon)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool ASPTPlayerCharacter::UnEquipWeapon()
+{
+    if (EquippedWeapon) {
+        EquippedWeapon->UnEquip(this);
+        EquippedWeapon = nullptr;
+    }
+
+    return false;
 }
 
 // 아이템을 생성하여 캐릭터의 앞에 떨어뜨리는 함수
@@ -198,6 +240,17 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
                 // 키 입력 중에 1번만 호출됨
                 EnhancedInput->BindAction(PlayerController->ReloadAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartReload);
             }
+
+            if (PlayerController->AimingAction)
+            {
+                EnhancedInput->BindAction(PlayerController->AimingAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::SwitchAiming);
+            }
+
+            if (PlayerController->AttackAction)
+            {
+                EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartAttack);
+                EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopAttack);
+            }
         }
     }
 }
@@ -307,7 +360,7 @@ void ASPTPlayerCharacter::ItemUse(const FInputActionValue& value)
     // 현재 장착중인 아이템을 사용한다.
     if (value.Get<bool>())
     {
-        
+
     }
 }
 
@@ -363,12 +416,72 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
     }
 }
 
+/// <summary>
+/// 조준, 재장전, 발사 추가 구현
+/// 
+/// </summary>
+/// <param name="value"></param>
+
 void ASPTPlayerCharacter::StartReload(const FInputActionValue& value)
 {
     // 현재 착용중인 아이템이 총이거나 재장전 할 수 있는 아이템이라면 재장전
     if (value.Get<bool>())
     {
-        
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->BeginReload();  //// 추가
+        }
     }
 }
 
+void ASPTPlayerCharacter::SwitchAiming(const FInputActionValue& value)
+{
+    if (value.Get<bool>())
+    {
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->SwitchAiming();  //// 추가
+        }
+    }
+}
+
+void ASPTPlayerCharacter::StartAttack(const FInputActionValue& value)
+{
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->PrimaryAction(this);  //// 추가
+    }
+}
+
+void ASPTPlayerCharacter::StopAttack(const FInputActionValue& value)
+{
+    if (EquippedWeapon)
+    {
+        AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+        FirearmWeapon->EndFire();  //// 추가
+    }
+}
+
+AWeaponBase* ASPTPlayerCharacter::GetEquippedWeapon() const
+{
+    if (!EquippedWeapon)
+    {
+        return nullptr;
+    }
+    
+    return EquippedWeapon;
+}
+
+EFirearmType ASPTPlayerCharacter::GetEquippedFirearmType() const
+{
+    if (AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon))
+    {
+        // FirearmWeapon->GetMagazinCapacity();    // 전체 탄약 개수
+        // FirearmWeapon->GetCurrentAmmo();        // 현재 탄약 개수
+        return FirearmWeapon->GetFirearmType();        // 총기 종류
+    }
+
+    return EFirearmType::EFT_MAX;
+}

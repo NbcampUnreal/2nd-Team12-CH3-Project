@@ -301,7 +301,7 @@ void AFirearmWeapon::UnEquip(ASPTPlayerCharacter* PlayerCharacter)
 		UE_LOG(LogTemp, Log, TEXT("%s unequipped by %s"), *GetName(), *PlayerCharacter->GetName());
 	}
 
-	ItemState = EItemState::EIS_Inventory;
+	ItemState = EItemState::EIS_QuickSlot;
 }
 
 void AFirearmWeapon::Drop(ASPTPlayerCharacter* PlayerCharacter)
@@ -477,9 +477,19 @@ void AFirearmWeapon::EndAiming()
 	return;
 }
 
+int32 AFirearmWeapon::GetMagazinCapacity() const
+{
+	return FirearmStats.MagazineCapacity;
+}
+
 int32 AFirearmWeapon::GetCurrentAmmo() const
 {
 	return FirearmStats.AmmoCount;
+}
+
+EFirearmType AFirearmWeapon::GetFirearmType() const
+{
+	return FirearmStats.FirearmType;
 }
 
 void AFirearmWeapon::SetWeaponData(const FWeaponItemData& NewWeaponData)
