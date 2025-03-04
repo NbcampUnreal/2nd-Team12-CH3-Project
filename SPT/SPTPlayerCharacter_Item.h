@@ -4,40 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
-#include "SPT/Interfaces/InteractableInterface.h" //// 추가
-#include "SPTPlayerCharacter_Item.generated.h"
+#include "InventoryManager.h"
+#include "ItemWidget/InventoryMainWidget.h"
+#include "SPTPlayerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
+class AItemBase;
+class AEquipmentInventory;
+class AConsumableInventory;
 
 struct FInputActionValue;
-
-///////////////////////////////////////////////////////////////////////
-
-class AWorldItemBase;
-class AWeaponBase;
-class AConsumableItem;
-
-/* 상호 작용 */
-USTRUCT()
-struct FInteractionData
-{
-	GENERATED_USTRUCT_BODY();
-
-	FInteractionData() :
-		CurrentInteractable(nullptr),
-		LastInteractionCheckTime(0.0f)
-	{
-	};
-
-	UPROPERTY()
-	AActor* CurrentInteractable;
-
-	UPROPERTY()
-	float LastInteractionCheckTime;
-};
-
-///////////////////////////////////////////////////////////////////////
 
 UCLASS()
 class SPT_API ASPTPlayerCharacter : public ABaseCharacter
@@ -55,62 +32,13 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-///////////////////////////////////////////////////////////////////////
-
-    /* 장착 및 해제 파트는 현재 무기에 맞춰져 있습니다.
-     * 이후 재정비가 필요한 파트입니다.
-     */
-	/* 무기 장착 */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool EquipWeapon(AWeaponBase* NewItem);
-
-	/* 무기 해제 */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool UnEquipWeapon();
-
-	/* 무기 드롭 */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void DropWeapon();
-
-	/* 현재 장착한 무기 반환 */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	AWeaponBase* GetEquippedWeapon() const;
-
-	/* 현재 장착한 무기 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Equipped")
-	AWeaponBase* EquippedWeapon;
-
-	/* 장착할 소켓 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Equipment")
-	FName EquippedWeaponSocket;
-
-
-
-	/* 상호 작용 관련 함수 */
-	void PerformInteractionCheck();
-	void FoundInteractable(AActor* NewInteractable);
-	void NoInteractableFound();
-	void BeginInteract();
-	void EndInteract();
-	void Interact();
-
-	FORCEINLINE bool IsInteracting() const;
-
-	/* 상호 작용 관련 변수 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Interaction")
-	TScriptInterface<IInteractableInterface> TargetInteractable;
-
-	float InteractionCheckFrequency;
-	float InteractionCheckDistance;
-	FTimerHandle TimerHandle_Interaction;
-	FInteractionData InteractionData;
-
-
-///////////////////////////////////////////////////////////////////////
-
 protected:
 	UFUNCTION()
+	void StartMove(const FInputActionValue& value);
+	UFUNCTION()
 	void Move(const FInputActionValue& value);
+	UFUNCTION()
+	void StopMove(const FInputActionValue& value);
 	UFUNCTION()
 	void Look(const FInputActionValue& value);
 	UFUNCTION()
@@ -133,6 +61,12 @@ protected:
 	void OnOffInventory(const FInputActionValue& value);
 	UFUNCTION()
 	void StartReload(const FInputActionValue& value);
+	UFUNCTION()
+	void SwitchAiming(const FInputActionValue& value);
+	UFUNCTION()
+	void StartAttack(const FInputActionValue& value);
+	UFUNCTION()
+	void StopAttack(const FInputActionValue& value);
 
 private:
 	// 카메라 관련 컴포넌트
@@ -140,4 +74,42 @@ private:
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCameraComponent> CameraComp;
+
+public:
+	// 인벤토리 관련 함수
+	UFUNCTION()
+	void TryPickupItem();
+	UFUNCTION()
+	bool EquipWeapon(AWeaponBase* NewItem);		//// 추가
+	UFUNCTION()
+	bool UnEquipWeapon();	//// 추가
+	UFUNCTION()
+	void DropItem(UInventoryItem* InventoryItem);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	AInventoryManager* GetInventory() const;
+
+	// 캐릭터에 인벤토리 할당
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AInventoryManager> InventoryManagerClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
+	UPROPERTY()
+	AInventoryManager* InventoryManager;
+	UPROPERTY()
+	AEquipmentInventory* EquipmentInventory;
+	UPROPERTY()
+	AConsumableInventory* ConsumableInventory;
+
+	/* 현재 장착한 무기 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Equipped")
+	AWeaponBase* EquippedWeapon;
+
+	// 인벤토리 위젯 적용
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UInventoryMainWidget> InventoryMainWidgetClass;
+	UPROPERTY()
+	UInventoryMainWidget* InventoryMainWidgetInstance;
+
 };

@@ -19,7 +19,8 @@ public class SPT : ModuleRules
 			Path.Combine(ModuleDirectory, "SpawnVolumes"),
             Path.Combine(ModuleDirectory, "Inventory"),
 			Path.Combine(ModuleDirectory, "UserWidget"),
-            Path.Combine(ModuleDirectory, "PatrolRoutes")
+            Path.Combine(ModuleDirectory, "PatrolRoutes"),
+            Path.Combine(ModuleDirectory, "Actors")
         });
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG",
