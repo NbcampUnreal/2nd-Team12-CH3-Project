@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "SPTBossCharacter.generated.h"
 
 UCLASS()
-class SPT_API ASPTBossCharacter : public ACharacter
+class SPT_API ASPTBossCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -15,163 +15,208 @@ public:
 	// Sets default values for this character's properties
 	ASPTBossCharacter();
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	int HP;
 
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	int GetHP();
+#pragma region CharacterDefaultSettings_Test
 
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void SetHP(int Amount);
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	float GetHP();
 
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void SpawnMissile();
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	void SetHP(float Amount);
 
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void StartMissileAttack();
-
-	FTimerHandle MissileTimerHandle;
-
-	// 미사일 발사 위치를 위한 변수
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss")
-	FVector MissileSpawnOffset; // 미사일의 발사 위치 오프셋
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Missiles")
-	int32 MissileCount = 3; // 미사일 갯수 (블루프린트에서 설정 가능)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Missiles")
-	TSubclassOf<AActor> MissileClass; // 미사일 클래스
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Missiles")
-	float MissileSpeed = 600.0f; // 미사일 속도
-
-	int CurrentMissileCount;
+#pragma endregion
 
 
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void SnipingPlayer();
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	float AimDuration = 2.0f; // 조준 지속 시간
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> ProjectileClass; // 발사할 총알 클래스
-
-	bool bIsAiming = false;  // 현재 조준 중인지 확인하는 변수
-	FTimerHandle AimTimerHandle;
-
-	void StartAiming();
-	void FireProjectile();
-	void DrawAimLine();
-
-
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void StartSpawnBombs();
-	
-	UFUNCTION()
-	void SpawnBombs(FVector TargetLocation);
-	FTimerHandle SpawnSmallBombDelayTimerHandle;
-
-
-	UPROPERTY(EditAnywhere, Category = "Bomb")
-	TSubclassOf<AActor> BombClass;
-
-	UPROPERTY(EditAnywhere, Category = "Bomb")
-	FVector BombSpawnLocation;  // 미사일이 떨어질 시작 위치
-
-	UPROPERTY(EditAnywhere, Category = "Bomb")
-	int32 BombCount = 10;  // 한 번에 떨어지는 폭탄 수
-
-	UPROPERTY(EditAnywhere, Category = "Bomb")
-	float BombDropInterval = 0.5f;  // 미사일이 떨어지는 간격
-
-
-	UPROPERTY(EditAnywhere, Category = "BigBomb")
-	TSubclassOf<AActor> BigBombClass;
-
-	UFUNCTION(BlueprintCallable, Category = "BigBomb")
-	void SpawnBigBomb();
-
-
-	// 총을 쏘는 함수
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void FireRandomShots();
-
-	// 총알 스폰용 함수
-	void SpawnBullet(FVector SpawnLocation, FRotator SpawnRotation);
-
-	// 타이머 핸들러 (여러 발 연속 발사 시 사용)
-	FTimerHandle ShootingTimerHandle;
-
-	// 총알 클래스
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	TSubclassOf<AActor> BulletClass;
-
-	// 발사 속성
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	int32 BulletCount = 20; // 총알 개수
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	float BulletSpreadAngle = 45.0f; // 부채꼴 범위 (도)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	float FireRate = 0.2f; // 연속 발사 간격
-
-	// 공격 실행 함수
-	UFUNCTION(BlueprintCallable, Category = "MyFunctions")
-	void StartRandomShooting();
-
-	int CurrentBulletCount;
+#pragma region BossCharacterSpecialAttackSettings
 
 	/** 폭발 범위를 나타내는 데칼 */
 	UPROPERTY()
 	UDecalComponent* WarningDecal;
 
-	//Base
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
-	UMaterialInterface* RandomShootingFirstMaterial;
+#pragma endregion
 
-	//시간에 따라 확장
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
-	UMaterialInterface* RandomShootingSecondMaterial;
 
-	void ShowFireRandomShotsWarning();
+#pragma region BossCharacterSpecialAttacks_SpawnMissiles
+	//////변수//////
+	int CurrentMissileCount;
+
+	FTimerHandle MissileTimerHandle; // 미사일 발사 간격 컨트롤 타이머
+
+	// 미사일 발사 위치를 위한 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnMissile")
+	FVector MissileSpawnOffset; // 미사일의 발사 위치 오프셋
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnMissile")
+	int32 MissileCount = 3; // 미사일 갯수 (블루프린트에서 설정 가능)
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnMissile")
+	TSubclassOf<AActor> MissileClass; // 미사일 클래스
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnMissile")
+	float MissileSpeed = 600.0f; // 미사일 속도
+
+	//////함수//////
+	UFUNCTION(BlueprintCallable, Category = "SpecialAttack|SpawnMissile")
+	void SpawnMissile();
+
+	UFUNCTION(BlueprintCallable, Category = "SpecialAttack|SpawnMissile")
+	void StartMissileAttack();
+
+#pragma endregion
+
+
+#pragma region BossCharacterSpecialAttacks_Sniping
+	//////변수//////
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|Sniping")
+	float AimDuration = 2.0f; // 조준 지속 시간
+
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|Sniping")
+	TSubclassOf<AActor> ProjectileClass; // 발사할 총알 클래스
+
+	bool bIsAiming = false;  // 현재 조준 중인지 확인하는 변수
+
+	FTimerHandle AimTimerHandle; //조준 후 발사까지의 경과시간 컨트롤 타이머
+
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|Sniping")
+	UStaticMeshComponent* AimLineMeshComponent;
+
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|Sniping")
+	UStaticMesh* CylinderMesh;
+
+	// 빨간색 머티리얼
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|Sniping")
+	UMaterialInterface* RedMaterial;
+
+	//////함수//////
+	void StartAiming(); // 조준
+	void FireProjectile(); // 발사체 발사
+	void DrawAimLine(); // 플레이어 - 보스까지의 일직선 레이저 그리기
+
+	UFUNCTION(BlueprintCallable, Category = "SpecialAttack|Sniping")
+	void SnipingPlayer(); // 위의 과정이 한번에
+
+#pragma endregion
+
+
+#pragma region BossCharacterSpecialAttacks_FireRandomShots
+	//////변수//////
+	// 총알 클래스
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|FireRandomShots")
+	TSubclassOf<AActor> BulletClass;
+
+	// 발사 속성
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|FireRandomShots")
+	int32 BulletCount = 40; // 총알 개수
+
+	UPROPERTY(EditDefaultsOnly, Category = "SpecialAttack|FireRandomShots")
+	float BulletSpreadAngle = 45.0f; // 부채꼴 범위 (도)
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|FireRandomShots")
+	float FireRate = 0.1f; // 연속 발사 간격
+
+	int CurrentBulletCount;
+
+	//여러발 사격시 사이 시간
 	FTimerHandle ShootingDelayTimerHandle;
+
+	// 타이머 핸들러 (여러 발 연속 발사 시 사용)
+	FTimerHandle ShootingTimerHandle;
+
+	//////함수//////
+		// 총을 쏘는 함수
+	UFUNCTION(BlueprintCallable, Category = "SpecialAttack|FireRandomShots")
+	void FireRandomShots();
+
+	// 총알 스폰용 함수
+	void SpawnBullet(FVector SpawnLocation, FRotator SpawnRotation);
 
 	void StartFiring();
 
+	// 공격 실행 함수
+	UFUNCTION(BlueprintCallable, Category = "SpecialAttack|FireRandomShots")
+	void StartRandomShooting();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	/////////////////////////////패턴시작 경고 표시/////////////////////////////
+
+	//////변수//////
+
+	//Base
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|FireRandomShots")
+	UMaterialInterface* RandomShootingFirstMaterial;
+
+	//시간에 따라 확장
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|FireRandomShots")
+	UMaterialInterface* RandomShootingSecondMaterial;
+
+	//////함수//////
+	void ShowFireRandomShotsWarning();
+#pragma endregion
+
+
+#pragma region BossCharacterSpecialAttacks_SpawnBigBomb
+	//////변수//////
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|SpawnBigBomb")
+	TSubclassOf<AActor> BigBombClass;
+
+	//////함수//////
+	UFUNCTION(BlueprintCallable, Category = "SpecialAttack|SpawnBigBomb")
+	void SpawnBigBomb();
+
+	/////////////////////////////패턴시작 경고 표시/////////////////////////////
+	//////변수//////
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnBigBomb")
 	UMaterialInterface* BigBombFirstMaterial;
 
 	//시간에 따라 확장
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnBigBomb")
 	UMaterialInterface* BigBombSecondMaterial;
 
+	//////함수//////
 	void ShowBigBombWarning();
+#pragma endregion
 
 
+#pragma region BossCharacterSpecialAttacks_SpawnSmallBombs
+	//////변수//////
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|SpawnSmallBombs")
+	TSubclassOf<AActor> BombClass;
 
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|SpawnSmallBombs")
+	int32 BombCount = 10;  // 한 번에 떨어지는 폭탄 수
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UPROPERTY(EditAnywhere, Category = "SpecialAttack|SpawnSmallBombs")
+	float BombDropInterval = 0.5f;  // 미사일이 떨어지는 간격
+
+	FTimerHandle SpawnSmallBombDelayTimerHandle;
+
+	//////함수//////
+	UFUNCTION(BlueprintCallable, Category = "SpecialAttack|SpawnSmallBombs")
+	void StartSpawnBombs();
+
+	UFUNCTION()
+	void SpawnBombs(FVector TargetLocation);
+
+	/////////////////////////////패턴시작 경고 표시/////////////////////////////
+	//////변수//////
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnSmallBombs")
 	UMaterialInterface* SmallBombFirstMaterial;
 
 	//시간에 따라 확장
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpecialAttack|SpawnSmallBombs")
 	UMaterialInterface* SmallBombSecondMaterial;
 
+	//////함수//////
 	void ShowSmallBombWarning();
-
+#pragma endregion
 };
-

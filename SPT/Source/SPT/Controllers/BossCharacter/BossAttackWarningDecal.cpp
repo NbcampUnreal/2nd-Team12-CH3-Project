@@ -35,13 +35,13 @@ void ABossAttackWarningDecal::InitializeDecal(UMaterialInterface* InDecalMateria
     if (InDecalMaterial1)
     {
         DecalComponent1->SetDecalMaterial(InDecalMaterial1);
-        DecalComponent1->DecalSize = FVector(10.0f, W, H);
+        DecalComponent1->DecalSize = FVector(40.0f, W, H);
     }
 
     if (InDecalMaterial2)
     {
         DecalComponent2->SetDecalMaterial(InDecalMaterial2);
-        DecalComponent2->DecalSize = FVector(10.0f, W, H);
+        DecalComponent2->DecalSize = FVector(40.0f, W, H);
     }
     CurrentTime = 0.0f;
     MaxDuration = Duration;
