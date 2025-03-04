@@ -84,8 +84,7 @@ void ABossCharacterProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* Other
         GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Message);
         // 데미지 적용
         UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
-
-        // 발사체 파괴
-        Destroy();
     }
+    // 발사체 파괴
+    Destroy();
 }
