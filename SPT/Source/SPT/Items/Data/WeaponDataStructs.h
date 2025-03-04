@@ -44,7 +44,7 @@ public:
 
 public:
 	void SetData(class ASPTPlayerCharacter* InOwner);
-	void SetDataByNoneCurve(ASPTPlayerCharacter* InOwner);
+	void SetDataByNoneCurve(class ASPTPlayerCharacter* InOwner);
 };
 
 /* 총기 데이터 구조체 */
@@ -85,10 +85,12 @@ struct FFirearmStats
 	float AimSpeed;	// 조준 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Aim")
 	class UCurveFloat* AimCurve;	// 조준 커브
-	UPROPERTY(EditAnywhere, Category = "Firearm")
+	UPROPERTY(EditAnywhere, Category = "Firearm|Aim")
 	FWeaponAimData BaseData;
-	UPROPERTY(EditAnywhere, Category = "Firearm")
+	UPROPERTY(EditAnywhere, Category = "Firearm|Aim")
 	FWeaponAimData AimData;
+	UPROPERTY(EditAnywhere, Category = "Firearm|Aim")
+	class UTimelineComponent* Timeline;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
 	class UMaterialInterface* HitDecal;
