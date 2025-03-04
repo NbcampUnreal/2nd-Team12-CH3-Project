@@ -8,7 +8,7 @@ AConsumableItem::AConsumableItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// 기본 상태는 월드 상태
+	// 기본 ?�태???�드 ?�태
 	ItemState = EItemState::EIS_World;
 }
 
@@ -33,13 +33,13 @@ void AConsumableItem::StartUse(ASPTPlayerCharacter* PlayerCharacter)
 		return;
 	}
 
-	// 플레이어 애니메이션 실행
+	// ?�레?�어 ?�니메이???�행
 	if (UAnimMontage*  UseAnimation = ItemData->GetItemData().AnimationData.UseAnimation)
 	{
 		PlayerCharacter->PlayAnimMontage(UseAnimation);
 	}
 
-	// 일정 시간 후 자동 삭제
+	// ?�정 ?�간 ???�동 ??��
 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 		{
 			FinishUse();

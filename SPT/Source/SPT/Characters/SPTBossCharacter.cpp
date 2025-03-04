@@ -17,12 +17,27 @@ ASPTBossCharacter::ASPTBossCharacter()
 	// 레벨에 배치되거나 스폰되면 자동으로 AIController가 할당되도록 설정
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	
-    HP = 100;
+    // 기본 최대 체력
+    MaxHealth = 1000;
+    // 현재 체력
+    Health = MaxHealth;
+
     CurrentBulletCount = 0;
 	// 발사 위치를 설정할 기본 오프셋 값
 	MissileSpawnOffset = FVector(0.0f, 0.0f, 150.0f); // 예시: 보스의 머리 위에서 발사
 
     CurrentMissileCount = 0;
+
+    AimLineMeshComponent = nullptr;
+    BigBombFirstMaterial = nullptr;
+    BigBombSecondMaterial = nullptr;
+    CylinderMesh = nullptr;
+    RandomShootingFirstMaterial = nullptr;
+    RandomShootingSecondMaterial = nullptr;
+    RedMaterial = nullptr;
+    SmallBombFirstMaterial = nullptr;
+    SmallBombSecondMaterial = nullptr;
+    WarningDecal = nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -43,17 +58,17 @@ void ASPTBossCharacter::Tick(float DeltaTime)
 void ASPTBossCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
-int ASPTBossCharacter::GetHP()
+
+float ASPTBossCharacter::GetHP()
 {
-	return HP;
+	return Health;
 }
 
-void ASPTBossCharacter::SetHP(int Amount)
+void ASPTBossCharacter::SetHP(float Amount)
 {
-	HP = Amount;
+	Health = Amount;
 }
 
 void ASPTBossCharacter::StartMissileAttack()
@@ -136,19 +151,54 @@ void ASPTBossCharacter::StartAiming()
 
 void ASPTBossCharacter::DrawAimLine()
 {
-    if (!bIsAiming) return; // 조준 중이 아니면 실행 안 함
+    // 조준이 아니거나 AimLineMeshComponent가 없다면 삭제
+    if (!bIsAiming && AimLineMeshComponent)
+    {
+        AimLineMeshComponent->DestroyComponent();
+        AimLineMeshComponent = nullptr;
+        return;
+    }
 
     AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
     if (!PlayerActor) return;
 
-    FVector Start = GetActorLocation() + FVector(0, 0, 20); // 보스 총구 위치 즈음에서 시작
-    FVector End = PlayerActor->GetActorLocation();
+    FVector Start = GetActorLocation() + FVector(0, 0, 20);  // 보스 위치 (살짝 위로)
+    FVector End = PlayerActor->GetActorLocation();  // 플레이어 위치
 
-    DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.01f, 0, 2.0f);
+    // 보스와 플레이어 사이의 벡터와 거리 계산
+    FVector Direction = (End - Start).GetSafeNormal();
+    float Distance = FVector::Dist(Start, End);
+
+    // StaticMeshComponent로 직선 오브젝트 생성
+    if (!AimLineMeshComponent)
+    {
+        // 실린더 모양을 위한 StaticMeshComponent 생성
+        AimLineMeshComponent = NewObject<UStaticMeshComponent>(this);
+        AimLineMeshComponent->SetupAttachment(RootComponent);
+        AimLineMeshComponent->RegisterComponent();  // 컴포넌트 등록
+
+        // 실린더 메시 설정 (CylinderMesh를 미리 에디터에서 설정하거나 코드에서 할당)
+        AimLineMeshComponent->SetStaticMesh(CylinderMesh);
+        AimLineMeshComponent->SetMaterial(0, RedMaterial);  // 빨간색 머티리얼 설정
+        AimLineMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 충돌 안되게 설정
+    }
+
+    // 직선 위치와 크기 조정
+    AimLineMeshComponent->SetWorldLocation(Start + Direction * Distance * 0.5f);  // 중간 지점으로 위치 조정
+    AimLineMeshComponent->SetWorldRotation(Direction.Rotation());  // 방향에 맞게 회전
+
+    // 실린더를 X축 기준으로 눕히기 (회전)
+    AimLineMeshComponent->SetWorldRotation(FRotator(90, 0, 0) + Direction.Rotation());  // X축 기준으로 90도 회전 후 방향에 맞게 회전
+
+    // 길이에 맞게 크기 설정 (Z축: 길이, X/Y축: 굵기)
+    float CylinderThickness = 0.04f;  // 실린더 굵기 (조정 가능)
+    AimLineMeshComponent->SetWorldScale3D(FVector(CylinderThickness, CylinderThickness, Distance / 100));  // 길이와 굵기 설정
 
     // 다음 프레임에 다시 호출하여 조준선 유지
     GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ASPTBossCharacter::DrawAimLine);
 }
+
+
 
 void ASPTBossCharacter::FireProjectile()
 {
@@ -318,7 +368,7 @@ void ASPTBossCharacter::ShowFireRandomShotsWarning()
     GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Message);
 
     FVector StartLocation = GetActorLocation();
-    StartLocation.Z = 0;
+    StartLocation.Z -= 90.0f;
     FVector GroundLocation = StartLocation + FVector(0, 0, 1.0f); // 바닥보다 살짝 위로
 
     // 커스텀 데칼 액터 생성
@@ -343,8 +393,8 @@ void ASPTBossCharacter::ShowBigBombWarning()
 
     AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
     FVector StartLocation = PlayerActor->GetActorLocation();
-    StartLocation.Z = 0;
-    FVector GroundLocation = StartLocation + FVector(0, 0, 1.0f); // 바닥보다 살짝 위로
+    StartLocation.Z -= 90.0f;
+    FVector GroundLocation = StartLocation + FVector(0, 0, 1.0f); // 원래보다 살짝 위로
 
     // 커스텀 데칼 액터 생성
     FString Message1 = "Decal Actor Created";
@@ -368,8 +418,8 @@ void ASPTBossCharacter::ShowSmallBombWarning()
 
     AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
     FVector StartLocation = PlayerActor->GetActorLocation();
-    StartLocation.Z = 0;
-    FVector GroundLocation = StartLocation + FVector(0, 0, 1.0f); // 바닥보다 살짝 위로
+    StartLocation.Z -= 90.0f;
+    FVector GroundLocation = StartLocation + FVector(0, 0, 1.0f); // 원래보다 살짝 위로
 
     // 커스텀 데칼 액터 생성
     FString Message1 = "Decal Actor Created";

@@ -17,6 +17,7 @@ public class SPT : ModuleRules
 			Path.Combine(ModuleDirectory, "AnimInstances"),
 			Path.Combine(ModuleDirectory, "GameStates"),
 			Path.Combine(ModuleDirectory, "SpawnVolumes"),
+            Path.Combine(ModuleDirectory, "Inventory"),
 			Path.Combine(ModuleDirectory, "UserWidget"),
             Path.Combine(ModuleDirectory, "PatrolRoutes")
         });

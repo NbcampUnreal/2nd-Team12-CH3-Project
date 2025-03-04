@@ -8,6 +8,8 @@
 #include "ItemBase.generated.h"
 
 class ASPTPlayerCharacter;
+class USphereComponent;
+class UWidgetComponent;
 
 // 아이템 상태 Enum
 UENUM(BlueprintType)
@@ -32,6 +34,7 @@ public:
 	virtual void BeginPlay() override;
 
 	/* 아이템 초기화 (데이터 테이블에서 로드) */
+	UFUNCTION(BlueprintCallable)
 	void InitializeItem(FName ItemRowName);
 
 	/* 마우스 좌클릭 시 실행할 기본 동작 */
@@ -49,6 +52,31 @@ public:
 	UItemDataObject* GetItemData() const;
 	void SetItemData(UItemDataObject* NewItemData);
 
+
+
+
+	// 인벤토리 관련 추가된 변수 및 함수들 입니다.
+	
+	// 위젯을 아이템에 할당
+	UPROPERTY(EditAnywhere, Category = "Widget")
+	TSubclassOf<class UUserWidget> PickupWidgetClass;
+
+	UPROPERTY()
+	UUserWidget* PickupWidget;
+
+	UPROPERTY(VisibleAnywhere, Category = "Widget")
+	UWidgetComponent* PickupWidgetComponent;
+
+	// 캐릭터가 콜리전 영역에 접근 여부를 판단하고 위젯을 띄우는 용도
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UFUNCTION()
+	void ShowPickupPrompt(bool bShow);
+
+
+
 protected:
 
 	/* 아이템 상태 (월드, 인벤토리, 장착) */
@@ -62,5 +90,10 @@ protected:
 	/* 아이템 메시 (월드에서 시각적 표현) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item | Mesh")
 	UStaticMeshComponent* StaticMeshComponent;
+
+
+	// 임의로 추가한 콜리전 영역
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Mesh")
+	USphereComponent* Collision;
 
 };
