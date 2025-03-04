@@ -80,7 +80,13 @@ void USPTPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			TurnYaw.Yaw = GetCurveValue(FName("RemainingTurnYaw")) * DeltaSeconds * RotationScalar;
 			Character->AddActorLocalRotation(TurnYaw);
 		}
-		
+
+		if (ASPTPlayerCharacter* SPTPlayerCharacter = Cast<ASPTPlayerCharacter>(Character))
+		{
+			// 현재 플레이어의 무기 종류
+			CurWeaponType = SPTPlayerCharacter->GetEquippedFirearmType();
+		}
+
 	}
 }
 

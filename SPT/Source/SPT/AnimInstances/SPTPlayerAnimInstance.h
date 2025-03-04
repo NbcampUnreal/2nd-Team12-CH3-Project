@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Data/WeaponDataStructs.h"
 #include "SPTPlayerAnimInstance.generated.h"
 
 class UCharacterMovementComponent;
@@ -49,4 +50,6 @@ protected:
 	bool bIsFalling;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	bool bIsCrouching;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon Data")
+	EFirearmType CurWeaponType;
 };
