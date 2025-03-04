@@ -16,6 +16,17 @@ enum class EWeaponType : uint8
 	EWT_MAX UMETA(Hidden)
 };
 
+/* 총기 종류 Enum */
+UENUM(BlueprintType)
+enum class EFirearmType : uint8
+{
+	EFT_AssaultRifle UMETA(DisplayName = "Assault Rifle"),
+	EFT_SniperRifle UMETA(DisplayName = "Sniper Rifle"),
+	EFT_Shotgun UMETA(DisplayName = "Shotgun"),
+	EFT_Pistol UMETA(DisplayName = "Pistol"),
+	EFT_MAX UMETA(Hidden)
+};
+
 /* 무기 공통 속성 */
 USTRUCT(BlueprintType)
 struct FWeaponStats
@@ -53,6 +64,8 @@ struct FFirearmStats
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
+	EFirearmType FirearmType;	// 총기 종류
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
 	int32 AmmoCount;	// 현재 탄약 개수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
