@@ -7,6 +7,8 @@
 #include "PracticeRangeGameState.generated.h"
 
 class AAISpawnVolume;
+class APracticeScoreBoard;
+class APracticeTestTrigger;
 
 UCLASS()
 class SPT_API APracticeRangeGameState : public AGameState
@@ -19,17 +21,25 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
 	// 숙련도 테스트 기능 시작
 	void ProficiencyTestingStart();
+
+	// 숙련도 테스트 기능 끝내기
+	void ProficiencyTestingEnd();
+
+protected:
 	// 숙련도 테스트 기능을 위한 AI 스폰
 	UFUNCTION()
 	void ProficiencyTestingAISpawn();
-	// 숙련도 테스트 기능을 위한 킬 카운트
+	// 숙련도 테스트 기능이 끝난 경우 AI 제거
 	UFUNCTION()
-	void ProficiencyTestingAIKillCount();
+	void ProficiencyTestingAIDestroy();
 
 private:
 	int32 ProficiencyTestSpawnAICount;
 
 	TObjectPtr<AAISpawnVolume> ProficiencyTestSpawnVolume;
+
+	TObjectPtr<APracticeScoreBoard> PracticeScoreBoardActor;
 };
