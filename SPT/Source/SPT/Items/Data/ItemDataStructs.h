@@ -145,7 +145,7 @@ struct FItemData : public FTableRowBase
 
 
 	// 인벤토리 관련 추가된 변수
-	// 아이템을 생성할 때 필요(DropItem을 사용할 때)
+	// 아이템을 생성할 때 필요(DropItem을 사용할 때)(아마 클래스에는 ItemBase를 넣으면 될 것 같습니다.)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
 	TSubclassOf<AItemBase> ItemBaseClass;
 };
