@@ -60,7 +60,8 @@ public:
 	int32 GetMagazinCapacity() const;
 	int32 GetCurrentAmmo() const;
 	EFirearmType GetFirearmType() const;
-
+	
+	FHitResult HitResult;
 protected:
 
 	/* 총기 전용 데이터 */

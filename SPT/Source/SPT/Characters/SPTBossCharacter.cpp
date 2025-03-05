@@ -431,3 +431,20 @@ void ASPTBossCharacter::ShowSmallBombWarning()
         WarningDecalActor->InitializeDecal(SmallBombFirstMaterial, SmallBombSecondMaterial, GroundLocation, 1500.0f, 1000.0f,2.3f);
     }
 }
+
+
+float ASPTBossCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+    float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+    float NewHealth = FMath::Clamp(Health - ActualDamage, 0.0f, MaxHealth);
+
+    SetHealth(NewHealth);
+
+    if (Health <= 0.f)
+    {
+        OnDeath();
+    }
+
+    return 0.0f;
+}
