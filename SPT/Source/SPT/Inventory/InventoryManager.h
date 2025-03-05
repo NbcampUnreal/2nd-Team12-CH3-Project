@@ -34,6 +34,8 @@ public:
 	void UseItem(UInventoryItem* Item);
 	// 인벤토리의 아이템을 바닥에 생성하는 함수
 	void DropItem(UInventoryItem* Item, FVector DropLocation);
+	// 장비를 착용하는 함수
+	void EquipItem(UInventoryItem* Item);
 	// 아이템을 사용하거나 드랍 시 인벤토리에서 제거하는 함수
 	void RemoveItemToInventory(UInventoryItem* Item);
 	// 인벤토리 위젯을 할당하는 함수

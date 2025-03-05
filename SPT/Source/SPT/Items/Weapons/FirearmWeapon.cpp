@@ -5,6 +5,7 @@
 #include "SPTPlayerCharacter.h"
 #include "SPTPlayerController.h"
 #include "SPT/Items/Worlds/WorldWeapon.h"
+#include "SPT/Inventory/ItemWidget/PreviewCharacter.h"
 #include "Components/TimelineComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -296,6 +297,14 @@ void AFirearmWeapon::Equip()
 	ItemState = EItemState::EIS_Equipped;
 	UE_LOG(LogTemp, Log, TEXT("%s equipped by %s"), *GetName(), *Owner->GetName());
 	EndEquip();
+	////////////////////////////////////////////////////////////////
+	// 프리뷰 캐릭터에 무기 반영을 위해서 넣은 부분입니다.
+	if (Owner && Owner->PreviewCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PreviewCharacter Update?")); 
+		Owner->PreviewCharacter->EquipWeapon(this);
+	}
+	////////////////////////////////////////////////////////////////
 }
 
 void AFirearmWeapon::BeginEquip(ASPTPlayerCharacter* PlayerCharacter)
@@ -624,4 +633,9 @@ void AFirearmWeapon::UpdateMesh()
 		SkeletalMeshComponent->SetSkeletalMesh(ItemData->GetItemData().AssetData.SkeletalMesh);
 		SkeletalMeshComponent->SetPhysicsAsset(ItemData->GetWeaponData().PhysicsAsset);
 	}
+}
+
+USkeletalMeshComponent* AFirearmWeapon::GetWeaponMesh()
+{
+	return SkeletalMeshComponent;
 }
