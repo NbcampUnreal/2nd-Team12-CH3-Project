@@ -4,6 +4,7 @@
 #include "TargetBoard.h"
 #include "Components/StaticMeshComponent.h"
 #include "RecordBoard.h"
+#include "SPT/Items/Weapons/FirearmWeapon.h"  // 총기 클래스 포함
 
 ATargetBoard::ATargetBoard()
 {
@@ -12,12 +13,8 @@ ATargetBoard::ATargetBoard()
     MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Target"));
     RootComponent = MeshComp;
 
-    MeshComp->SetSimulatePhysics(false);  // 물리 시뮬레이션 비활성화 (OnComponentHit() 방식 사용)
+    MeshComp->SetSimulatePhysics(false);
     MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-    // 충돌 이벤트 바인딩
-    MeshComp->OnComponentHit.AddDynamic(this, &ATargetBoard::OnHit);
-
 }
 
 void ATargetBoard::BeginPlay()
@@ -25,30 +22,39 @@ void ATargetBoard::BeginPlay()
     Super::BeginPlay();
 }
 
-void ATargetBoard::OnHit(
-    UPrimitiveComponent* HitComponent, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, FVector NormalImpulse,
-    const FHitResult& Hit)
+//TakeDamage 오버라이드 (총기에서 FHitResult 가져오기)
+float ATargetBoard::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+    AController* EventInstigator, AActor* DamageCauser)
 {
+    Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
     if (RecordBoard)
     {
-        // TargetBoard의 크기 기준으로 충돌 지점의 비율 계산
-        FVector LocalHitPos = Hit.ImpactPoint - GetActorLocation();
-        FVector Min, Max;
-        MeshComp->GetLocalBounds(Min, Max);
+        // DamageCauser가 총기라면 캐스팅하여 FHitResult 가져오기
+        AFirearmWeapon* Gun = Cast<AFirearmWeapon>(DamageCauser);
+        if (Gun)
+        {
+            FHitResult HitResult = Gun->HitResult;
 
-        // 컴포넌트의 스케일을 적용하여 실제 크기 계산
-        FVector Scale = MeshComp->GetComponentScale();
-        float ActualWidth = (Max.X - Min.X) * Scale.X;
-        float ActualHeight = (Max.Y - Min.Y) * Scale.Y;
-        float ActualDepth = (Max.Z - Min.Z) * Scale.Z;
-        // 충돌 지점의 비율 계산 (X, Y, Z 각각 -0.5 ~ 0.5 사이로 변환)
-        FVector HitRatio = FVector(
-            LocalHitPos.X / ActualWidth,
-            LocalHitPos.Y / ActualHeight,
-            LocalHitPos.Z / ActualDepth
-        );
-        // 비율을 RecordBoard에 전달
-        RecordBoard->RegisterHit(HitRatio);
+            FVector LocalHitPos = HitResult.ImpactPoint - GetActorLocation();
+            FVector Min, Max;
+            MeshComp->GetLocalBounds(Min, Max);
+
+            FVector Scale = MeshComp->GetComponentScale();
+            float ActualWidth = (Max.X - Min.X) * Scale.X;
+            float ActualHeight = (Max.Y - Min.Y) * Scale.Y;
+            float ActualDepth = (Max.Z - Min.Z) * Scale.Z;
+
+            FVector HitRatio = FVector(
+                LocalHitPos.X / ActualWidth,
+                LocalHitPos.Y / ActualHeight,
+                LocalHitPos.Z / ActualDepth
+            );
+
+            // 비율을 RecordBoard에 전달
+            RecordBoard->RegisterHit(HitRatio);
+        }
     }
+
+    return DamageAmount;
 }

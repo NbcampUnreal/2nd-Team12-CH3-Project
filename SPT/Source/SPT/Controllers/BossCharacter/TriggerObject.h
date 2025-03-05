@@ -15,8 +15,16 @@ class SPT_API ATriggerObject : public AActor
 	GENERATED_BODY()
 	
 public:
+    float Health;
+    float MaxHealth;
+
+    void SetHealth(float NewHealth);
+
+
     // 기본 생성자
     ATriggerObject();
+
+    virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
     // 메시 컴포넌트 (물리적인 형태를 나타냄)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
@@ -30,11 +38,6 @@ public:
     UPROPERTY(BlueprintAssignable)
     FOnHitDelegate OnHitTrigger;
 
-    // 충돌 시 호출될 함수 (OnHit 이벤트 발생)
-    UFUNCTION()
-    void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
-        UPrimitiveComponent* OtherComp, FVector NormalImpulse,
-        const FHitResult& Hit);
     
 protected:
     // 게임 시작 시 호출되는 함수

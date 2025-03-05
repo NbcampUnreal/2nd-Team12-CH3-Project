@@ -20,13 +20,12 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
     UStaticMeshComponent* MeshComp;
 
+    // TakeDamage 오버라이드 (FHitResult 가져오기)
+    virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+        AController* EventInstigator, AActor* DamageCauser) override;
+
 private:
 
-    UFUNCTION()
-    void OnHit(
-        UPrimitiveComponent* HitComponent, AActor* OtherActor,
-        UPrimitiveComponent* OtherComp, FVector NormalImpulse,
-        const FHitResult& Hit);
 
     UPROPERTY(EditAnywhere, Category = "Setup")
     class ARecordBoard* RecordBoard;
