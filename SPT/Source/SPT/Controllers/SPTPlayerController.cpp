@@ -89,3 +89,8 @@ void ASPTPlayerController::ShowPlayerMainHUD()
         }
     }
 }
+
+UPlayerMainHUD* ASPTPlayerController::GetHUDWidgetInstance() const
+{
+    return HUDWidgetInstance;
+}

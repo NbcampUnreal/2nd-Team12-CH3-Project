@@ -47,9 +47,11 @@ float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	// 플레이어가 데미지를 준거라면 플레이어의 UI에 HitMarker를 띄움
 	if (EventInstigator)
 	{
+		UE_LOG(LogTemp, Log, TEXT("EventInstigator"));
 		ASPTPlayerController* PlayerController = Cast<ASPTPlayerController>(EventInstigator);
 		if (PlayerController)
 		{
+			UE_LOG(LogTemp, Log, TEXT("PlayerController"));
 			UPlayerMainHUD* PlayerMainHUD = PlayerController->GetHUDWidgetInstance();
 			PlayerMainHUD->HitTarget();
 		}
