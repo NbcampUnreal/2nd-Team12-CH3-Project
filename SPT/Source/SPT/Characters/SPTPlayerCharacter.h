@@ -10,10 +10,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-class AItemBase;
-class AWeaponBase;
-class AEquipmentInventory;
-class AConsumableInventory;
+
 struct FInputActionValue;
 
 UCLASS()
@@ -93,16 +90,8 @@ public:
 	// 캐릭터에 인벤토리 할당
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TSubclassOf<AInventoryManager> InventoryManagerClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
 	UPROPERTY()
 	AInventoryManager* InventoryManager;
-	UPROPERTY()
-	AEquipmentInventory* EquipmentInventory;
-	UPROPERTY()
-	AConsumableInventory* ConsumableInventory;
 
 	// 장착한 무기 종류 반환
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Equipped")

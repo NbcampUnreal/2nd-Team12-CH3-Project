@@ -7,6 +7,9 @@
 #include "SPT/Items/Weapons/FirearmWeapon.h"
 // #include "SPT/Items/Weapons/MeleeWeapon.h"
 // #include "SPT/Items/Weapons/ThrowableWeapon.h"
+/////////////////////////////////////////////
+#include "SPT/Inventory/ItemData/InventoryItem.h"
+/////////////////////////////////////////////
 #include "Engine/World.h"
 
 AWorldWeapon::AWorldWeapon()
@@ -31,10 +34,39 @@ AWorldWeapon::AWorldWeapon()
 		SkeletalMeshComponent->SetCollisionResponseToAllChannels(ECR_Block); // 모든 채널에서 충돌 처리
 		SkeletalMeshComponent->SetEnableGravity(true); // 중력 적용
 		
-		UE_LOG(LogTemp, Warning, TEXT("AWorldWeapon::SetEnableGravity!"));
+		UE_LOG(LogTemp, Warning, TEXT("AWorldWeapon::SetEnableGravi  ty!"));
 	}
 }
 
+//void AWorldWeapon::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
+//{
+//    if (!PlayerCharacter)
+//    {
+//        UE_LOG(LogTemp, Warning, TEXT("AWorldWeapon::OnPickup - PlayerCharacter is null!"));
+//        return;
+//    }
+//
+//    // UInventoryItem 객체 생성 및 데이터 설정 (아이템 데이터 복제)
+//    UInventoryItem* NewInventoryItem = NewObject<UInventoryItem>();
+//    NewInventoryItem->SetItemData(ItemData->CreateItemCopy());
+//    // 무기 아이템임을 표시하는 플래그가 있다면 설정 (예: IsWeapon()이 true를 반환하도록)
+//
+//    // 인벤토리 매니저를 통해 아이템 사용 (UseItem 호출)
+//    if (AInventoryManager* InvManager = PlayerCharacter->GetInventory())
+//    {
+//        InvManager->UseItem(NewInventoryItem);
+//    }
+//    else
+//    {
+//        UE_LOG(LogTemp, Warning, TEXT("AWorldWeapon::OnPickup - InventoryManager is null!"));
+//    }
+//
+//    // 월드 아이템 제거
+//    Destroy();
+//    UE_LOG(LogTemp, Log, TEXT("Weapon picked up and processed by InventoryManager"));
+//}
+
+// 견본용으로 남겨둔 백업용 코드
 void AWorldWeapon::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 {
 	if (!PlayerCharacter)
@@ -78,6 +110,7 @@ void AWorldWeapon::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 	UItemDataObject* NewItemData = ItemData->CreateItemCopy();
 	SpawnedWeapon->SetItemData(NewItemData);
 	SpawnedWeapon->SetWeaponData(NewItemData->GetWeaponData());
+	SpawnedWeapon->SetActorEnableCollision(false);		// 장착 시 비 충돌 상태로 만들어 상호작용을 제거
 
 	// 무기 장착 (각 클래스에서 장착 로직 구현)
 	SpawnedWeapon->Equip(PlayerCharacter);

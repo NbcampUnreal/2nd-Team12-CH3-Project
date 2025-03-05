@@ -34,16 +34,12 @@ void UItemDataObject::InitializeItemData(FName RowName)
 	// ItemDataTable이 존재하는지 확인
 	if (!ItemDataTable)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ItemDataObject::InitializeItemData: ItemDataTable is NULL for %s"), *GetName());
 		return;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: Attempting to load %s for %s"), *RowName.ToString(), *GetName());
 
 	// 기본 아이템 데이터 로드
 	if (ItemDataTable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemDataObject::InitializeItemData: %s for %s"), *RowName.ToString(), *GetName());
 		if (FItemData* FoundData = ItemDataTable->FindRow<FItemData>(RowName, TEXT("")))
 		{
 			ItemData = *FoundData;
@@ -56,17 +52,6 @@ void UItemDataObject::InitializeItemData(FName RowName)
 			return;
 		}
 	}
-
-	if (ItemData.ItemBaseClass)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InitializeItemData: ItemActorClass for %s is %s"),
-			*RowName.ToString(), *ItemData.ItemBaseClass->GetName());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("InitializeItemData: ItemActorClass is NULL for %s"), *RowName.ToString());
-	}
-
 
 	// 무기 데이터 로드 (무기일 경우)
 	if (IsWeapon())
@@ -121,8 +106,6 @@ UItemDataObject* UItemDataObject::CreateItemCopy() const
 		NewItem->ConsumableData = ConsumableData;
 		NewItem->bHasWeaponData = bHasWeaponData;
 		NewItem->bHasConsumableData = bHasConsumableData;
-		NewItem->ItemBaseClass = ItemBaseClass;		// 없어도 되지 않을까 싶은 부분
-		NewItem->Icon = Icon;						// 없어도 되지 않을까 싶은 부분
 	}
 	return NewItem;
 }
