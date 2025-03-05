@@ -75,6 +75,11 @@ FReply UInventoryMainWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
     return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
+APreviewCharacter* UInventoryMainWidget::GetPreviewCharacter()
+{
+    return PreviewCharacter;
+}
+
 // 마우스 드래그 시 드래그를 마칠 때 호출되어야하지만 알 수 없는 이유로 호출이 누락됨
 //FReply UInventoryMainWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 //{
@@ -91,4 +96,6 @@ FReply UInventoryMainWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 void UInventoryMainWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+    // 위젯 생성 시 프리뷰 캐릭터도 함께 생성
+    FindPreviewCharacter();
 }

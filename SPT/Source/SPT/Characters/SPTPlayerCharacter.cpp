@@ -4,6 +4,7 @@
 #include "SPTPlayerCharacter.h"
 #include "InventoryManager.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
+#include "SPT/Inventory/ItemWidget/PreviewCharacter.h"
 #include "SPT/Items/Base/Itembase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -172,6 +173,8 @@ void ASPTPlayerCharacter::BeginPlay()
         {
             InventoryMainWidgetInstance->AddToViewport();
             InventoryMainWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+
+            PreviewCharacter = InventoryMainWidgetInstance->GetPreviewCharacter();
         }
     }
 

@@ -104,6 +104,9 @@ public:
 	TSubclassOf<UInventoryMainWidget> InventoryMainWidgetClass;
 	UPROPERTY()
 	UInventoryMainWidget* InventoryMainWidgetInstance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	APreviewCharacter* PreviewCharacter;
+
 
 private:
 	/* 현재 장착한 무기 */

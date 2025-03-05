@@ -8,6 +8,9 @@
 
 class USpringArmComponent;
 class USceneCaptureComponent2D;
+class AWeaponBase;
+class AFirearmWeapon;
+class UItemDataObject;
 
 UCLASS()
 class SPT_API APreviewCharacter : public AActor
@@ -32,5 +35,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneCaptureComponent2D* CaptureComp;
 
+	// 프리뷰용 무기 메시 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Preview")
+	USkeletalMeshComponent* PreviewWeaponMesh;
+
 	void RotatePreview(float DeltaYaw);
+
+	void EquipWeapon(AFirearmWeapon* EquippedWeapon);
 };
