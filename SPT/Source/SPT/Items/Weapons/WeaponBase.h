@@ -25,7 +25,7 @@ public:
 	virtual void Attack() PURE_VIRTUAL(AWeaponBase::Attack, );
 
 	/* 무기 장착 기능 */
-	virtual void Equip(ASPTPlayerCharacter* PlayerCharacter) PURE_VIRTUAL(AWeaponBase::Equip, );
+	virtual void Equip() PURE_VIRTUAL(AWeaponBase::Equip, );
 
 	/* 무기 해제 기능 */
 	virtual void UnEquip(ASPTPlayerCharacter* PlayerCharacter) PURE_VIRTUAL(AWeaponBase::UnEquip, );

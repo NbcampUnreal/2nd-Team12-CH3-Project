@@ -88,8 +88,6 @@ struct FFirearmStats
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
 	FName HolsterSocketName;	// ÀåÂø ÇØÁ¦ ½Ã ¼ÒÄÏ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
-	class UAnimMontage* EquipMontage;	// ÀåÂø ¸ùÅ¸ÁÖ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
 	float EquipMontage_PlayRate;	// ÀåÂø¿¡ °É¸®´Â ½Ã°£
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
 	FName RightHandSocketName;	// ÀåÂø ¼ÒÄÏ
@@ -116,7 +114,7 @@ struct FFirearmStats
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
 	class UParticleSystem* FlashParticle;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
-	class UParticleSystem* EjectParticle;
+	TSubclassOf<AActor> EjectShellActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
 	class USoundWave* FireSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
@@ -125,6 +123,13 @@ struct FFirearmStats
 	TSubclassOf<UCameraShakeBase> CameraShakeClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
 	float RecoilRate;	// ¹Ýµ¿·ü
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	class UAnimMontage* FireMontage;	// ¹ß»ç ¸ùÅ¸ÁÖ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	class UAnimMontage* EquipMontage;	// ÀåÂø ¸ùÅ¸ÁÖ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Equip")
+	class UAnimMontage* ReloadMontage;	// ÀçÀåÀü ¸ùÅ¸ÁÖ
 
 };
 
