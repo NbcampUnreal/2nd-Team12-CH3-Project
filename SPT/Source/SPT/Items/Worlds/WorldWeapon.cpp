@@ -38,35 +38,6 @@ AWorldWeapon::AWorldWeapon()
 	}
 }
 
-//void AWorldWeapon::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
-//{
-//    if (!PlayerCharacter)
-//    {
-//        UE_LOG(LogTemp, Warning, TEXT("AWorldWeapon::OnPickup - PlayerCharacter is null!"));
-//        return;
-//    }
-//
-//    // UInventoryItem 객체 생성 및 데이터 설정 (아이템 데이터 복제)
-//    UInventoryItem* NewInventoryItem = NewObject<UInventoryItem>();
-//    NewInventoryItem->SetItemData(ItemData->CreateItemCopy());
-//    // 무기 아이템임을 표시하는 플래그가 있다면 설정 (예: IsWeapon()이 true를 반환하도록)
-//
-//    // 인벤토리 매니저를 통해 아이템 사용 (UseItem 호출)
-//    if (AInventoryManager* InvManager = PlayerCharacter->GetInventory())
-//    {
-//        InvManager->UseItem(NewInventoryItem);
-//    }
-//    else
-//    {
-//        UE_LOG(LogTemp, Warning, TEXT("AWorldWeapon::OnPickup - InventoryManager is null!"));
-//    }
-//
-//    // 월드 아이템 제거
-//    Destroy();
-//    UE_LOG(LogTemp, Log, TEXT("Weapon picked up and processed by InventoryManager"));
-//}
-
-// 견본용으로 남겨둔 백업용 코드
 void AWorldWeapon::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 {
 	if (!PlayerCharacter)

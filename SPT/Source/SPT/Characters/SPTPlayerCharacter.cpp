@@ -93,21 +93,12 @@ void ASPTPlayerCharacter::TryPickupItem()
                 {
                     UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : This is Weapon"));
                     InventoryManager->UseItem(ItemData); // UseItem 내에서 장착 처리
-
-                    // 일단 주석처리(UseItem에서 사용 예정)
-                    //AWorldWeapon* WorldWeapon = Cast<AWorldWeapon>(ItemBase);
-                    //if (WorldWeapon && ItemBase->GetItemData()->WeaponData.WeaponType == EWeaponType::EWT_Firearm)
-                    //{
-                    //    WorldWeapon->OnPickup(this);
-                    //}
-
-                    ItemBase->Destroy(); // 월드 아이템 제거
                 }
                 else
                 {
                     InventoryManager->AddItemToInventory(ItemData);
-                    ItemBase->Destroy();
                 }
+                ItemBase->Destroy();
             }
         }
     }
@@ -164,7 +155,7 @@ void ASPTPlayerCharacter::BeginPlay()
     if (InventoryManagerClass)
     {
         FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = this; // ★ 핵심: 오너를 자신으로 설정
+        SpawnParams.Owner = this;
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
         InventoryManager = GetWorld()->SpawnActor<AInventoryManager>(
