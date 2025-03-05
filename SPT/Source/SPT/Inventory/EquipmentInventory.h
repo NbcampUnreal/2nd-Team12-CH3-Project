@@ -12,8 +12,8 @@ class SPT_API AEquipmentInventory : public AActor, public IInventoryInterface
 {
 	GENERATED_BODY()
 	
-public:		// 저장 확인용으로 임시로 퍼블릭 (원래는 프라이빗)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+public:		// 원래는 private이지만 테스트옹으로 잠시 바꿔둠
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EquipSlot")
 	TArray<UInventoryItem*> EquipmentItems;
 
 public:	

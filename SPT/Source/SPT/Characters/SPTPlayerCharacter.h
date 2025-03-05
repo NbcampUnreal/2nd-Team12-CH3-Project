@@ -10,9 +10,6 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-class AItemBase;
-class AEquipmentInventory;
-class AConsumableInventory;
 
 struct FInputActionValue;
 
@@ -61,6 +58,14 @@ protected:
 	void OnOffInventory(const FInputActionValue& value);
 	UFUNCTION()
 	void StartReload(const FInputActionValue& value);
+	UFUNCTION()
+	void SwitchAiming(const FInputActionValue& value);
+	UFUNCTION()
+	void StartAttack(const FInputActionValue& value);
+	UFUNCTION()
+	void StopAttack(const FInputActionValue& value);
+	UFUNCTION()
+	void SwitchAutoFire(const FInputActionValue& value);
 
 private:
 	// 카메라 관련 컴포넌트
@@ -69,13 +74,14 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCameraComponent> CameraComp;
 
-
-
-
 public:
 	// 인벤토리 관련 함수
 	UFUNCTION()
 	void TryPickupItem();
+	UFUNCTION()
+	bool EquipWeapon(AWeaponBase* NewItem);		//// 추가
+	UFUNCTION()
+	bool UnEquipWeapon();	//// 추가
 	UFUNCTION()
 	void DropItem(UInventoryItem* InventoryItem);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -84,16 +90,14 @@ public:
 	// 캐릭터에 인벤토리 할당
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TSubclassOf<AInventoryManager> InventoryManagerClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<AEquipmentInventory> EquipmentInventoryClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<AConsumableInventory> ConsumableInventoryClass;
 	UPROPERTY()
 	AInventoryManager* InventoryManager;
-	UPROPERTY()
-	AEquipmentInventory* EquipmentInventory;
-	UPROPERTY()
-	AConsumableInventory* ConsumableInventory;
+
+	// 장착한 무기 종류 반환
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Equipped")
+	AWeaponBase* GetEquippedWeapon() const;
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Equipped")
+	enum EFirearmType GetEquippedFirearmType() const;
 
 	// 인벤토리 위젯 적용
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
@@ -101,5 +105,7 @@ public:
 	UPROPERTY()
 	UInventoryMainWidget* InventoryMainWidgetInstance;
 
-
+private:
+	/* 현재 장착한 무기 */
+	AWeaponBase* EquippedWeapon;
 };

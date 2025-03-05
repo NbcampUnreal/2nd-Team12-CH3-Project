@@ -21,16 +21,16 @@ public:
 	/* 기본 총기 공격 */
 	virtual void Attack() override;
 	bool CanFire();
-	void Begin_Fire();
-	void End_Fire();
+	void BeginFire();
+	void EndFire();
 	UFUNCTION()
 	void OnFiring();
 
 	/* 무기 장착 */
 	bool CanEquip();
 	virtual void Equip(ASPTPlayerCharacter* PlayerCharacter) override;
-	void Begin_Equip();
-	void End_Equip();
+	void BeginEquip(ASPTPlayerCharacter* PlayerCharacter);
+	void EndEquip();
 
 	/* 무기 해제 */
 	bool CanUnEquip();
@@ -40,20 +40,26 @@ public:
 	virtual void Drop(ASPTPlayerCharacter* PlayerCharacter) override;
 
 	/* 재장전 */
-	bool CanRelad();
-	void Begin_Reload();
+	bool CanReload();
+	void BeginReload();
 	void Reload();
-	void End_Reload();
+	void EndReload();
 
 	/* 조준 기능 */
 	bool bIsInAim();
 	bool CanAim();
-	void AimDownSights();
-	void StopAiming();
+	void SwitchAiming();
+	void BeginAiming();
+	void AimDownSights(float Output);
+	void EndAiming();
 
-	/* 현재 탄약 개수 반환 */
+	/* 연사 On Off 토글 */
+	void ToggleAutoFire();
+
+	/* Getter 함수 */
+	int32 GetMagazinCapacity() const;
 	int32 GetCurrentAmmo() const;
-
+	EFirearmType GetFirearmType() const;
 
 protected:
 
@@ -75,6 +81,9 @@ protected:
 	bool bIsAiming; // 조준 여부
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Firearm")
+	bool bIsAutoFire; // 연사 여부
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Firearm")
 	float CurrentRecoil;  // 현재 반동 값 (누적 반동)
 
 	/* SkeletalMeshComponent (총기, 투척 무기 전용) */
@@ -89,5 +98,6 @@ protected:
 public:
 	class ASPTPlayerCharacter* Owner;
 	FTimerHandle FireTimerHandle;
-
+	FTimerHandle ReloadTimerHandle;
+	FTimerHandle AutoFireHandle;
 };

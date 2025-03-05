@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "WeaponDataStructs.generated.h"
-
+/////////////////////////////////////////////////
+class AWeaponBase;
+/////////////////////////////////////////////////
 /* 무기 유형 Enum */
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
@@ -14,6 +16,17 @@ enum class EWeaponType : uint8
 	EWT_Melee UMETA(DisplayName = "Melee Weapon"),		// 근접 무기
 	EWT_Throwable UMETA(DisplayName = "Throwable Weapon"),	// 투척 무기
 	EWT_MAX UMETA(Hidden)
+};
+
+/* 총기 종류 Enum */
+UENUM(BlueprintType)
+enum class EFirearmType : uint8
+{
+	EFT_AssaultRifle UMETA(DisplayName = "Assault Rifle"),
+	EFT_SniperRifle UMETA(DisplayName = "Sniper Rifle"),
+	EFT_Shotgun UMETA(DisplayName = "Shotgun"),
+	EFT_Pistol UMETA(DisplayName = "Pistol"),
+	EFT_MAX UMETA(Hidden)
 };
 
 /* 무기 공통 속성 */
@@ -41,10 +54,12 @@ public:
 	FVector SocketOffset;
 	UPROPERTY(EditAnywhere)
 	float FieldOfView;
+	UPROPERTY(EditAnywhere)
+	bool bEnableCameraLag;
 
 public:
 	void SetData(class ASPTPlayerCharacter* InOwner);
-	void SetDataByNoneCurve(ASPTPlayerCharacter* InOwner);
+	void SetDataByNoneCurve(class ASPTPlayerCharacter* InOwner);
 };
 
 /* 총기 데이터 구조체 */
@@ -53,6 +68,8 @@ struct FFirearmStats
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
+	EFirearmType FirearmType;	// 총기 종류
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
 	int32 AmmoCount;	// 현재 탄약 개수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm")
@@ -85,10 +102,12 @@ struct FFirearmStats
 	float AimSpeed;	// 조준 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Aim")
 	class UCurveFloat* AimCurve;	// 조준 커브
-	UPROPERTY(EditAnywhere, Category = "Firearm")
+	UPROPERTY(EditAnywhere, Category = "Firearm|Aim")
 	FWeaponAimData BaseData;
-	UPROPERTY(EditAnywhere, Category = "Firearm")
+	UPROPERTY(EditAnywhere, Category = "Firearm|Aim")
 	FWeaponAimData AimData;
+	UPROPERTY(EditAnywhere, Category = "Firearm|Aim")
+	class UTimelineComponent* Timeline;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
 	class UMaterialInterface* HitDecal;
@@ -102,8 +121,10 @@ struct FFirearmStats
 	class USoundWave* FireSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
 	float RecoilAngle;	// 탄착군 Cone 각도
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
-	// TSubclassOf<class UMatineeCameraShake> CameraShakeClass; // ( 미구현 )
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	TSubclassOf<UCameraShakeBase> CameraShakeClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Firearm|Fire")
+	float RecoilRate;	// 반동률
 
 };
 
@@ -162,4 +183,10 @@ struct FWeaponItemData : public FTableRowBase
 	/* 무기 전용 Physics Asset */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Assets")
 	UPhysicsAsset* PhysicsAsset;
+
+	/////////////////////////////////////////////////
+	// 인벤토리에서 무기 생성을 관리하기 위해 추가하였습니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Weapon")
+	TSubclassOf<AWeaponBase> WeaponClass;
+	/////////////////////////////////////////////////
 };

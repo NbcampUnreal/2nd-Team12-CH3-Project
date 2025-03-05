@@ -2,19 +2,18 @@
 
 
 #include "SPTPlayerCharacter.h"
-#include "EquipmentInventory.h"
-#include "ConsumableInventory.h"
 #include "InventoryManager.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/Itembase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/SceneCaptureComponent2D.h"     // 캐릭터 프리뷰 캡쳐용도 입니다.
-#include "Engine/TextureRenderTarget2D.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
+#include "SPT/Items/Weapons/WeaponBase.h"
+#include "SPT/Items/Worlds/WorldWeapon.h"
+#include "SPT/Items/Weapons/FirearmWeapon.h"
 
 ASPTPlayerCharacter::ASPTPlayerCharacter()
 {
@@ -43,21 +42,11 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
     // 인벤토리 추가를 위해 추가로 작성된 코드들 입니다.
     // 인벤토리 클래스 및 위젯 클래스 자동 할당
     static ConstructorHelpers::FClassFinder<AInventoryManager> BP_InventoryManager(TEXT("/Game/Blueprints/Inventory/BP_InventoryManager"));
-    static ConstructorHelpers::FClassFinder<AEquipmentInventory> BP_EquipmentInventory(TEXT("/Game/Blueprints/Inventory/BP_EquipmentInventory"));
-    static ConstructorHelpers::FClassFinder<AConsumableInventory> BP_ConsumableInventory(TEXT("/Game/Blueprints/Inventory/BP_ConsumableInventory"));
     static ConstructorHelpers::FClassFinder<UInventoryMainWidget> WBP_InventoryMainWidget(TEXT("/Game/Blueprints/Inventory/UI/WBP_InventoryMainWidget"));
     
     if (BP_InventoryManager.Succeeded())
     {
         InventoryManagerClass = BP_InventoryManager.Class;
-    }
-    if (BP_EquipmentInventory.Succeeded())
-    {
-        EquipmentInventoryClass = BP_EquipmentInventory.Class;
-    }
-    if (BP_ConsumableInventory.Succeeded())
-    {
-        ConsumableInventoryClass = BP_ConsumableInventory.Class;
     }
     if (WBP_InventoryMainWidget.Succeeded())
     {
@@ -69,6 +58,7 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 // 라인트레이스 함수를 사용하여 캐릭터의 앞에 물체가 있는지 판별 후 아이템일 시 작동
 void ASPTPlayerCharacter::TryPickupItem()
 {
+    UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Start"));
     // 캐릭터가 아이템이 있는지 탐색하는 범위를 설정
     FVector Start = GetActorLocation();
     FVector ForwardVector = GetActorForwardVector();
@@ -81,23 +71,74 @@ void ASPTPlayerCharacter::TryPickupItem()
     // 아이템의 탐색여부를 확인
     bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, Params);
 
-
     if (bHit)
     {
         AItemBase* ItemBase = Cast<AItemBase>(HitResult.GetActor());
         if (ItemBase && InventoryManager)
         {
+            UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : FindItem"));
             // 아이템이 있을 시 아이템의 데이터를 인벤토리 데이터로 복사
             UInventoryItem* ItemData = NewObject<UInventoryItem>();
             ItemData->SetItemData(ItemBase->GetItemData());
+
+            // 무기 장착 관련으로 넣은 임시 함수
+            ItemData->SetItemBase(ItemBase);
+
             // 아이템 복사 성공 시 아이템을 인벤토리로 추가하는 함수 호출 후 추가된 아이템 제거
             if (ItemData)
             {
-                InventoryManager->AddItemToInventory(ItemData);
-                ItemBase->Destroy();
+                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : ItemCopy"));
+                // [변경점] 무기인 경우 인벤토리 추가 대신 UseItem 호출
+                if (ItemData->IsWeapon())
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : This is Weapon"));
+                    InventoryManager->UseItem(ItemData); // UseItem 내에서 장착 처리
+
+                    // 일단 주석처리(UseItem에서 사용 예정)
+                    //AWorldWeapon* WorldWeapon = Cast<AWorldWeapon>(ItemBase);
+                    //if (WorldWeapon && ItemBase->GetItemData()->WeaponData.WeaponType == EWeaponType::EWT_Firearm)
+                    //{
+                    //    WorldWeapon->OnPickup(this);
+                    //}
+
+                    ItemBase->Destroy(); // 월드 아이템 제거
+                }
+                else
+                {
+                    InventoryManager->AddItemToInventory(ItemData);
+                    ItemBase->Destroy();
+                }
             }
         }
     }
+}
+
+bool ASPTPlayerCharacter::EquipWeapon(AWeaponBase* NewItem)
+{
+    if (!NewItem) return false;
+    if (EquippedWeapon)
+    {
+        UnEquipWeapon();
+    }
+
+    EquippedWeapon = NewItem;
+
+    if (!EquippedWeapon)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool ASPTPlayerCharacter::UnEquipWeapon()
+{
+    if (EquippedWeapon) {
+        EquippedWeapon->UnEquip(this);
+        EquippedWeapon = nullptr;
+    }
+
+    return false;
 }
 
 // 아이템을 생성하여 캐릭터의 앞에 떨어뜨리는 함수
@@ -122,22 +163,15 @@ void ASPTPlayerCharacter::BeginPlay()
     // InventoryManagerClass가 할당되었는지 확인
     if (InventoryManagerClass)
     {
-        // 인벤토리 매니저 생성
-        InventoryManager = GetWorld()->SpawnActor<AInventoryManager>(InventoryManagerClass);
-        if (InventoryManager)
-        {
-            if (EquipmentInventoryClass)
-            {
-                EquipmentInventory = GetWorld()->SpawnActor<AEquipmentInventory>(EquipmentInventoryClass);
-                InventoryManager->RegisterInventory(EquipmentInventory);
-            }
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this; // ★ 핵심: 오너를 자신으로 설정
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-            if (ConsumableInventoryClass)
-            {
-                ConsumableInventory = GetWorld()->SpawnActor<AConsumableInventory>(ConsumableInventoryClass);
-                InventoryManager->RegisterInventory(ConsumableInventory);
-            }
-        }
+        InventoryManager = GetWorld()->SpawnActor<AInventoryManager>(
+            InventoryManagerClass,
+            GetActorTransform(),
+            SpawnParams
+        );
     }
 
     if (InventoryMainWidgetClass)
@@ -225,6 +259,23 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
             {
                 // 키 입력 중에 1번만 호출됨
                 EnhancedInput->BindAction(PlayerController->ReloadAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartReload);
+            }
+
+            if (PlayerController->AimingAction)
+            {
+                EnhancedInput->BindAction(PlayerController->AimingAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::SwitchAiming);
+            }
+
+            if (PlayerController->AttackAction)
+            {
+                EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartAttack);
+                EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopAttack);
+            }
+
+            if (PlayerController->ToggleAutoFire)
+            {
+                // 키 입력 중에 1번만 호출됨
+                EnhancedInput->BindAction(PlayerController->ToggleAutoFire, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::SwitchAutoFire);
             }
         }
     }
@@ -335,7 +386,7 @@ void ASPTPlayerCharacter::ItemUse(const FInputActionValue& value)
     // 현재 장착중인 아이템을 사용한다.
     if (value.Get<bool>())
     {
-        
+
     }
 }
 
@@ -343,7 +394,7 @@ void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
 {
     // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
     // 현재는 아이템을 줍는 동작만 존재
-    // 다른 상호작용 추가 필요(예시: 훈련모드에서 사용할 훈련 메뉴 선택기)
+    // 다른 상호작용 추가 필요(예시: 훈련모드에서 사용할 훈련 메뉴 선택하기)
     if (value.Get<bool>())
     {
         TryPickupItem();
@@ -360,6 +411,7 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
             // 인벤토리의 현재 상태를 확인하여 켜고 끄는 동작 작동
             bool bIsVisible = InventoryMainWidgetInstance->IsVisible();
             InventoryMainWidgetInstance->SetVisibility(bIsVisible ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+            InventoryMainWidgetInstance->FindPreviewCharacter();
 
             // 인벤토리의 상태에 따라 입력모드를 전환
             if (!bIsVisible)
@@ -373,7 +425,7 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
 
                     PlayerController->SetInputMode(InputMode);
                     PlayerController->bShowMouseCursor = true;
-                    //PlayerController->SetPause(true);
+                    /*PlayerController->SetPause(true);*/
                 }
             }
             else
@@ -383,19 +435,91 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
                 {
                     PlayerController->SetInputMode(FInputModeGameOnly());
                     PlayerController->bShowMouseCursor = false;
-                    //PlayerController->SetPause(false);
+                    /*PlayerController->SetPause(false);*/
                 }
             }
         }
     }
 }
 
+/// <summary>
+/// 조준, 재장전, 발사 추가 구현
+/// 
+/// </summary>
+/// <param name="value"></param>
+
 void ASPTPlayerCharacter::StartReload(const FInputActionValue& value)
 {
     // 현재 착용중인 아이템이 총이거나 재장전 할 수 있는 아이템이라면 재장전
     if (value.Get<bool>())
     {
-        
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->BeginReload();  //// 추가
+        }
     }
 }
 
+void ASPTPlayerCharacter::SwitchAiming(const FInputActionValue& value)
+{
+    if (value.Get<bool>())
+    {
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->SwitchAiming();  //// 추가
+        }
+    }
+}
+
+void ASPTPlayerCharacter::StartAttack(const FInputActionValue& value)
+{
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->PrimaryAction(this);  //// 추가
+    }
+}
+
+void ASPTPlayerCharacter::StopAttack(const FInputActionValue& value)
+{
+    if (EquippedWeapon)
+    {
+        AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+        FirearmWeapon->EndFire();  //// 추가
+    }
+}
+
+void ASPTPlayerCharacter::SwitchAutoFire(const FInputActionValue& value)
+{
+    if (value.Get<bool>())
+    {
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->ToggleAutoFire();  //// 추가
+        }
+    }
+}
+
+AWeaponBase* ASPTPlayerCharacter::GetEquippedWeapon() const
+{
+    if (!EquippedWeapon)
+    {
+        return nullptr;
+    }
+    
+    return EquippedWeapon;
+}
+
+EFirearmType ASPTPlayerCharacter::GetEquippedFirearmType() const
+{
+    if (AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon))
+    {
+        // FirearmWeapon->GetMagazinCapacity();    // 전체 탄약 개수
+        // FirearmWeapon->GetCurrentAmmo();        // 현재 탄약 개수
+        return FirearmWeapon->GetFirearmType();        // 총기 종류
+    }
+
+    return EFirearmType::EFT_MAX;
+}

@@ -5,10 +5,50 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanel.h"
+#include "SPTPlayerCharacter.h"
+#include "Weapons/WeaponBase.h"
+#include "Data/WeaponDataStructs.h"
+#include "Weapons/FirearmWeapon.h"
 
 void UPlayerMainHUD::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
+
+	
+}
+
+void UPlayerMainHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	// 가능하다면 틱 말고 델리게이트로 바인딩 하는게 성능에 유리함
+	if (APlayerController* PlayerController = GetOwningPlayer())
+	{
+		ASPTPlayerCharacter* Player = Cast<ASPTPlayerCharacter>(PlayerController->GetPawn());
+		if (Player)
+		{
+			// 장착중이 아니라면
+			if (EFirearmType::EFT_MAX == Player->GetEquippedFirearmType())
+			{
+				AmmoVisibilityUpdate(false);
+			}
+			// 총을 장착중이라면
+			else
+			{
+				AmmoVisibilityUpdate(true);
+
+				if (AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(Player->GetEquippedWeapon()))
+				{
+					// 전체 탄약 개수
+					int32 MagazinCapacity = FirearmWeapon->GetMagazinCapacity();
+					// 현재 탄약 개수
+					int32 CurrentAmmo = FirearmWeapon->GetCurrentAmmo();
+
+					AmmoUpdate(CurrentAmmo, MagazinCapacity);
+				}
+			}
+		}
+	}
 }
 
 void UPlayerMainHUD::ShowPlayUI()
@@ -37,8 +77,6 @@ void UPlayerMainHUD::HPUpdate(float NewHP, float MaxHP)
 
 void UPlayerMainHUD::AmmoVisibilityUpdate(bool IsVisibility)
 {
-	// 아직 미사용
-	// 총을 장착했는지 확인 후 델리게이트를 사용해서 업데이트 되도록 구현해줘야함
 	if (AmmoUI)
 	{
 		if (IsVisibility)
@@ -54,8 +92,6 @@ void UPlayerMainHUD::AmmoVisibilityUpdate(bool IsVisibility)
 
 void UPlayerMainHUD::AmmoUpdate(int NewAmmouCount, int MaxAmmouCount)
 {
-	// 아직 미사용
-	// 총을 장착했는지 확인 후 델리게이트를 사용해서 업데이트 되도록 구현해줘야함
 	if (MagAmmo)
 	{
 		MagAmmo->SetText(FText::FromString(FString::Printf(TEXT("%d"), NewAmmouCount)));
@@ -75,10 +111,10 @@ void UPlayerMainHUD::ShowDeathUI()
 		CurPlayerController->SetShowMouseCursor(true);
 	}
 
-	DeathUI->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	//DeathUI->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 void UPlayerMainHUD::HideDeathUI()
 {
-	DeathUI->SetVisibility(ESlateVisibility::Hidden);
+	//DeathUI->SetVisibility(ESlateVisibility::Hidden);
 }

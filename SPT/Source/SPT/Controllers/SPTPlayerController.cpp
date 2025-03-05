@@ -15,6 +15,9 @@ ASPTPlayerController::ASPTPlayerController()
 	LookAction = nullptr;
 	JumpAction = nullptr;
 	SprintAction = nullptr;
+    AimingAction = nullptr;
+    AttackAction = nullptr;
+    ToggleAutoFire = nullptr;
 }
 
 void ASPTPlayerController::BeginPlay()

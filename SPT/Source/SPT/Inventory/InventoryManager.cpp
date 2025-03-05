@@ -5,6 +5,11 @@
 #include "InventoryInterface.h"
 #include "EquipmentInventory.h"
 #include "ConsumableInventory.h"
+#include "SPTPlayerCharacter.h"         // 임시용
+#include "SPT/Items/Weapons/WeaponBase.h"   // 임시용
+#include "SPT/Items/Weapons/FirearmWeapon.h"    // 임시용
+#include "SPT/Items/Worlds/WorldWeapon.h"   // 임시용
+#include "SPT/Inventory/EquipmentSlotInventory.h"
 #include "SPT/Inventory/ItemData/InventoryItem.h"
 #include "SPT/Items/Base/ItemBase.h"
 #include "SPT/Inventory/ItemWidget/InventoryMainWidget.h"
@@ -13,7 +18,7 @@
 AInventoryManager::AInventoryManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 }
 
@@ -29,7 +34,7 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
 {
     if (!Item)
     {
-        UE_LOG(LogTemp, Warning, TEXT("AddItem: Item is nullptr!"));
+        UE_LOG(LogTemp, Warning, TEXT("InventoryManager : AddItem: Item is nullptr!"));
         return;
     }
 
@@ -47,25 +52,222 @@ void AInventoryManager::AddItemToInventory(UInventoryItem* Item)
     // UI 갱신
     if (InventoryMainWidgetInstance)
     {
-        TArray<UInventoryItem*> AllItems;
-        for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
-        {
-            if (Inventory)
-            {
-                TArray<UInventoryItem*> Items = Inventory->GetInventory();
-                AllItems.Append(Items);
-            }
-        }
-        InventoryMainWidgetInstance->UpdateInventoryList(AllItems);
+        TArray<UInventoryItem*> DisplayItems = GetDisplayInventoryItems();
+        InventoryMainWidgetInstance->UpdateInventoryList(DisplayItems);
     }
 }
 
 // 미구현(장비품 장착 혹은 소모품 사용)
+//void AInventoryManager::UseItem(UInventoryItem* Item)
+//{
+//    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Start"));
+//    if (!Item)
+//    {
+//        UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : ItemData is null"));
+//        return;
+//    }
+//
+//    // 아이템 타입에 따라 행동을 다르게 처리
+//    if (Item->IsWeapon())
+//    {
+//        UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Start"));
+//        if (!Item)
+//        {
+//            UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : ItemData is null"));
+//            return;
+//        }
+//
+//        if (Item->IsWeapon())
+//        {
+//            UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : This is Weapon"));
+//
+//            // 기존 장착된 무기가 있다면 해제 처리
+//            if (EquipmentSlotInventory)
+//            {
+//                int32 Slot = Item->GetSlotType();
+//                UInventoryItem* ExistingItem = EquipmentSlotInventory->GetEquippedSlot(Item);
+//                if (ExistingItem)
+//                {
+//                    EquipmentSlotInventory->UnequipItem(Slot);
+//                    if (EquipmentInventory)
+//                    {
+//                        EquipmentInventory->AddItem(ExistingItem);
+//                    }
+//                }
+//                EquipmentSlotInventory->EquipItem(Item, Slot);
+//            }
+//
+//            //// 무기 액터 스폰 및 장착 처리
+//            // 예를 들어, 아이템 데이터에 스폰할 무기 클래스가 저장되어 있다고 가정
+//            TSubclassOf<AWeaponBase> WeaponClass = Item->GetWeaponClass();
+//            if (!WeaponClass)
+//            {
+//                UE_LOG(LogTemp, Error, TEXT("InventoryManager::UseItem - WeaponClass is not set"));
+//                return;
+//            }
+//
+//            UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : WeaponClass is set"));
+//
+//            // 플레이어 캐릭터에 접근 (예: 인벤토리 매니저가 소유자 정보를 가지고 있다고 가정)
+//            if (ASPTPlayerCharacter* PlayerCharacter = Cast<ASPTPlayerCharacter>(GetOwner()))
+//            {
+//                UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Player call"));
+//                FVector SpawnLocation = PlayerCharacter->GetMesh()->GetSocketLocation("RightHandSocket");
+//                FRotator SpawnRotation = PlayerCharacter->GetActorRotation();
+//                AWeaponBase* SpawnedWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, SpawnLocation, SpawnRotation);
+//                if (SpawnedWeapon)
+//                {
+//                    // 아이템 데이터 적용
+//                    SpawnedWeapon->SetItemData(Item->ItemDataObject);
+//                    SpawnedWeapon->SetWeaponData(Item->ItemDataObject->GetWeaponData());
+//
+//                    // 무기 액터 장착
+//                    SpawnedWeapon->AttachToComponent(PlayerCharacter->GetMesh(),
+//                        FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+//                        "RightHandSocket");
+//
+//                    // 플레이어 캐릭터 내 장착된 무기 업데이트
+//                    PlayerCharacter->EquipWeapon(SpawnedWeapon);
+//                    UE_LOG(LogTemp, Log, TEXT("InventoryManager::UseItem - Weapon equipped: %s"), *SpawnedWeapon->GetName());
+//                }
+//                else
+//                {
+//                    UE_LOG(LogTemp, Error, TEXT("InventoryManager::UseItem - Failed to spawn weapon actor"));
+//                }
+//            }
+//
+//            // 인벤토리 목록에서 무기 아이템 제거 등 UI 업데이트
+//            for (auto& Inventory : Inventories)
+//            {
+//                if (Inventory.GetObject() != EquipmentSlotInventory)
+//                {
+//                    Inventory->RemoveItem(Item);
+//                }
+//            }
+//        }
+//        else if (Item->IsConsumable())
+//        {
+//            Item->UseItem();
+//        }
+//
+//        // UI 갱신
+//        if (InventoryMainWidgetInstance)
+//        {
+//            UpdateInventoryUI();
+//        }
+//    }
+//}
+
+// 견본용으로 남겨둔 원본 함수
 void AInventoryManager::UseItem(UInventoryItem* Item)
 {
-    if (!Item) return;
-    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem"));
-    Item->UseItem();
+    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Start"));
+    if (!Item)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : ItemData is null"));
+        return;
+    }
+
+    // 아이템 타입에 따라 행동을 다르게 처리
+    if (Item->IsWeapon())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Start"));
+        if (!Item)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : ItemData is null"));
+            return;
+        }
+
+        if (Item->IsWeapon())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : This is Weapon"));
+
+            // 기존 장착된 무기가 있다면 해제 처리
+            if (EquipmentSlotInventory)
+            {
+                TSubclassOf<AWeaponBase> WeaponClass = Item->GetWeaponClass();
+                if (!WeaponClass)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("UseItem - ItemBaseClass is null!"));
+                    return;
+                }
+
+                UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Get WeaponClass"));
+
+                ASPTPlayerCharacter* PlayerCharacter = Cast<ASPTPlayerCharacter>(GetOwner());
+                if (!PlayerCharacter) {
+                    UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : PlayerCharacter is null"));
+                    return;
+                }
+
+                UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Get PlayerCharacter"));
+
+                FVector SpawnLocation = PlayerCharacter->GetActorLocation(); // 플레이어 위치 또는 원하는 위치
+                FRotator SpawnRotation = PlayerCharacter->GetActorRotation();
+
+                // 무기 액터 스폰
+                AWeaponBase* SpawnedWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, SpawnLocation, SpawnRotation);
+                if (!SpawnedWeapon)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("UseItem - Failed to spawn weapon!"));
+                    return;
+                }
+
+                UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Spawn SpawnedWeapon"));
+
+
+                // 인벤토리의 UItemDataObject를 무기 액터에 적용
+                SpawnedWeapon->SetItemData(Item->ItemDataObject);
+                SpawnedWeapon->SetWeaponData(Item->ItemDataObject->GetWeaponData());
+
+                // 월드와의 충돌이 없도록 처리 (이미 장착된 무기라 충돌할 필요가 없으므로)
+                SpawnedWeapon->SetActorEnableCollision(false);
+
+                UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Set Data"));
+
+                int32 Slot = Item->GetSlotType();
+                UInventoryItem* ExistingItem = EquipmentSlotInventory->GetEquippedSlot(Item);
+                if (ExistingItem)
+                {
+                    EquipmentSlotInventory->UnequipItem(Slot);
+                    PlayerCharacter->UnEquipWeapon();
+                    if (EquipmentInventory)
+                    {
+                        EquipmentInventory->AddItem(ExistingItem);
+                    }
+                }
+                EquipmentSlotInventory->EquipItem(Item, Slot);
+                AItemBase* ItemBase = Item->GetItemBase(); // 저장된 AItemBase 가져오기
+
+
+                AWorldWeapon* WorldWeapon = Cast<AWorldWeapon>(ItemBase);
+                if (WorldWeapon && ItemBase->GetItemData()->WeaponData.WeaponType == EWeaponType::EWT_Firearm)
+                {
+                    WorldWeapon->OnPickup(PlayerCharacter);
+                }
+
+                UE_LOG(LogTemp, Warning, TEXT("InventoryManager : UseItem : Equip SpawnedWeapon"));
+            }
+
+            for (auto& Inventory : Inventories)
+            {
+                if (Inventory.GetObject() != EquipmentSlotInventory)
+                {
+                    Inventory->RemoveItem(Item);
+                }
+            }
+        }
+        else if (Item->IsConsumable())
+        {
+            Item->UseItem();
+        }
+
+        // UI 갱신
+        if (InventoryMainWidgetInstance)
+        {
+            UpdateInventoryUI();
+        }
+    }
 }
 
 // 아이템을 캐릭터의 앞에 생성하여 떨어뜨림
@@ -73,7 +275,6 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
 {
     if (!Item || !Item->GetItemBaseClass())
     {
-        UE_LOG(LogTemp, Warning, TEXT("DropItem: Invalid item or missing ItemBaseClass"));
         return;
     }
 
@@ -96,12 +297,12 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
         SpawnedItem->SetItemData(ItemCopy);
 
         // 아이템의 에셋을 적용
-        if (ItemCopy->ItemData.AssetData.SkeletalMesh)
+        if (ItemCopy->GetItemData().AssetData.SkeletalMesh)
         {
             USkeletalMeshComponent* SkeletalMeshComp = NewObject<USkeletalMeshComponent>(SpawnedItem);
             if (SkeletalMeshComp)
             {
-                SkeletalMeshComp->SetSkeletalMesh(ItemCopy->ItemData.AssetData.SkeletalMesh);
+                SkeletalMeshComp->SetSkeletalMesh(ItemCopy->GetItemData().AssetData.SkeletalMesh);
                 SkeletalMeshComp->RegisterComponent();
 
                 // 기존 루트가 있으면 변경하지 않고 Attach만 수행
@@ -115,8 +316,6 @@ void AInventoryManager::DropItem(UInventoryItem* Item, FVector DropLocation)
                 }
             }
         }
-
-        UE_LOG(LogTemp, Warning, TEXT("Item dropped at location: %s"), *DropLocation.ToString());
 
         // 인벤토리에서 아이템 제거
         RemoveItemToInventory(Item);
@@ -150,12 +349,7 @@ void AInventoryManager::RemoveItemToInventory(UInventoryItem* Item)
     // 아이템이 제거되었으면 UI 갱신
     if (bItemRemoved && InventoryMainWidgetInstance)
     {
-        TArray<UInventoryItem*> AllItems;
-        for (TScriptInterface<IInventoryInterface> Inventory : Inventories)
-        {
-            AllItems.Append(Inventory->GetInventory());
-        }
-        InventoryMainWidgetInstance->UpdateInventoryList(AllItems);
+        UpdateInventoryUI();
     }
     else
     {
@@ -168,11 +362,58 @@ void AInventoryManager::SetInventoryWidget(UInventoryMainWidget* NewWidget)
     InventoryMainWidgetInstance = NewWidget;
 }
 
+TArray<UInventoryItem*> AInventoryManager::GetDisplayInventoryItems() const
+{
+    TArray<UInventoryItem*> DisplayItems = EquipmentInventory->GetInventory();
+    // 만약 소모품 인벤토리도 있다면 추가
+    DisplayItems.Append(ConsumableInventory->GetInventory());
+
+    // 이제 EquipmentSlotInventory에 있는 아이템을 제거
+    TArray<UInventoryItem*> EquippedItems = EquipmentSlotInventory->GetInventory();
+    for (UInventoryItem* EquippedItem : EquippedItems)
+    {
+        DisplayItems.Remove(EquippedItem);
+    }
+    return DisplayItems;
+}
+
+
+void AInventoryManager::UpdateInventoryUI()
+{
+    if (InventoryMainWidgetInstance)
+    {
+        // 장착되지 않은 아이템 리스트 갱신
+        TArray<UInventoryItem*> DisplayItems = GetDisplayInventoryItems();
+        InventoryMainWidgetInstance->UpdateInventoryList(DisplayItems);
+
+        // 장착된 아이템(장비 슬롯) 갱신
+        InventoryMainWidgetInstance->UpdateEquipmentSlots(EquipmentSlotInventory);
+    }
+}
+
 // Called when the game starts or when spawned
 void AInventoryManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+
+    if (EquipmentInventoryClass)
+    {
+        EquipmentInventory = GetWorld()->SpawnActor<AEquipmentInventory>(EquipmentInventoryClass);
+        RegisterInventory(EquipmentInventory);
+    }
+
+    if (ConsumableInventoryClass)
+    {
+        ConsumableInventory = GetWorld()->SpawnActor<AConsumableInventory>(ConsumableInventoryClass);
+        RegisterInventory(ConsumableInventory);
+    }
+
+    if (EquipmentSlotInventoryClass)
+    {
+        EquipmentSlotInventory = GetWorld()->SpawnActor<AEquipmentSlotInventory>(EquipmentSlotInventoryClass);
+        RegisterInventory(EquipmentSlotInventory);
+    }
 }
 
 // Called every frame

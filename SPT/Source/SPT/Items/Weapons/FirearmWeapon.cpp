@@ -5,16 +5,19 @@
 #include "SPTPlayerCharacter.h"
 #include "SPTPlayerController.h"
 #include "SPT/Items/Worlds/WorldWeapon.h"
+#include "Components/TimelineComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/DamageType.h"
+#include "Engine/DamageEvents.h"
 #include "Components/DecalComponent.h"
 #include "Engine/World.h"
 
 AFirearmWeapon::AFirearmWeapon()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	// Skeletal Mesh 추가
 	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
@@ -28,6 +31,8 @@ AFirearmWeapon::AFirearmWeapon()
 	bIsFiring = false;
 	bIsAiming = false;
 	CurrentRecoil = 0.0f;
+	bIsAutoFire = FirearmStats.bHasAutomaticFireMode;
+
 }
 
 void AFirearmWeapon::BeginPlay()
@@ -35,17 +40,11 @@ void AFirearmWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	Owner = Cast<ASPTPlayerCharacter>(GetOwner());
-	/*
-	if (FirearmStats.HolsterSocketName.IsValid())
-	{
-		AttachToComponent(Owner->GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), FirearmStats.HolsterSocketName);
-	}
-	*/
 }
 
 void AFirearmWeapon::Attack()
 {
-	Begin_Fire();
+	BeginFire();
 }
 
 bool AFirearmWeapon::CanFire()
@@ -58,35 +57,42 @@ bool AFirearmWeapon::CanFire()
 	return true;;
 }
 
-void AFirearmWeapon::Begin_Fire()
+void AFirearmWeapon::BeginFire()
 {
 	if (CanFire())
 	{
 		bIsFiring = true;
 
-		// 발사 속도 제어
-		GetWorld()->GetTimerManager().SetTimer(
-			FireTimerHandle,
-			this,
-			&AFirearmWeapon::Attack,
-			WeaponData.WeaponStats.AttackRate, 
-			true);
+		if (bIsAutoFire)
+		{
+			// 발사 속도 제어
+			GetWorld()->GetTimerManager().SetTimer(
+				FireTimerHandle,
+				this,
+				&AFirearmWeapon::OnFiring,
+				WeaponData.WeaponStats.AttackRate,
+				true
+			);
+		}
 
 		OnFiring();
 	}
 }
 
-void AFirearmWeapon::End_Fire()
+void AFirearmWeapon::EndFire()
 {
 	if (!bIsFiring)
 	{
 		return;
 	}
 
-	bIsFiring = false;
+	// 연사 멈춤
+	if (GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+	}
 
-	// 타이머 정지 (연사 멈춤, 미구현)
-	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+	bIsFiring = false;
 }
 
 void AFirearmWeapon::OnFiring()
@@ -94,6 +100,7 @@ void AFirearmWeapon::OnFiring()
 	if (FirearmStats.AmmoCount <= 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s is out of ammo!"), *GetName());
+		EndFire();
 		return;
 	}
 	FirearmStats.AmmoCount--;
@@ -111,7 +118,7 @@ void AFirearmWeapon::OnFiring()
 	TArray<AActor*> Ignores;
 
 	FHitResult HitResult;
-	UKismetSystemLibrary::LineTraceSingle(
+	bool bHit = UKismetSystemLibrary::LineTraceSingle(
 		GetWorld(),
 		Start,
 		End,
@@ -123,8 +130,20 @@ void AFirearmWeapon::OnFiring()
 		true
 	);
 
-	if (HitResult.bBlockingHit)	// 발사한 LineTrace가 Object에 맞아 Block 충돌이 되었다면
+	if (bHit)	// 발사한 LineTrace가 Object에 맞아 Block 충돌이 되었다면
 	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor && HitActor->CanBeDamaged())  // 피격 가능한 대상인지 확인
+		{
+			float Damage = WeaponData.WeaponStats.Damage; // 무기의 기본 피해량
+			FDamageEvent DamageEvent;
+			AController* InstigatorController = Owner->GetInstigatorController(); // 총을 쏜 플레이어의 컨트롤러
+
+			float ActualDamage = HitActor->TakeDamage(Damage, DamageEvent, InstigatorController, this);
+
+			UE_LOG(LogTemp, Log, TEXT("%s hit %s! Applied Damage: %.2f"), *GetName(), *HitActor->GetName(), ActualDamage);
+		}
+
 		if (FirearmStats.HitDecal)
 		{
 			FRotator Rotator = HitResult.ImpactNormal.Rotation();	// HitDecal이 붙을 방향 (충돌의 Normal)
@@ -151,57 +170,57 @@ void AFirearmWeapon::OnFiring()
 				Rotator
 			);
 		}
-
-		if (FirearmStats.FlashParticle)
-		{
-			UGameplayStatics::SpawnEmitterAttached(
-				FirearmStats.FlashParticle,
-				SkeletalMeshComponent,
-				"MuzzleFlash",
-				FVector::ZeroVector,
-				FRotator::ZeroRotator,
-				EAttachLocation::KeepRelativeOffset
-			);
-		}
-
-		if (FirearmStats.EjectParticle)
-		{
-			UGameplayStatics::SpawnEmitterAttached(
-				FirearmStats.EjectParticle,
-				SkeletalMeshComponent,
-				"EjectAmmo",
-				FVector::ZeroVector,
-				FRotator::ZeroRotator,
-				EAttachLocation::KeepRelativeOffset
-			);
-		}
-
-		FVector MuzzleLocation = SkeletalMeshComponent->GetSocketLocation("MuzzleFlash");
-
-		if (FirearmStats.FireSound)
-		{
-			UGameplayStatics::SpawnSoundAtLocation(
-				GetWorld(),
-				FirearmStats.FireSound,
-				MuzzleLocation
-			);
-		}
-
-		/* 카메라 흔들림 (미구현)
-		if (FirearmStats.CameraShakeClass)
-		{
-			APlayerController* Controller = Owner->GetController<ASPTPlayerController>();
-			if (Controller)
-			{
-				ConstructorHelpers::FClassFinder<UMatineeCameraShake>(FirearmStats.CameraShakeClass, );
-				Controller->PlayerCameraManager->StartCameraShake(FirearmStats.CameraShakeClass);
-			}
-		}
-		*/
 	}
 
+	if (FirearmStats.FlashParticle)
+	{
+		UGameplayStatics::SpawnEmitterAttached(
+			FirearmStats.FlashParticle,
+			SkeletalMeshComponent,
+			"MuzzleFlash",
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset
+		);
+	}
+
+	if (FirearmStats.EjectParticle)
+	{
+		UGameplayStatics::SpawnEmitterAttached(
+			FirearmStats.EjectParticle,
+			SkeletalMeshComponent,
+			"EjectAmmo",
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset
+		);
+	}
+
+	FVector MuzzleLocation = SkeletalMeshComponent->GetSocketLocation("MuzzleFlash");
+
+	if (FirearmStats.FireSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(
+			GetWorld(),
+			FirearmStats.FireSound,
+			MuzzleLocation
+		);
+	}
+
+	// 카메라 흔들림 
+	if (FirearmStats.CameraShakeClass)
+	{
+		APlayerController* Controller = Owner->GetController<ASPTPlayerController>();
+		if (Controller)
+		{
+			Controller->PlayerCameraManager->StartCameraShake(FirearmStats.CameraShakeClass);
+		}
+	}
+	
+	// 총기 반동
+	Owner->AddControllerPitchInput(-FirearmStats.RecoilRate * UKismetMathLibrary::RandomFloatInRange(0.8f, 1.2f));
+
 	UE_LOG(LogTemp, Log, TEXT("%s fired! Ammo left: %d, Recoil: %.2f"), *GetName(), FirearmStats.AmmoCount, CurrentRecoil);
-	End_Fire();
 }
 
 bool AFirearmWeapon::CanEquip()
@@ -215,6 +234,37 @@ bool AFirearmWeapon::CanEquip()
 }
 
 void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
+{
+	UE_LOG(LogTemp, Warning, TEXT("FirearmWeapon : Equip : Start"));
+	UpdateMesh();
+
+	Owner = PlayerCharacter;
+	if (FirearmStats.RightHandSocketName.IsValid())
+	{
+		// 총기 손에 부착
+		Owner->EquipWeapon(this);
+		AttachToComponent(Owner->GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), FirearmStats.RightHandSocketName);
+	}
+
+	FirearmStats.BaseData.SetDataByNoneCurve(Owner);
+
+	if (FirearmStats.AimCurve)
+	{
+		FOnTimelineFloat timeline;
+		timeline.BindUFunction(this, "OnAiming");
+
+		FirearmStats.Timeline->AddInterpFloat(FirearmStats.AimCurve, timeline);
+		FirearmStats.Timeline->SetLooping(false);
+		FirearmStats.Timeline->SetPlayRate(FirearmStats.AimSpeed);
+	}
+
+	ItemState = EItemState::EIS_Equipped;
+	UE_LOG(LogTemp, Log, TEXT("%s equipped by %s"), *GetName(), *Owner->GetName());
+
+	EndEquip();
+}
+
+void AFirearmWeapon::BeginEquip(ASPTPlayerCharacter* PlayerCharacter)
 {
 	if (!PlayerCharacter || !ItemData)
 	{
@@ -231,29 +281,10 @@ void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
 	}
 	*/
 
-	Begin_Equip();
+	Equip(PlayerCharacter);
 }
 
-void AFirearmWeapon::Begin_Equip()
-{
-	// Equip 함수와 반대가 된 거 같기도 합니다만,
-	// 캐릭터에서 Equip(this)로 넘기고 있기에 그냥 사용하였습니다.
-	//Owner->EquipWeapon(this);
-	UpdateMesh();
-
-	if (FirearmStats.RightHandSocketName.IsValid())
-	{
-		// 총기 손에 부착
-		AttachToComponent(Owner->GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), FirearmStats.RightHandSocketName);
-	}
-
-	ItemState = EItemState::EIS_Equipped;
-	UE_LOG(LogTemp, Log, TEXT("%s equipped by %s"), *GetName(), *Owner->GetName());
-
-	End_Equip();
-}
-
-void AFirearmWeapon::End_Equip()
+void AFirearmWeapon::EndEquip()
 {
 	bIsEquipping = false;
 }
@@ -282,6 +313,8 @@ void AFirearmWeapon::UnEquip(ASPTPlayerCharacter* PlayerCharacter)
 		AttachToComponent(Owner->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FirearmStats.HolsterSocketName);
 		UE_LOG(LogTemp, Log, TEXT("%s unequipped by %s"), *GetName(), *PlayerCharacter->GetName());
 	}
+
+	ItemState = EItemState::EIS_QuickSlot;
 }
 
 void AFirearmWeapon::Drop(ASPTPlayerCharacter* PlayerCharacter)
@@ -337,7 +370,7 @@ void AFirearmWeapon::Drop(ASPTPlayerCharacter* PlayerCharacter)
 	Destroy();
 }
 
-bool AFirearmWeapon::CanRelad()
+bool AFirearmWeapon::CanReload()
 {
 	if (bIsEquipping || bIsReloading || bIsFiring)
 	{
@@ -347,7 +380,7 @@ bool AFirearmWeapon::CanRelad()
 	return true;
 }
 
-void AFirearmWeapon::Begin_Reload()
+void AFirearmWeapon::BeginReload()
 {
 	if (bIsReloading)
 	{
@@ -357,6 +390,13 @@ void AFirearmWeapon::Begin_Reload()
 
 	bIsReloading = true;
 	UE_LOG(LogTemp, Log, TEXT("%s reloading..."), *GetName());
+
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle,
+		this,
+		&AFirearmWeapon::Reload,
+		FirearmStats.ReloadTime,
+		false
+	);
 }
 
 void AFirearmWeapon::Reload()
@@ -364,9 +404,11 @@ void AFirearmWeapon::Reload()
 	// 재장전 후 탄약 충전
 	FirearmStats.AmmoCount = FirearmStats.MagazineCapacity;
 	UE_LOG(LogTemp, Log, TEXT("%s reloaded. Ammo: %d/%d"), *GetName(), FirearmStats.AmmoCount, FirearmStats.MagazineCapacity);
+
+	EndReload();
 }
 
-void AFirearmWeapon::End_Reload()
+void AFirearmWeapon::EndReload()
 {
 	bIsReloading = false;
 }
@@ -386,34 +428,88 @@ bool AFirearmWeapon::CanAim()
 	return true;
 }
 
-void AFirearmWeapon::AimDownSights()
+void AFirearmWeapon::SwitchAiming()
+{
+	if (!bIsAiming)
+	{
+		BeginAiming();
+	}
+	else
+	{
+		EndAiming();
+	}
+}
+
+void AFirearmWeapon::BeginAiming()
 {
 	bIsAiming = true;
-	UE_LOG(LogTemp, Log, TEXT("FirearmWeapon: Aiming Down Sights!"));
 
-	// TODO: 에임
+	if (FirearmStats.AimCurve) {
+		FirearmStats.Timeline->PlayFromStart();
+		FirearmStats.AimData.SetData(Owner);
+
+		return;
+	}
+
+	FirearmStats.AimData.SetDataByNoneCurve(Owner);
 
 	return;
 }
 
-void AFirearmWeapon::StopAiming()
+void AFirearmWeapon::AimDownSights(float Output)
+{
+	bIsAiming = true;
+
+	UCameraComponent* Camera = Owner->FindComponentByClass<UCameraComponent>();
+	if (Camera)
+	{
+		Camera->FieldOfView = FMath::Lerp(FirearmStats.AimData.FieldOfView, FirearmStats.BaseData.FieldOfView, Output);
+	}
+
+	return;
+}
+
+void AFirearmWeapon::EndAiming()
 {
 	if (!bIsAiming)
 	{
 		return;
 	}
 
-	bIsAiming = false;
-	UE_LOG(LogTemp, Log, TEXT("FirearmWeapon: %s stopped aiming"), *GetName());
+	if (FirearmStats.AimCurve) {
+		FirearmStats.Timeline->PlayFromStart();
+		FirearmStats.BaseData.SetData(Owner);
 
-	// TODO: 에임 해제
-	
+		return;
+	}
+
+	FirearmStats.BaseData.SetDataByNoneCurve(Owner);
+	bIsAiming = false;
+
 	return;
+}
+
+void AFirearmWeapon::ToggleAutoFire()
+{
+	if (FirearmStats.bHasAutomaticFireMode)
+	{
+		bIsAutoFire = !bIsAutoFire;
+	}
+}
+
+int32 AFirearmWeapon::GetMagazinCapacity() const
+{
+	return FirearmStats.MagazineCapacity;
 }
 
 int32 AFirearmWeapon::GetCurrentAmmo() const
 {
 	return FirearmStats.AmmoCount;
+}
+
+EFirearmType AFirearmWeapon::GetFirearmType() const
+{
+	return FirearmStats.FirearmType;
 }
 
 void AFirearmWeapon::SetWeaponData(const FWeaponItemData& NewWeaponData)

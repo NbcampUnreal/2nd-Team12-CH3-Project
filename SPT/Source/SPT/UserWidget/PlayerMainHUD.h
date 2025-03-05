@@ -18,8 +18,12 @@ class SPT_API UPlayerMainHUD : public UUserWidget
 public:
 	virtual void NativeOnInitialized() override;
 
+protected:
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 ///////////////////////////////////////////////////////////////////////
 // Play UI
+public:
 	UFUNCTION()
 	void ShowPlayUI();
 
@@ -69,11 +73,11 @@ public:
 
 private:
 	// Death CanvasPanel
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
-	TObjectPtr<UCanvasPanel> DeathUI;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	//TObjectPtr<UCanvasPanel> DeathUI;
 
-	// Death CanvasPanel
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
-	TObjectPtr<UUserWidget> DeathMenu;
+	//// Death CanvasPanel
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	//TObjectPtr<UUserWidget> DeathMenu;
 ///////////////////////////////////////////////////////////////////////
 };

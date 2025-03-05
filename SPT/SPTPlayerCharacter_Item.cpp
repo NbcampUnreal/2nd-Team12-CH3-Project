@@ -2,27 +2,30 @@
 
 
 #include "SPTPlayerCharacter.h"
+#include "EquipmentInventory.h"
+#include "ConsumableInventory.h"
+#include "InventoryManager.h"
+#include "SPT/Inventory/ItemData/InventoryItem.h"
+#include "SPT/Items/Base/Itembase.h"
+#include "SPT/Items/Weapons/WeaponBase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SceneCaptureComponent2D.h"     // 캐릭터 프리뷰 캡쳐용도 입니다.
+#include "Engine/TextureRenderTarget2D.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "SPTPlayerController.h"
-///////////////////////////////////////////////////////////////////////
 
-#include "SPT/Items/Worlds/WorldItemBase.h"
-#include "SPT/Items/Weapons/WeaponBase.h"
-// #include "SPT/Items/Consumables/ConsumableItem.h" // 필요시 추가
-
-///////////////////////////////////////////////////////////////////////
-
+#include "SPT/Items/Worlds/WorldWeapon.h" //// 추가
+#include "SPT/Items/Weapons/FirearmWeapon.h" //// 추가
 
 ASPTPlayerCharacter::ASPTPlayerCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bCanEverTick = true;
 
-	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArmComp->SetupAttachment(RootComponent);
+    SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+    SpringArmComp->SetupAttachment(RootComponent);
     // 컨트롤러 회전에 따라 스프링 암도 회전하도록 설정
     SpringArmComp->bUsePawnControlRotation = true;
     // 앉기 시 카메라가 자연스럽게 이동하도록 카메라 렉 설정 및 설정 값
@@ -30,36 +33,180 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
     SpringArmComp->CameraLagSpeed = 20.f;
     SpringArmComp->bEnableCameraRotationLag = true;
     SpringArmComp->CameraRotationLagSpeed = 20.f;
+    SpringArmComp->SocketOffset = FVector(0.f, 75.f, 100.f);
 
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	CameraComp->SetupAttachment(SpringArmComp);
+    CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    CameraComp->SetupAttachment(SpringArmComp);
 
-    /* 상호 작용 추가 */
-    InteractionCheckFrequency = 0.1f;
-    InteractionCheckDistance = 250.0f;
+    bUseControllerRotationYaw = false;
+
+    GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
+
+
+
+    // 인벤토리 추가를 위해 추가로 작성된 코드들 입니다.
+    // 인벤토리 클래스 및 위젯 클래스 자동 할당
+    static ConstructorHelpers::FClassFinder<AInventoryManager> BP_InventoryManager(TEXT("/Game/Blueprints/Inventory/BP_InventoryManager"));
+    static ConstructorHelpers::FClassFinder<AEquipmentInventory> BP_EquipmentInventory(TEXT("/Game/Blueprints/Inventory/BP_EquipmentInventory"));
+    static ConstructorHelpers::FClassFinder<AConsumableInventory> BP_ConsumableInventory(TEXT("/Game/Blueprints/Inventory/BP_ConsumableInventory"));
+    static ConstructorHelpers::FClassFinder<UInventoryMainWidget> WBP_InventoryMainWidget(TEXT("/Game/Blueprints/Inventory/UI/WBP_InventoryMainWidget"));
+
+    if (BP_InventoryManager.Succeeded())
+    {
+        InventoryManagerClass = BP_InventoryManager.Class;
+    }
+    if (BP_EquipmentInventory.Succeeded())
+    {
+        EquipmentInventoryClass = BP_EquipmentInventory.Class;
+    }
+    if (BP_ConsumableInventory.Succeeded())
+    {
+        ConsumableInventoryClass = BP_ConsumableInventory.Class;
+    }
+    if (WBP_InventoryMainWidget.Succeeded())
+    {
+        InventoryMainWidgetClass = WBP_InventoryMainWidget.Class;
+    }
+
+}
+
+// 라인트레이스 함수를 사용하여 캐릭터의 앞에 물체가 있는지 판별 후 아이템일 시 작동
+void ASPTPlayerCharacter::TryPickupItem()
+{
+    // 캐릭터가 아이템이 있는지 탐색하는 범위를 설정
+    FVector Start = GetActorLocation();
+    FVector ForwardVector = GetActorForwardVector();
+    FVector End = Start + (ForwardVector * 200.0f);
+
+    FHitResult HitResult;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+
+    // 아이템의 탐색여부를 확인
+    bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel1, Params);
+
+    if (bHit)
+    {
+        AItemBase* ItemBase = Cast<AItemBase>(HitResult.GetActor());
+        if (ItemBase && InventoryManager)
+        {
+            // 아이템이 있을 시 아이템의 데이터를 인벤토리 데이터로 복사
+            UInventoryItem* ItemData = NewObject<UInventoryItem>();
+            ItemData->SetItemData(ItemBase->GetItemData());
+            // 아이템 복사 성공 시 아이템을 인벤토리로 추가하는 함수 호출 후 추가된 아이템 제거
+            if (ItemData)
+            {
+                InventoryManager->AddItemToInventory(ItemData);
+
+                AWorldWeapon* WorldWeapon = Cast<AWorldWeapon>(ItemBase);
+                if (WorldWeapon && ItemBase->GetItemData()->WeaponData.WeaponType == EWeaponType::EWT_Firearm)
+                {
+                    WorldWeapon->OnPickup(this);
+                }
+
+                ItemBase->Destroy();
+            }
+        }
+    }
+}
+
+bool ASPTPlayerCharacter::EquipWeapon(AWeaponBase* NewItem)
+{
+    if (!NewItem) return false;
+    if (EquippedWeapon)
+    {
+        UnEquipWeapon();
+    }
+
+    EquippedWeapon = NewItem;
+
+    if (!EquippedWeapon)
+    {
+        return false;
+    }
+
+    // EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, );
+    return true;
+}
+
+bool ASPTPlayerCharacter::UnEquipWeapon()
+{
+    if (EquippedWeapon) {
+        EquippedWeapon->UnEquip(this);
+        EquippedWeapon = nullptr;
+    }
+
+    return false;
+}
+
+// 아이템을 생성하여 캐릭터의 앞에 떨어뜨리는 함수
+void ASPTPlayerCharacter::DropItem(UInventoryItem* InventoryItem)
+{
+    if (InventoryManager)
+    {
+        FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 200.0f;
+        InventoryManager->DropItem(InventoryItem, DropLocation);
+    }
+}
+
+AInventoryManager* ASPTPlayerCharacter::GetInventory() const
+{
+    return InventoryManager;
 }
 
 void ASPTPlayerCharacter::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
+    // InventoryManagerClass가 할당되었는지 확인
+    if (InventoryManagerClass)
+    {
+        // 인벤토리 매니저 생성
+        InventoryManager = GetWorld()->SpawnActor<AInventoryManager>(InventoryManagerClass);
+        if (InventoryManager)
+        {
+            if (EquipmentInventoryClass)
+            {
+                EquipmentInventory = GetWorld()->SpawnActor<AEquipmentInventory>(EquipmentInventoryClass);
+                InventoryManager->RegisterInventory(EquipmentInventory);
+            }
+
+            if (ConsumableInventoryClass)
+            {
+                ConsumableInventory = GetWorld()->SpawnActor<AConsumableInventory>(ConsumableInventoryClass);
+                InventoryManager->RegisterInventory(ConsumableInventory);
+            }
+        }
+    }
+
+    if (InventoryMainWidgetClass)
+    {
+        InventoryMainWidgetInstance = CreateWidget<UInventoryMainWidget>(GetWorld(), InventoryMainWidgetClass);
+        if (InventoryMainWidgetInstance)
+        {
+            InventoryMainWidgetInstance->AddToViewport();
+            InventoryMainWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+
+    if (InventoryManager)
+    {
+        InventoryManager->SetInventoryWidget(InventoryMainWidgetInstance);
+    }
+
+    SetHealth(100.f);
+    MaxHealth = Health;
 }
 
 void ASPTPlayerCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
-    if (GetWorld()->TimeSince(InteractionData.LastInteractionCheckTime) > InteractionCheckFrequency)
-    {
-        PerformInteractionCheck();
-    }
 }
-
-///////////////////////////////////////////////////////////////////////
 
 void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
 
     if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
@@ -67,7 +214,9 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
         {
             if (PlayerController->MoveAction)
             {
+                EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Started, this, &ASPTPlayerCharacter::StartMove);
                 EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::Move);
+                EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopMove);
             }
 
             if (PlayerController->JumpAction)
@@ -116,24 +265,55 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
                 // 키 입력 중에 1번만 호출됨
                 EnhancedInput->BindAction(PlayerController->ReloadAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartReload);
             }
+
+            if (PlayerController->AimingAction)
+            {
+                EnhancedInput->BindAction(PlayerController->AimingAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::SwitchAiming);
+            }
+
+            if (PlayerController->AttackAction)
+            {
+                EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartAttack);
+                EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopAttack);
+            }
         }
+    }
+}
+
+void ASPTPlayerCharacter::StartMove(const FInputActionValue& value)
+{
+    if (UCharacterMovementComponent* CharacterMovementComp = GetCharacterMovement())
+    {
+        CharacterMovementComp->bUseControllerDesiredRotation = true;
     }
 }
 
 void ASPTPlayerCharacter::Move(const FInputActionValue& value)
 {
-    if (!Controller) return;
-
-    const FVector2D MoveInput = value.Get<FVector2D>();
-
-    if (!FMath::IsNearlyZero(MoveInput.X))
+    if (Controller)
     {
-        AddMovementInput(GetActorForwardVector(), MoveInput.X);
+        const FVector2D MoveInput = value.Get<FVector2D>();
+        const FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
+
+        if (MoveInput.X != 0.0f)
+        {
+            const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
+            AddMovementInput(MovementDirection, MoveInput.X);
+        }
+
+        if (MoveInput.Y != 0.0f)
+        {
+            const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
+            AddMovementInput(MovementDirection, MoveInput.Y);
+        }
     }
+}
 
-    if (!FMath::IsNearlyZero(MoveInput.Y))
+void ASPTPlayerCharacter::StopMove(const FInputActionValue& value)
+{
+    if (UCharacterMovementComponent* CharacterMovementComp = GetCharacterMovement())
     {
-        AddMovementInput(GetActorRightVector(), MoveInput.Y);
+        CharacterMovementComp->bUseControllerDesiredRotation = false;
     }
 }
 
@@ -182,6 +362,8 @@ void ASPTPlayerCharacter::StopSprint(const FInputActionValue& value)
 
 void ASPTPlayerCharacter::StartCrouch(const FInputActionValue& value)
 {
+    if (GetCharacterMovement()->IsFalling()) return;
+
     if (value.Get<bool>())
     {
         Crouch();
@@ -190,6 +372,8 @@ void ASPTPlayerCharacter::StartCrouch(const FInputActionValue& value)
 
 void ASPTPlayerCharacter::StopCrouch(const FInputActionValue& value)
 {
+    if (GetCharacterMovement()->IsFalling()) return;
+
     if (!value.Get<bool>())
     {
         UnCrouch();
@@ -201,16 +385,18 @@ void ASPTPlayerCharacter::ItemUse(const FInputActionValue& value)
     // 현재 장착중인 아이템을 사용한다.
     if (value.Get<bool>())
     {
-        EquippedWeapon->PrimaryAction(this);  //// 추가
+
     }
 }
 
 void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
 {
     // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
+    // 현재는 아이템을 줍는 동작만 존재
+    // 다른 상호작용 추가 필요(예시: 훈련모드에서 사용할 훈련 메뉴 선택기)
     if (value.Get<bool>())
     {
-        Interact(); //// 추가
+        TryPickupItem();
     }
 }
 
@@ -219,252 +405,85 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
     // 인벤토리를 켜거나 끈다.
     if (value.Get<bool>())
     {
+        if (InventoryMainWidgetInstance)
+        {
+            // 인벤토리의 현재 상태를 확인하여 켜고 끄는 동작 작동
+            bool bIsVisible = InventoryMainWidgetInstance->IsVisible();
+            InventoryMainWidgetInstance->SetVisibility(bIsVisible ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
 
+            // 인벤토리의 상태에 따라 입력모드를 전환
+            if (!bIsVisible)
+            {
+                APlayerController* PlayerController = Cast<APlayerController>(GetController());
+                if (PlayerController)
+                {
+                    FInputModeGameAndUI InputMode;
+                    InputMode.SetWidgetToFocus(InventoryMainWidgetInstance->TakeWidget());
+                    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+                    PlayerController->SetInputMode(InputMode);
+                    PlayerController->bShowMouseCursor = true;
+                    //PlayerController->SetPause(true);
+                }
+            }
+            else
+            {
+                APlayerController* PlayerController = Cast<APlayerController>(GetController());
+                if (PlayerController)
+                {
+                    PlayerController->SetInputMode(FInputModeGameOnly());
+                    PlayerController->bShowMouseCursor = false;
+                    //PlayerController->SetPause(false);
+                }
+            }
+        }
     }
 }
+
+/// <summary>
+/// 조준, 재장전, 발사 추가 구현
+/// 
+/// </summary>
+/// <param name="value"></param>
 
 void ASPTPlayerCharacter::StartReload(const FInputActionValue& value)
 {
     // 현재 착용중인 아이템이 총이거나 재장전 할 수 있는 아이템이라면 재장전
     if (value.Get<bool>())
     {
-
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->BeginReload();  //// 추가
+        }
     }
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool ASPTPlayerCharacter::EquipWeapon(AWeaponBase* NewItem)
+void ASPTPlayerCharacter::SwitchAiming(const FInputActionValue& value)
 {
-    /* 수정 필요 (사용 X)
-     * 현재 무기의 경우, 상호작용 (Pickup)을 할 경우
-     * 각 무기의 종류에 따라 장착 로직이 달라
-     * WeaponBase 혹은 FirearmWeapon 같은 무기 하위 클래스에서 AttachToComponent가 구현되어 있습니다.
-     */
-    if (!NewItem) return false;
-    if (EquippedWeapon)
+    if (value.Get<bool>())
     {
-        UnEquipWeapon();
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->SwitchAiming();  //// 추가
+        }
     }
-
-    EquippedWeapon = NewItem;
-
-    if (!EquippedWeapon)
-    {
-        return false;
-    }
-
-    // EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, );
-    return true;
 }
 
-bool ASPTPlayerCharacter::UnEquipWeapon()
-{
-    /* 수정 필요 (사용 중)
-     * 아직 장착 해제 키는 없지만, 무기를 장착한 채 다른 총기류를 Pickup할 경우 호출됩니다.
-     * 사실 바로 무기에서 UnEquip해도 되기에 추후에 소비품을 장착, 해제하는 로직 구현 시 변경될 수 있습니다.
-     */
-    if (EquippedWeapon) {
-        EquippedWeapon->UnEquip(this);
-        EquippedWeapon = nullptr;
-    }
-
-    return false;
-}
-
-void ASPTPlayerCharacter::DropWeapon()
+void ASPTPlayerCharacter::StartAttack(const FInputActionValue& value)
 {
     if (EquippedWeapon)
     {
-        EquippedWeapon->Drop(this);
+        EquippedWeapon->PrimaryAction(this);  //// 추가
     }
 }
 
-AWeaponBase* ASPTPlayerCharacter::GetEquippedWeapon() const
+void ASPTPlayerCharacter::StopAttack(const FInputActionValue& value)
 {
-    return EquippedWeapon;
-}
-
-
-/* 아래의 함수부터는 상호작용을 위한 함수입니다.
- * 우선 라인 트레이스로 바라보는 방향의 아이템이 우선 감지되며,
- * 스피어 트레이스로 근처에 있는 일정 시야각 이내의 아이템 역시 감지됩니다.
- *
- * Tick 함수에서 마지막 상호작용 검사(LastInteractionCheckTime) 이후
- * 일정 시간이 (InteractionCheckFrequency 초) 지나면
- * PerformInteractionCheck()를 호출하여 새로운 상호작용 감지를 수행합니다.
- */
-
-void ASPTPlayerCharacter::PerformInteractionCheck()
-{
-    InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
-
-    FVector PlayerViewLocation = GetPawnViewLocation();
-    FVector PlayerViewDirection = GetViewRotation().Vector();
-    FCollisionQueryParams QueryParams;
-    QueryParams.AddIgnoredActor(this);
-
-    // 라인 트레이스로 아이템 감지
-    FHitResult LineTraceHit;
-    bool bLineHit = GetWorld()->LineTraceSingleByChannel(
-        LineTraceHit,
-        PlayerViewLocation,
-        PlayerViewLocation + (PlayerViewDirection * InteractionCheckDistance * 1.5f),
-        ECC_Visibility,
-        QueryParams
-    );
-
-    if (bLineHit)
+    if (EquippedWeapon)
     {
-        AWorldItemBase* LineHitItem = Cast<AWorldItemBase>(LineTraceHit.GetActor());
-        if (LineHitItem && LineHitItem->Implements<UInteractableInterface>())
-        {
-            FoundInteractable(LineHitItem);
-        }
-    }
-
-    // 스피어 트레이스로 근처 아이템 감지
-    TArray<FHitResult> HitResults;
-    bool bHit = GetWorld()->SweepMultiByChannel(
-        HitResults,
-        PlayerViewLocation,
-        PlayerViewLocation + (PlayerViewDirection * InteractionCheckDistance),
-        FQuat::Identity,
-        ECC_Visibility,
-        FCollisionShape::MakeSphere(InteractionCheckDistance * 0.6f),
-        QueryParams
-    );
-
-    AWorldItemBase* BestCandidate = nullptr;
-    float BestDotProduct = 0.7f;
-
-    for (FHitResult Hit : HitResults)
-    {
-        AWorldItemBase* Item = Cast<AWorldItemBase>(Hit.GetActor());
-        if (!Item || !Item->Implements<UInteractableInterface>())
-        {
-            continue;
-        }
-
-        FVector DirectionToItem = (Item->GetActorLocation() - PlayerViewLocation).GetSafeNormal();
-        float DotProduct = FVector::DotProduct(PlayerViewDirection, DirectionToItem);
-
-        // 플레이어가 바라보는 방향(60도 이내)만 필터링
-        if (DotProduct > BestDotProduct)
-        {
-            BestDotProduct = DotProduct;
-            BestCandidate = Item;
-        }
-    }
-
-    // 최적 아이템 선택
-    if (BestCandidate)
-    {
-        if (BestCandidate != InteractionData.CurrentInteractable)
-        {
-            FoundInteractable(BestCandidate);
-        }
-    }
-    else
-    {
-        NoInteractableFound();
+        AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+        FirearmWeapon->EndFire();  //// 추가
     }
 }
-
-void ASPTPlayerCharacter::FoundInteractable(AActor* NewInteractable)
-{
-    if (IsInteracting())
-    {
-        GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
-    }
-
-    // 기존 포커스 종료
-    if (InteractionData.CurrentInteractable)
-    {
-        TargetInteractable = InteractionData.CurrentInteractable;
-        TargetInteractable->EndFocus();
-    }
-
-    // 새로운 포커스 설정
-    InteractionData.CurrentInteractable = NewInteractable;
-    TargetInteractable = NewInteractable;
-
-    TargetInteractable->BeginFocus();
-}
-
-void ASPTPlayerCharacter::NoInteractableFound()
-{
-    if (IsInteracting())
-    {
-        GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
-    }
-
-    if (InteractionData.CurrentInteractable)
-    {
-        // 상호 작용 후 월드에서 아이템이 사라졌을 때 Crash 방지
-        if (IsValid(TargetInteractable.GetObject()))
-        {
-            TargetInteractable->EndFocus();
-        }
-
-        // hide interaction widget on the HUD
-
-        InteractionData.CurrentInteractable = nullptr;
-        TargetInteractable = nullptr;
-    }
-}
-
-void ASPTPlayerCharacter::BeginInteract()
-{
-    PerformInteractionCheck();
-
-    if (InteractionData.CurrentInteractable)
-    {
-        if (IsValid(TargetInteractable.GetObject()))
-        {
-            TargetInteractable->BeginInteract();
-
-            if (FMath::IsNearlyZero(TargetInteractable->InteractableData.InteractionDuration, 0.1f))
-            {
-                // Interact();
-            }
-            else
-            {
-                GetWorldTimerManager().SetTimer(
-                    TimerHandle_Interaction,
-                    this,
-                    &ASPTPlayerCharacter::Interact,
-                    TargetInteractable->InteractableData.InteractionDuration,
-                    false);
-            }
-        }
-    }
-}
-
-void ASPTPlayerCharacter::EndInteract()
-{
-    GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
-
-    if (IsValid(TargetInteractable.GetObject()))
-    {
-        TargetInteractable->EndInteract();
-    }
-}
-
-void ASPTPlayerCharacter::Interact()
-{
-    GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
-
-    if (IsValid(TargetInteractable.GetObject()))
-    {
-        TargetInteractable->Interact(this);
-    }
-}
-
-
-bool ASPTPlayerCharacter::IsInteracting() const
-{
-    return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

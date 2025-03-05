@@ -4,6 +4,7 @@
 #include "InventoryItem.h"
 #include "SPT/Items/Data/ItemDataObject.h"
 #include "SPT/Items/Base/ItemBase.h"
+#include "SPT/Items/Weapons/WeaponBase.h"
 
 
 
@@ -29,33 +30,49 @@ TSubclassOf<AItemBase> UInventoryItem::GetItemBaseClass() const
 {
     if (ItemDataObject)
     {
-        if (ItemDataObject->ItemData.ItemBaseClass)
+        if (ItemDataObject->GetItemData().ItemBaseClass)
         {
-            UE_LOG(LogTemp, Warning, TEXT("GetItemBaseClass: ItemBaseClass is valid"));
-            return ItemDataObject->ItemData.ItemBaseClass;
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("GetItemBaseClass: ItemBaseClass is nullptr"));
-            UE_LOG(LogTemp, Error, TEXT("GetItemBaseClass: ItemName is %s"), *GetItemName().ToString());
+            return ItemDataObject->GetItemData().ItemBaseClass;
         }
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("GetItemBaseClass: ItemDataObject is nullptr"));
-    }
-
     return nullptr;
+}
+
+TSubclassOf<AWeaponBase> UInventoryItem::GetWeaponClass() const
+{
+    if (ItemDataObject)
+    {
+        if (ItemDataObject->WeaponData.WeaponClass)
+        {
+            return TSubclassOf<AWeaponBase>(ItemDataObject->WeaponData.WeaponClass);
+        }
+    }
+    return nullptr;
+}
+
+void UInventoryItem::SetItemBase(AItemBase* NewItemBase)
+{
+    ItemBaseReference = NewItemBase;
+}
+
+AItemBase* UInventoryItem::GetItemBase() const
+{
+    return ItemBaseReference;
 }
 
 FText UInventoryItem::GetItemName() const
 {
-	return ItemDataObject ? ItemDataObject->ItemData.TextData.ItemName : FText::FromString(TEXT("Unknown"));
+	return ItemDataObject ? ItemDataObject->GetItemData().TextData.ItemName : FText::FromString(TEXT("Unknown"));
 }
 
 UTexture2D* UInventoryItem::GetItemIcon() const
 {
-    return ItemDataObject ? ItemDataObject->Icon : nullptr;
+    return ItemDataObject ? ItemDataObject->GetItemData().AssetData.Icon : nullptr;
+}
+
+USkeletalMesh* UInventoryItem::GetSkeletalMesh() const
+{
+    return ItemDataObject ? ItemDataObject->GetItemData().AssetData.SkeletalMesh : nullptr;
 }
 
 // 아이템의 타입 판별
@@ -67,4 +84,19 @@ bool UInventoryItem::IsWeapon() const
 bool UInventoryItem::IsConsumable() const
 {
     return ItemDataObject && ItemDataObject->IsConsumable();
+}
+
+int32 UInventoryItem::GetSlotType() const
+{
+    // 임시로 무기는 0으로 하였습니다.
+    if (ItemDataObject->IsWeapon()) 
+    {
+        return 0;
+    }
+    // 임시로 소모품은 5로 하였습니다. 그냥 -1로 해도 상관없을지도?
+    else if (ItemDataObject->IsConsumable()) 
+    {
+        return 5;
+    }
+    return -1;
 }
