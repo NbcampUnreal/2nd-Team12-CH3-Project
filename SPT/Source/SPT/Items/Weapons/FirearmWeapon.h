@@ -66,6 +66,8 @@ public:
 	USkeletalMeshComponent* GetWeaponMesh();
 	/////////////////////////////////////////
 
+	FHitResult HitResult;
+
 protected:
 
 	/* 총기 전용 데이터 */

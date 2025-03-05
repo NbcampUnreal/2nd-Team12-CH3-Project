@@ -118,7 +118,6 @@ void AFirearmWeapon::OnFiring()
 
 	TArray<AActor*> Ignores;
 
-	FHitResult HitResult;
 	bool bHit = UKismetSystemLibrary::LineTraceSingle(
 		GetWorld(),
 		Start,
