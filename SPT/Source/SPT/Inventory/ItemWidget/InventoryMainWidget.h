@@ -60,6 +60,8 @@ public:
 	// 마우스 클릭 시 프리뷰 캐릭터를 회전 모드로 전환하는 함수
 	FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 
+	APreviewCharacter* GetPreviewCharacter();
+
 	// 마우스 드래그가 끝날 시에도 호출이 되지않는 문제가 발생하여 주석처리
 	//FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 

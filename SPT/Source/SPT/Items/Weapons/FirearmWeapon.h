@@ -60,8 +60,14 @@ public:
 	int32 GetMagazinCapacity() const;
 	int32 GetCurrentAmmo() const;
 	EFirearmType GetFirearmType() const;
-	
+
+	/////////////////////////////////////////
+	// 프리뷰 캐릭터에 해당 무기의 메쉬를 호출하는 용도입니다.
+	USkeletalMeshComponent* GetWeaponMesh();
+	/////////////////////////////////////////
+
 	FHitResult HitResult;
+
 protected:
 
 	/* 총기 전용 데이터 */

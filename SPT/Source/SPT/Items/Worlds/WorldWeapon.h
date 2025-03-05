@@ -11,10 +11,6 @@ class AFirearmWeapon;
 class AMeleeWeapon;
 class AThrowableWeapon;
 
-/////////////////////////////
-class UInventoryItem;
-/////////////////////////////
-
 UCLASS()
 class SPT_API AWorldWeapon : public AWorldItemBase
 {
