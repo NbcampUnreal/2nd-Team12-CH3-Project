@@ -73,11 +73,11 @@ public:
 
 private:
 	// Death CanvasPanel
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
-	//TObjectPtr<UCanvasPanel> DeathUI;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	TObjectPtr<UCanvasPanel> DeathUI;
 
 	//// Death CanvasPanel
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
-	//TObjectPtr<UUserWidget> DeathMenu;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	TObjectPtr<UUserWidget> DeathMenu;
 ///////////////////////////////////////////////////////////////////////
 };
