@@ -21,7 +21,7 @@ ASPTEnemyController::ASPTEnemyController()
 
     if (BB.Succeeded()) BlackboardAsset = BB.Object;
 
-    // AI Perception 감지 이벤트 연결
+    // AI Perception 감지 이벤트 연결  
     if (AIPerceptionComp)
     {
         AIPerceptionComp->OnPerceptionUpdated.AddDynamic(this, &ASPTEnemyController::OnPerceptionUpdated);
@@ -38,6 +38,11 @@ void ASPTEnemyController::OnPossess(APawn* InPawn)
     Super::OnPossess(InPawn);
 
     if (!InPawn) return;
+
+    if (AIPerceptionComp && !AIPerceptionComp->OnPerceptionUpdated.IsBound())
+    {
+        AIPerceptionComp->OnPerceptionUpdated.AddDynamic(this, &ASPTEnemyController::OnPerceptionUpdated);
+    }
 
     // AI 컨트롤러 블루프린트 클래스명을 기반으로 BehaviorTree 설정
     FString ControllerClassName = GetClass()->GetName();
@@ -95,49 +100,54 @@ void ASPTEnemyController::OnPossess(APawn* InPawn)
     }
 
     SetStateAsPassive();
+
+    GetWorldTimerManager().SetTimer(ForgottenActorTimerHandle, this, &ASPTEnemyController::CheckIfForgottenSeenActor, 0.5f, true);
+    GetWorldTimerManager().SetTimer(ForgottenDamagedActorTimerHandle, this, &ASPTEnemyController::CheckIfForgottenDamagedActor, 1.5f, true);
+}
+
+void ASPTEnemyController::OnUnPossess()
+{
+    Super::OnUnPossess();
+
+    GetWorldTimerManager().ClearTimer(ForgottenActorTimerHandle);
+    GetWorldTimerManager().ClearTimer(ForgottenDamagedActorTimerHandle);
 }
 
 void ASPTEnemyController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
-    UE_LOG(LogTemp, Warning, TEXT("OnPerceptionUpdated executed, number of detected actors : % d"), UpdatedActors.Num());
-    // AI의 감지 시스템 또는 BBC 없으면 함수 종료
+    UE_LOG(LogTemp, Warning, TEXT("OnPerceptionUpdated executed, number of detected actors: %d"), UpdatedActors.Num());
+
     if (!AIPerceptionComp || !BBC)
     {
         return;
     }
 
-    // 감지된 액터들이 배열에 저장됨
-    TArray<AActor*> PerceivedActors;
-    // AI가 어떤 감각으로든 감지한 모든 액터를 PerceivedActors에 저장
-    AIPerceptionComp->GetKnownPerceivedActors(AActor::StaticClass(), PerceivedActors);
-
-
-    for (AActor* Actor : PerceivedActors)
+    for (AActor* Actor : UpdatedActors)
     {
         if (!Actor) continue;
 
         FAIStimulus Stimulus;
 
-        if(CanSenseActor(Actor, EAISenseType::Sight, Stimulus))
+        if (CanSenseActor(Actor, EAISenseType::Sight, Stimulus))
         {
-            UE_LOG(LogTemp, Warning, TEXT("CanSenseActor: Sight dected!"));
-
+            UE_LOG(LogTemp, Warning, TEXT("CanSenseActor: Sight detected!"));
             HandleSensedSight(Actor);
         }
-        else if (CanSenseActor(Actor, EAISenseType::Hearing, Stimulus))
-        {
-            UE_LOG(LogTemp, Warning, TEXT("CanSenseActor: Hearing dected!"));
 
+        if (CanSenseActor(Actor, EAISenseType::Hearing, Stimulus))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("CanSenseActor: Hearing detected!"));
             HandleSensedSound(Stimulus.StimulusLocation);
         }
-        else if (CanSenseActor(Actor, EAISenseType::Damage, Stimulus))
-        {
-            UE_LOG(LogTemp, Warning, TEXT("CanSenseActor: Damage dected!"));
 
+        if (CanSenseActor(Actor, EAISenseType::Damage, Stimulus))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("CanSenseActor: Damage detected!"));
             HandleSensedDamage(Actor);
         }
     }
 }
+
 
 void ASPTEnemyController::SetStateAsPassive()
 {
@@ -234,6 +244,9 @@ void ASPTEnemyController::HandleSensedSight(AActor* Actor)
     if (!Actor || !BBC) return;
     UE_LOG(LogTemp, Warning, TEXT("HandleSensedSight excute: %s"), *Actor->GetName());
 
+    // 감지된 액터를 KnownSeenActors 배열에 추가 (중복 방지)
+    KnownSeenActors.AddUnique(Actor);
+
     // 현재 AI 상태 가져오기
     int32 StateValue = GetCurrentState();
 
@@ -266,10 +279,76 @@ void ASPTEnemyController::HandleSensedDamage(AActor* Actor)
     if (!Actor || !BBC) return;
     UE_LOG(LogTemp, Warning, TEXT("HandleSensedDamage excute"));
 
+    // 감지된 액터를 KnownDamagedActors 배열에 추가 (중복 방지)
+    KnownDamagedActors.AddUnique(Actor);
+
     int32 StateValue = GetCurrentState();
 
     if ((StateValue == 0 || StateValue == 2))
     {
         SetStateAsAttacking(Actor);
+    }
+}
+
+void ASPTEnemyController::CheckIfForgottenSeenActor()
+{
+    if (!AIPerceptionComp) return;
+
+    TArray<AActor*> CurrentlyPerceivedActors;
+    AIPerceptionComp->GetKnownPerceivedActors(UAISense_Sight::StaticClass(), CurrentlyPerceivedActors);
+    TSet<AActor*> CurrentlyPerceivedSet(CurrentlyPerceivedActors); // 성능 최적화 - 배열(TArray)보다 해시 기반의 TSet이 더 빠르게 검색 가능
+
+    for (int32 i = KnownSeenActors.Num() - 1; i >= 0; i--)
+    {
+        AActor* SeenActor = KnownSeenActors[i];
+
+        // 더 이상 감지되지 않는다면
+        if (!CurrentlyPerceivedSet.Contains(SeenActor))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Forgetting Actor: %s"), *SeenActor->GetName());
+            HandleForgotActor(SeenActor);
+        }
+    }
+}
+
+
+void ASPTEnemyController::CheckIfForgottenDamagedActor()
+{
+    if (!AIPerceptionComp) return;
+
+    TArray<AActor*> CurrentlyDamagedActors;
+    AIPerceptionComp->GetKnownPerceivedActors(UAISense_Damage::StaticClass(), CurrentlyDamagedActors);
+    TSet<AActor*> CurrentlyDamagedSet(CurrentlyDamagedActors);
+
+    for (int32 i = KnownDamagedActors.Num() - 1; i >= 0; i--)
+    {
+        if (!CurrentlyDamagedSet.Contains(KnownDamagedActors[i]))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Forgetting Damaged Actor: %s"), *KnownDamagedActors[i]->GetName());
+            HandleForgotActor(KnownDamagedActors[i]);
+            KnownDamagedActors.RemoveAt(i);
+        }
+    }
+}
+
+void ASPTEnemyController::HandleForgotActor(AActor* Actor)
+{
+    if (!Actor || !BBC) return;
+
+    UE_LOG(LogTemp, Warning, TEXT("HandleForgotActor: %s"), *Actor->GetName());
+
+    KnownSeenActors.Remove(Actor);
+    KnownDamagedActors.Remove(Actor);
+
+    if (!BBC) return;
+
+    // 블랙보드에서 현재 공격 대상 가져오기
+    AActor* CurrentAttackTarget = Cast<AActor>(BBC->GetValueAsObject(TEXT("AttackTarget")));
+
+    // 현재 공격 대상과 비교하여 같다면 상태를 Passive로 변경
+    if (CurrentAttackTarget == Actor)
+    {
+        BBC->SetValueAsObject(TEXT("AttackTarget"), nullptr);
+        SetStateAsPassive();
     }
 }
