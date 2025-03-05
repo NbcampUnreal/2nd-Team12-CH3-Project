@@ -53,7 +53,8 @@ public:
 	void AimDownSights(float Output);
 	void EndAiming();
 
-
+	/* 연사 On Off 토글 */
+	void ToggleAutoFire();
 
 	/* Getter 함수 */
 	int32 GetMagazinCapacity() const;
@@ -80,6 +81,9 @@ protected:
 	bool bIsAiming; // 조준 여부
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Firearm")
+	bool bIsAutoFire; // 연사 여부
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Firearm")
 	float CurrentRecoil;  // 현재 반동 값 (누적 반동)
 
 	/* SkeletalMeshComponent (총기, 투척 무기 전용) */
@@ -95,5 +99,5 @@ public:
 	class ASPTPlayerCharacter* Owner;
 	FTimerHandle FireTimerHandle;
 	FTimerHandle ReloadTimerHandle;
-
+	FTimerHandle AutoFireHandle;
 };

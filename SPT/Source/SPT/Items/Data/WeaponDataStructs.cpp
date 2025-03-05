@@ -18,6 +18,7 @@ void FWeaponAimData::SetData(ASPTPlayerCharacter* InOwner)
 	{
 		SpringArm->TargetArmLength = TargetArmLength;
 		SpringArm->SocketOffset = SocketOffset;
+		SpringArm->bEnableCameraLag = bEnableCameraLag;
 	}
 }
 
@@ -33,6 +34,7 @@ void FWeaponAimData::SetDataByNoneCurve(ASPTPlayerCharacter* InOwner)
 	{
 		SpringArm->TargetArmLength = TargetArmLength;
 		SpringArm->SocketOffset = SocketOffset;
+		SpringArm->bEnableCameraLag = bEnableCameraLag;
 	}
 
 	UCameraComponent* Camera = InOwner->FindComponentByClass<UCameraComponent>();
