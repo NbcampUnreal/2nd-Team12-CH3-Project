@@ -60,6 +60,8 @@ public:
 public:
 	void ShowPlayerMainHUD();
 
+	UPlayerMainHUD* GetHUDWidgetInstance() const;
+
 private:
 	// HUD UI
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = true))

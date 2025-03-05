@@ -124,6 +124,7 @@ void UPlayerMainHUD::HitTarget()
 {
 	if (HitMarker)
 	{
+		UE_LOG(LogTemp, Log, TEXT("HitMarker"));
 		HitMarker->PlayAnimHitMarker();
 	}
 }

@@ -9,6 +9,7 @@
 class UTextBlock;
 class UImage;
 class UCanvasPanel;
+class UHitMarker;
 
 UCLASS()
 class SPT_API UPlayerMainHUD : public UUserWidget
@@ -79,5 +80,14 @@ private:
 	//// Death CanvasPanel
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
 	TObjectPtr<UUserWidget> DeathMenu;
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+// Hit UI
+public:
+	void HitTarget();
+
+private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI", meta = (AllowPrivateAccess = true, BindWidget))
+	TObjectPtr<UHitMarker> HitMarker;
 ///////////////////////////////////////////////////////////////////////
 };
