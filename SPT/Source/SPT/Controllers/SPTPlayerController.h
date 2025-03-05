@@ -52,6 +52,8 @@ public:
 	TObjectPtr<UInputAction> AimingAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> AttackAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
+	TObjectPtr<UInputAction> ToggleAutoFire;
 
 ///////////////////////////////////////////////////////////////////////
 // HUD

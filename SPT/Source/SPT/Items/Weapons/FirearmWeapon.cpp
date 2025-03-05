@@ -31,6 +31,8 @@ AFirearmWeapon::AFirearmWeapon()
 	bIsFiring = false;
 	bIsAiming = false;
 	CurrentRecoil = 0.0f;
+	bIsAutoFire = FirearmStats.bHasAutomaticFireMode;
+
 }
 
 void AFirearmWeapon::BeginPlay()
@@ -61,13 +63,19 @@ void AFirearmWeapon::BeginFire()
 	{
 		bIsFiring = true;
 
-		// 발사 속도 제어
-		GetWorld()->GetTimerManager().SetTimer(
-			FireTimerHandle,
-			this,
-			&AFirearmWeapon::OnFiring,
-			WeaponData.WeaponStats.AttackRate, 
-			true);
+		if (bIsAutoFire)
+		{
+			// 발사 속도 제어
+			GetWorld()->GetTimerManager().SetTimer(
+				FireTimerHandle,
+				this,
+				&AFirearmWeapon::OnFiring,
+				WeaponData.WeaponStats.AttackRate,
+				true
+			);
+		}
+
+		OnFiring();
 	}
 }
 
@@ -78,10 +86,13 @@ void AFirearmWeapon::EndFire()
 		return;
 	}
 
-	bIsFiring = false;
+	// 연사 멈춤
+	if (GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+	}
 
-	// 타이머 정지 (연사 멈춤, 미구현)
-	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+	bIsFiring = false;
 }
 
 void AFirearmWeapon::OnFiring()
@@ -196,17 +207,18 @@ void AFirearmWeapon::OnFiring()
 		);
 	}
 
-	/* 카메라 흔들림 (미구현)
+	// 카메라 흔들림 
 	if (FirearmStats.CameraShakeClass)
 	{
 		APlayerController* Controller = Owner->GetController<ASPTPlayerController>();
 		if (Controller)
 		{
-			ConstructorHelpers::FClassFinder<UMatineeCameraShake>(FirearmStats.CameraShakeClass, );
 			Controller->PlayerCameraManager->StartCameraShake(FirearmStats.CameraShakeClass);
 		}
 	}
-	*/
+	
+	// 총기 반동
+	Owner->AddControllerPitchInput(-FirearmStats.RecoilRate * UKismetMathLibrary::RandomFloatInRange(0.8f, 1.2f));
 
 	UE_LOG(LogTemp, Log, TEXT("%s fired! Ammo left: %d, Recoil: %.2f"), *GetName(), FirearmStats.AmmoCount, CurrentRecoil);
 }
@@ -464,8 +476,6 @@ void AFirearmWeapon::EndAiming()
 		return;
 	}
 
-	bIsAiming = false;
-
 	if (FirearmStats.AimCurve) {
 		FirearmStats.Timeline->PlayFromStart();
 		FirearmStats.BaseData.SetData(Owner);
@@ -474,8 +484,17 @@ void AFirearmWeapon::EndAiming()
 	}
 
 	FirearmStats.BaseData.SetDataByNoneCurve(Owner);
-	
+	bIsAiming = false;
+
 	return;
+}
+
+void AFirearmWeapon::ToggleAutoFire()
+{
+	if (FirearmStats.bHasAutomaticFireMode)
+	{
+		bIsAutoFire = !bIsAutoFire;
+	}
 }
 
 int32 AFirearmWeapon::GetMagazinCapacity() const

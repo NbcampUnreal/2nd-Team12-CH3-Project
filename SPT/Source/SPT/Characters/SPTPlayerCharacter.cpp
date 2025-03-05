@@ -271,6 +271,12 @@ void ASPTPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
                 EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::StartAttack);
                 EnhancedInput->BindAction(PlayerController->AttackAction, ETriggerEvent::Completed, this, &ASPTPlayerCharacter::StopAttack);
             }
+
+            if (PlayerController->ToggleAutoFire)
+            {
+                // 키 입력 중에 1번만 호출됨
+                EnhancedInput->BindAction(PlayerController->ToggleAutoFire, ETriggerEvent::Triggered, this, &ASPTPlayerCharacter::SwitchAutoFire);
+            }
         }
     }
 }
@@ -481,6 +487,18 @@ void ASPTPlayerCharacter::StopAttack(const FInputActionValue& value)
     {
         AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
         FirearmWeapon->EndFire();  //// 추가
+    }
+}
+
+void ASPTPlayerCharacter::SwitchAutoFire(const FInputActionValue& value)
+{
+    if (value.Get<bool>())
+    {
+        if (EquippedWeapon)
+        {
+            AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(EquippedWeapon);
+            FirearmWeapon->ToggleAutoFire();  //// 추가
+        }
     }
 }
 

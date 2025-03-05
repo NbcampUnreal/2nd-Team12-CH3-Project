@@ -64,6 +64,8 @@ protected:
 	void StartAttack(const FInputActionValue& value);
 	UFUNCTION()
 	void StopAttack(const FInputActionValue& value);
+	UFUNCTION()
+	void SwitchAutoFire(const FInputActionValue& value);
 
 private:
 	// 카메라 관련 컴포넌트

@@ -18,8 +18,12 @@ class SPT_API UPlayerMainHUD : public UUserWidget
 public:
 	virtual void NativeOnInitialized() override;
 
+protected:
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 ///////////////////////////////////////////////////////////////////////
 // Play UI
+public:
 	UFUNCTION()
 	void ShowPlayUI();
 
