@@ -12,6 +12,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/DamageType.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "GameFramework/RotatingMovementComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Components/DecalComponent.h"
 #include "Engine/World.h"
@@ -112,6 +114,16 @@ void AFirearmWeapon::OnFiring()
 
 	FVector Start = Transform.GetLocation() + Direction;
 
+	// FireMontage 애니메이션 재생
+	if (FirearmStats.FireMontage)
+	{
+		UAnimInstance* AnimInstance = Owner->GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			AnimInstance->Montage_Play(FirearmStats.FireMontage);
+		}
+	}
+
 	// 탄착군 형성
 	Direction = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(Direction, FirearmStats.RecoilAngle);
 	FVector End = Transform.GetLocation() + Direction * FirearmStats.HitDistance;
@@ -184,16 +196,41 @@ void AFirearmWeapon::OnFiring()
 		);
 	}
 
-	if (FirearmStats.EjectParticle)
+	if (FirearmStats.EjectShellActor)
 	{
-		UGameplayStatics::SpawnEmitterAttached(
-			FirearmStats.EjectParticle,
-			SkeletalMeshComponent,
-			"EjectAmmo",
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset
+		FTransform SocketTransform = SkeletalMeshComponent->GetSocketTransform(FName("AmmoEject"));
+
+		// 월드에 탄피 스폰
+		AActor* SpawnedShell = GetWorld()->SpawnActor<AActor>(
+			FirearmStats.EjectShellActor,
+			SocketTransform.GetLocation(),
+			SocketTransform.GetRotation().Rotator()
 		);
+
+		if (SpawnedShell)
+		{
+			UStaticMeshComponent* ShellMesh = SpawnedShell->FindComponentByClass<UStaticMeshComponent>();
+			if (ShellMesh)
+			{
+				ShellMesh->SetSimulatePhysics(true); // 물리 시뮬레이션 활성화
+				ShellMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // 충돌 활성화
+				ShellMesh->SetEnableGravity(true); // 중력 활성화
+
+				// 물리적인 힘을 직접 추가
+				FVector EjectImpulse = SocketTransform.GetRotation().RotateVector(FVector(500.0f, 250.0f, 80.0f));
+				ShellMesh->AddImpulse(EjectImpulse, NAME_None, true);
+			}
+
+			// RotatingMovementComponent 적용 (회전 효과)
+			URotatingMovementComponent* RotatingComp = SpawnedShell->FindComponentByClass<URotatingMovementComponent>();
+			if (RotatingComp)
+			{
+				RotatingComp->RotationRate = FRotator(0.0f, 1500.0f, 0.0f); // 탄피 회전 속도 조정
+			}
+
+			// 3초 후 탄피 자동 삭제
+			SpawnedShell->SetLifeSpan(3.0f);
+		}
 	}
 
 	FVector MuzzleLocation = SkeletalMeshComponent->GetSocketLocation("MuzzleFlash");
@@ -233,12 +270,11 @@ bool AFirearmWeapon::CanEquip()
 	return true;
 }
 
-void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
+void AFirearmWeapon::Equip()
 {
 	UE_LOG(LogTemp, Warning, TEXT("FirearmWeapon : Equip : Start"));
 	UpdateMesh();
 
-	Owner = PlayerCharacter;
 	if (FirearmStats.RightHandSocketName.IsValid())
 	{
 		// 총기 손에 부착
@@ -260,7 +296,6 @@ void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
 
 	ItemState = EItemState::EIS_Equipped;
 	UE_LOG(LogTemp, Log, TEXT("%s equipped by %s"), *GetName(), *Owner->GetName());
-
 	EndEquip();
 	////////////////////////////////////////////////////////////////
 	// 프리뷰 캐릭터에 무기 반영을 위해서 넣은 부분입니다.
@@ -282,14 +317,34 @@ void AFirearmWeapon::BeginEquip(ASPTPlayerCharacter* PlayerCharacter)
 
 	bIsEquipping = true;
 	Owner = PlayerCharacter;
-	/*
+
+	// EquipMontage 애니메이션 재생
 	if (FirearmStats.EquipMontage)
 	{
-		Owner->PlayAnimMontage(FirearmStats.EquipMontage, FirearmStats.EquipMontage_PlayRate);
+		UAnimInstance* AnimInstance = Owner->GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			float MontageDuration = AnimInstance->Montage_Play(FirearmStats.EquipMontage);
+			FTimerHandle EquipTimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				EquipTimerHandle,
+				this,
+				&AFirearmWeapon::Equip,
+				MontageDuration,
+				false);
+		}
 	}
-	*/
-
-	Equip(PlayerCharacter);
+	else
+	{
+		FTimerHandle EquipTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			EquipTimerHandle,
+			this,
+			&AFirearmWeapon::Equip,
+			FirearmStats.EquipMontage_PlayRate,
+			false);
+	}
+	;
 }
 
 void AFirearmWeapon::EndEquip()
@@ -399,12 +454,30 @@ void AFirearmWeapon::BeginReload()
 	bIsReloading = true;
 	UE_LOG(LogTemp, Log, TEXT("%s reloading..."), *GetName());
 
-	GetWorldTimerManager().SetTimer(ReloadTimerHandle,
-		this,
-		&AFirearmWeapon::Reload,
-		FirearmStats.ReloadTime,
-		false
-	);
+	// ReloadMontage 애니메이션 재생
+	if (FirearmStats.ReloadMontage)
+	{
+		UAnimInstance* AnimInstance = Owner->GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			float MontageDuration = AnimInstance->Montage_Play(FirearmStats.ReloadMontage);
+			GetWorldTimerManager().SetTimer(ReloadTimerHandle,
+				this,
+				&AFirearmWeapon::Reload,
+				MontageDuration,
+				false
+			);
+		}
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(ReloadTimerHandle,
+			this,
+			&AFirearmWeapon::Reload,
+			FirearmStats.ReloadTime,
+			false
+		);
+	}
 }
 
 void AFirearmWeapon::Reload()

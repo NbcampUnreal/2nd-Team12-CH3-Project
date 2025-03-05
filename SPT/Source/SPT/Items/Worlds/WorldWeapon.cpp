@@ -84,7 +84,14 @@ void AWorldWeapon::OnPickup(ASPTPlayerCharacter* PlayerCharacter)
 	SpawnedWeapon->SetActorEnableCollision(false);		// 장착 시 비 충돌 상태로 만들어 상호작용을 제거
 
 	// 무기 장착 (각 클래스에서 장착 로직 구현)
-	SpawnedWeapon->Equip(PlayerCharacter);
+	if (AFirearmWeapon* FirearmWeapon = Cast<AFirearmWeapon>(SpawnedWeapon))
+	{
+		FirearmWeapon->BeginEquip(PlayerCharacter);
+	}
+	else
+	{
+		SpawnedWeapon->Equip(); // 총기 이외 다른 무기는 미구현
+	}
 
 	// 월드 무기 제거
 	Destroy();

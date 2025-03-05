@@ -28,7 +28,7 @@ public:
 
 	/* ¹«±â ÀåÂø */
 	bool CanEquip();
-	virtual void Equip(ASPTPlayerCharacter* PlayerCharacter) override;
+	virtual void Equip() override;
 	void BeginEquip(ASPTPlayerCharacter* PlayerCharacter);
 	void EndEquip();
 
