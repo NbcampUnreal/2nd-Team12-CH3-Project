@@ -49,20 +49,20 @@ void USPTPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		// 현재 캐릭터가 플레이어의 조종을 받을 경우
 		if (TryGetPawnOwner()->IsPlayerControlled())
 		{
-			bShouldMove = !FMath::IsNearlyZero(CharacterMovement->GetCurrentAcceleration().SizeSquared()) ? true : false;
+			bShouldMove = !FMath::IsNearlyZero(CharacterMovement->GetCurrentAcceleration().SizeSquared());
 		}
 		// 현재 캐릭터가 AI의 조종을 받을 경우
 		else
 		{
-			bShouldMove = !FMath::IsNearlyZero(GroundSpeed) ? true : false;
+			bShouldMove = !FMath::IsNearlyZero(GroundSpeed);
 		}
 		// 현재 캐릭터가 낙하 중인지 여부
 		bIsFalling = CharacterMovement->IsFalling();
 		// 현재 캐릭터가 앉아 있는지 여부
 		bIsCrouching = CharacterMovement->IsCrouching();
 
-		// 
-		FRotator TargetRotate = Character->GetControlRotation() - Character->GetActorRotation();
+		// aim offset과 turn in place를 위한 변수
+		FRotator TargetRotate = UKismetMathLibrary::NormalizedDeltaRotator(Character->GetControlRotation(), Character->GetActorRotation());
 
 		FRotator CurrentRotate(AimPitch, AimYaw, 0.f);
 
@@ -73,7 +73,7 @@ void USPTPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		TurnInPlaceYaw = UKismetMathLibrary::ClampAngle(DeltaRotate.Yaw, -90.f, 90.f);
 
-		float TurnYawWeight = (GetCurveValue(FName("TurnYawWeight")) > 0);
+		float TurnYawWeight = GetCurveValue(FName("TurnYawWeight"));
 		if (TurnYawWeight > 0.f)
 		{
 			FRotator TurnYaw = FRotator::ZeroRotator;

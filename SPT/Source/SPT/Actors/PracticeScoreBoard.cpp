@@ -17,14 +17,15 @@ APracticeScoreBoard::APracticeScoreBoard()
 
 	ScoreWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ScoreWidget"));
 	ScoreWidget->SetupAttachment(StaticMesh);
+
+	RemainingTime = 0.f;
+	Score = 0;
 }
 
 void APracticeScoreBoard::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	RemainingTime = 0.f;
-	Score = 0;
+
 }
 
 void APracticeScoreBoard::Tick(float DeltaTime)

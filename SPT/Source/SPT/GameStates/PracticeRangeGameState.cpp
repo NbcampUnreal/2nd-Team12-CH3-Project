@@ -30,6 +30,7 @@ void APracticeRangeGameState::BeginPlay()
         }
     }
 
+    // AI 사격 남은 시간과 점수를 표시하는 액터 찾기
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), APracticeScoreBoard::StaticClass(), FoundArr);
     for (AActor* Found : FoundArr)
     {

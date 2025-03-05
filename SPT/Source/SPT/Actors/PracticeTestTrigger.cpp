@@ -40,6 +40,7 @@ void APracticeTestTrigger::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, A
 	{
 		if (APracticeRangeGameState* PracticeRangeGameState = GetWorld()->GetGameState<APracticeRangeGameState>())
 		{
+			// 게임 스테이트를 통해 AI 사격 시작
 			PracticeRangeGameState->ProficiencyTestingStart();
 		}
 	}
@@ -51,6 +52,7 @@ void APracticeTestTrigger::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AAc
 	{
 		if (APracticeRangeGameState* PracticeRangeGameState = GetWorld()->GetGameState<APracticeRangeGameState>())
 		{
+			// 게임 스테이트를 통해 AI 사격 종료
 			PracticeRangeGameState->ProficiencyTestingEnd();
 		}
 	}

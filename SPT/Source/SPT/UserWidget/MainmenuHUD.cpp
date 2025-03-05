@@ -31,7 +31,14 @@ void UMainmenuHUD::NativeOnInitialized()
 
 void UMainmenuHUD::HandlePlayButtonClicked()
 {
-	// 나중에 플레이 할 레벨이 생성되면 오픈하도록 설정
+	if (APlayerController* CurPlayerController = GetOwningPlayer())
+	{
+		CurPlayerController->SetPause(false);
+		CurPlayerController->SetInputMode(FInputModeGameOnly());
+		CurPlayerController->SetShowMouseCursor(false);
+	}
+
+	// 플레이 할 레벨을 오픈
 	UGameplayStatics::OpenLevel(GetWorld(), FName("Airport_Level"));
 }
 
