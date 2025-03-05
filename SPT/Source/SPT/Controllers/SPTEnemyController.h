@@ -32,14 +32,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 
 	UFUNCTION()
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
 public:
+
 	UFUNCTION(BlueprintCallable)
 	void SetStateAsPassive();
-	
+
 	UFUNCTION(BlueprintCallable)
 	void SetStateAsAttacking(AActor* AttackTarget);
 
@@ -87,5 +89,21 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void HandleSensedDamage(AActor* Actor);
+
+	TArray<AActor*> KnownSeenActors;   // 시야로 감지한 액터 목록
+	TArray<AActor*> KnownDamagedActors; // 피해를 준 액터 목록
+
+	UFUNCTION(BlueprintCallable)
+	void CheckIfForgottenSeenActor();
+
+	UFUNCTION(BlueprintCallable)
+	void CheckIfForgottenDamagedActor();
+
+	UFUNCTION(BlueprintCallable)
+	void HandleForgotActor(AActor* Actor);
+
+
+	FTimerHandle ForgottenActorTimerHandle;       // 시야 감지한 액터를 잊는 타이머
+	FTimerHandle ForgottenDamagedActorTimerHandle; // 피해 감지한 액터를 잊는 타이머
 
 };
