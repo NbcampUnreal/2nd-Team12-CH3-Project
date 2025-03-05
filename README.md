@@ -9,6 +9,7 @@
 
 + IDE: Visual Studio 2022
 + Unreal Engine: 5.5.3
++ C++ 17
 
 ## 빌드/실행 방법
 
@@ -28,7 +29,7 @@
 
 ### 개발 기간
 
-2025.02.17 ~ 2025.03.04
+2025.02.17 ~ 2025.03.06
 
 ### 게임 설명
 
@@ -198,82 +199,10 @@
 
 표적지 기능을 구현했습니다.
 
-## 프로젝트 구조
+## 핵심 로직/클래스 설명
 
-```
-SPTProject
-┃
-┣ Actors    // 디렉토리
-┃ ┃
-┃ ┣ PracticeScoreBoard.h
-┃ ┣ PracticeScoreBoard.cpp
-┃ ┃
-┃ ┣ PracticeTestTrigger.h
-┃ ┣ PracticeTestTrigger.cpp
-┃ ┃
-┃ ┣ RecordBoard.h
-┃ ┣ RecordBoard.h
-┃ ┃
-┃ ┣ TargetBoard.h
-┃ ┣ TargetBoard.h
-┃
-┣ AI    // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ AnimInstances // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ Characters    // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ Controllers   // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ GameModes   // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ Interfaces   // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ Inventory   // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ PatrolRoutes   // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ SpawnVolumes   // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-┃
-┣ UserWidget   // 디렉토리
-┃ ┃
-┃ ┣ 
-┃ ┣
-```
+
 
 ## 주의사항
 
-현재 주의해야할 사항은 없는걸로 파악됩니다.
+현재 이동 애니메이션 애셋의 문제로 플레이 중 캐릭터가 특정 방향으로 이동 시 블랜드 스페이스에서 발 모양이 이상한 문제가 있습니다.
