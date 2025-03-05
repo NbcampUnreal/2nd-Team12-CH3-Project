@@ -14,6 +14,7 @@ class AEquipmentInventory;
 class AConsumableInventory;
 class UInventoryMainWidget;
 class AEquipmentSlotInventory;
+class AItemBase;
 
 class UItemDataObject;
 

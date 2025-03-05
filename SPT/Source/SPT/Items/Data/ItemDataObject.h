@@ -72,7 +72,7 @@ public:
 	UItemDataObject* SplitStack(int32 SplitQuantity);
 
 
-protected:
+public:	//임시로 퍼블릭으로 바꾸었습니다. 원래는 프로텍티드입니다.
 	/* 아이템 데이터 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Data")
 	FItemData ItemData;

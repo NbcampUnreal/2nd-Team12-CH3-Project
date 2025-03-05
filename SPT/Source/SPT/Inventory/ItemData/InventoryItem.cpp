@@ -4,6 +4,7 @@
 #include "InventoryItem.h"
 #include "SPT/Items/Data/ItemDataObject.h"
 #include "SPT/Items/Base/ItemBase.h"
+#include "SPT/Items/Weapons/WeaponBase.h"
 
 
 
@@ -35,6 +36,28 @@ TSubclassOf<AItemBase> UInventoryItem::GetItemBaseClass() const
         }
     }
     return nullptr;
+}
+
+TSubclassOf<AWeaponBase> UInventoryItem::GetWeaponClass() const
+{
+    if (ItemDataObject)
+    {
+        if (ItemDataObject->WeaponData.WeaponClass)
+        {
+            return TSubclassOf<AWeaponBase>(ItemDataObject->WeaponData.WeaponClass);
+        }
+    }
+    return nullptr;
+}
+
+void UInventoryItem::SetItemBase(AItemBase* NewItemBase)
+{
+    ItemBaseReference = NewItemBase;
+}
+
+AItemBase* UInventoryItem::GetItemBase() const
+{
+    return ItemBaseReference;
 }
 
 FText UInventoryItem::GetItemName() const

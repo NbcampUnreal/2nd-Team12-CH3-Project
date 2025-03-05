@@ -223,6 +223,7 @@ bool AFirearmWeapon::CanEquip()
 
 void AFirearmWeapon::Equip(ASPTPlayerCharacter* PlayerCharacter)
 {
+	UE_LOG(LogTemp, Warning, TEXT("FirearmWeapon : Equip : Start"));
 	UpdateMesh();
 
 	Owner = PlayerCharacter;

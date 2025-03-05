@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "WeaponDataStructs.generated.h"
-
+/////////////////////////////////////////////////
+class AWeaponBase;
+/////////////////////////////////////////////////
 /* 무기 유형 Enum */
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
@@ -177,4 +179,10 @@ struct FWeaponItemData : public FTableRowBase
 	/* 무기 전용 Physics Asset */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Assets")
 	UPhysicsAsset* PhysicsAsset;
+
+	/////////////////////////////////////////////////
+	// 인벤토리에서 무기 생성을 관리하기 위해 추가하였습니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Weapon")
+	TSubclassOf<AWeaponBase> WeaponClass;
+	/////////////////////////////////////////////////
 };

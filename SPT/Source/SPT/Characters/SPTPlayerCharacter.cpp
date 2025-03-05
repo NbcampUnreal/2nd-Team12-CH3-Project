@@ -58,6 +58,7 @@ ASPTPlayerCharacter::ASPTPlayerCharacter()
 // 라인트레이스 함수를 사용하여 캐릭터의 앞에 물체가 있는지 판별 후 아이템일 시 작동
 void ASPTPlayerCharacter::TryPickupItem()
 {
+    UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : Start"));
     // 캐릭터가 아이템이 있는지 탐색하는 범위를 설정
     FVector Start = GetActorLocation();
     FVector ForwardVector = GetActorForwardVector();
@@ -75,26 +76,38 @@ void ASPTPlayerCharacter::TryPickupItem()
         AItemBase* ItemBase = Cast<AItemBase>(HitResult.GetActor());
         if (ItemBase && InventoryManager)
         {
+            UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : FindItem"));
             // 아이템이 있을 시 아이템의 데이터를 인벤토리 데이터로 복사
             UInventoryItem* ItemData = NewObject<UInventoryItem>();
             ItemData->SetItemData(ItemBase->GetItemData());
+
+            // 무기 장착 관련으로 넣은 임시 함수
+            ItemData->SetItemBase(ItemBase);
+
             // 아이템 복사 성공 시 아이템을 인벤토리로 추가하는 함수 호출 후 추가된 아이템 제거
             if (ItemData)
             {
+                UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : ItemCopy"));
+                // [변경점] 무기인 경우 인벤토리 추가 대신 UseItem 호출
                 if (ItemData->IsWeapon())
                 {
-                    AWorldWeapon* WorldWeapon = Cast<AWorldWeapon>(ItemBase);
-                    if (WorldWeapon && ItemBase->GetItemData()->WeaponData.WeaponType == EWeaponType::EWT_Firearm)
-                    {
-                        WorldWeapon->OnPickup(this);
-                    }
+                    UE_LOG(LogTemp, Warning, TEXT("SPTPlayerCharacter : TryPickupItem : This is Weapon"));
+                    InventoryManager->UseItem(ItemData); // UseItem 내에서 장착 처리
+
+                    // 일단 주석처리(UseItem에서 사용 예정)
+                    //AWorldWeapon* WorldWeapon = Cast<AWorldWeapon>(ItemBase);
+                    //if (WorldWeapon && ItemBase->GetItemData()->WeaponData.WeaponType == EWeaponType::EWT_Firearm)
+                    //{
+                    //    WorldWeapon->OnPickup(this);
+                    //}
+
+                    ItemBase->Destroy(); // 월드 아이템 제거
                 }
                 else
                 {
                     InventoryManager->AddItemToInventory(ItemData);
+                    ItemBase->Destroy();
                 }
-
-                ItemBase->Destroy();
             }
         }
     }
@@ -150,8 +163,15 @@ void ASPTPlayerCharacter::BeginPlay()
     // InventoryManagerClass가 할당되었는지 확인
     if (InventoryManagerClass)
     {
-        // 인벤토리 매니저 생성
-        InventoryManager = GetWorld()->SpawnActor<AInventoryManager>(InventoryManagerClass);
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this; // ★ 핵심: 오너를 자신으로 설정
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+        InventoryManager = GetWorld()->SpawnActor<AInventoryManager>(
+            InventoryManagerClass,
+            GetActorTransform(),
+            SpawnParams
+        );
     }
 
     if (InventoryMainWidgetClass)
@@ -368,7 +388,7 @@ void ASPTPlayerCharacter::StartInteract(const FInputActionValue& value)
 {
     // 라인트레이스를 통해 찾았던 액터와 상호작용 한다.
     // 현재는 아이템을 줍는 동작만 존재
-    // 다른 상호작용 추가 필요(예시: 훈련모드에서 사용할 훈련 메뉴 선택기)
+    // 다른 상호작용 추가 필요(예시: 훈련모드에서 사용할 훈련 메뉴 선택하기)
     if (value.Get<bool>())
     {
         TryPickupItem();
