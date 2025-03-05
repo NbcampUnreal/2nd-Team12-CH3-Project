@@ -15,11 +15,12 @@ class SPT_API UEquipmentPanelWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-    UPROPERTY(meta = (BindWidget))
-    UEquipmentSlotWidget* HeadSlot;
+    // 실제 구현되어있지 않은 아이템(임의로 제가 만든 부분입니다.)
+    //UPROPERTY(meta = (BindWidget))
+    //UEquipmentSlotWidget* HeadSlot;
 
-    UPROPERTY(meta = (BindWidget))
-    UEquipmentSlotWidget* BodySlot;
+    //UPROPERTY(meta = (BindWidget))
+    //UEquipmentSlotWidget* BodySlot;
 
     UPROPERTY(meta = (BindWidget))
     UEquipmentSlotWidget* WeaponSlot;

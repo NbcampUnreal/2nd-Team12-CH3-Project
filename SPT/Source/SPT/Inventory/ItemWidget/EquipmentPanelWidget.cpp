@@ -19,11 +19,13 @@ void UEquipmentPanelWidget::UpdateEquipmentSlots(AEquipmentSlotInventory* Equipm
         case 0:
             WeaponSlot->UpdateSlot(Item);
             break;
-        case 1:
-            BodySlot->UpdateSlot(Item);
-            break;
-        case 2:
-            HeadSlot->UpdateSlot(Item);
+        //case 1:
+        //    BodySlot->UpdateSlot(Item);
+        //    break;
+        //case 2:
+        //    HeadSlot->UpdateSlot(Item);
+        //    break;
+        case -1:            // default
             break;
         }
     }
