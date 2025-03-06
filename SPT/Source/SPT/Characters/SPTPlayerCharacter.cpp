@@ -419,7 +419,7 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
 
                     PlayerController->SetInputMode(InputMode);
                     PlayerController->bShowMouseCursor = true;
-                    /*PlayerController->SetPause(true);*/
+                    //PlayerController->SetPause(true);
                 }
             }
             else
@@ -429,7 +429,7 @@ void ASPTPlayerCharacter::OnOffInventory(const FInputActionValue& value)
                 {
                     PlayerController->SetInputMode(FInputModeGameOnly());
                     PlayerController->bShowMouseCursor = false;
-                    /*PlayerController->SetPause(false);*/
+                    //PlayerController->SetPause(false);
                 }
             }
         }

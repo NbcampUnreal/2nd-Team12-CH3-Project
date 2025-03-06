@@ -12,6 +12,9 @@ class APreviewCharacter;
 class UEquipmentPanelWidget;
 class AEquipmentSlotInventory;
 class UImage;
+class UButton;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryFilterChanged);
 
 UCLASS()
 class SPT_API UInventoryMainWidget : public UUserWidget
@@ -30,6 +33,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void UpdateEquipmentSlots(AEquipmentSlotInventory* EquipmentSlotInventory);
 
+	// 인벤토리 필터 클리 시 상용되는 함수
+	UFUNCTION()
+	void OnAllFilterClicked();
+	UFUNCTION()
+	void OnEquipmentFilterClicked();
+	UFUNCTION()
+	void OnConsumableFilterClicked();
+
 	// 캐릭터 프리뷰이미지를 할당
 	UPROPERTY(meta = (BindWidget))
 	UImage* CharacterPreviewImage;
@@ -37,6 +48,24 @@ public:
 	// 장비 슬롯
 	UPROPERTY(meta = (BindWidget))
 	UEquipmentPanelWidget* EquipmentPanel;
+
+	// 인벤토리에서 표시할 항목을 정하는 필터 버튼
+	UPROPERTY(meta = (BindWidget))
+	UButton* AllFilterButton;
+	UPROPERTY(meta = (BindWidget))
+	UButton* EquipmentFilterButton;
+	UPROPERTY(meta = (BindWidget))
+	UButton* ConsumableFilterButton;
+
+
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	bool IsEquipmentFilter = true;
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	bool IsConsumableFilter = true;
+
+	// 필터 상태가 바뀌었을 때 호출할 델리게이트
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnInventoryFilterChanged OnInventoryFilterChanged;
 
 
 	// 프리뷰 캐릭터에게 장비를 반영시키기 위한 용도의 변수 (기능은 미구현)

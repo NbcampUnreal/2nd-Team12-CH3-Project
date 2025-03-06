@@ -233,20 +233,36 @@ void AInventoryManager::RemoveItemToInventory(UInventoryItem* Item)
 void AInventoryManager::SetInventoryWidget(UInventoryMainWidget* NewWidget)
 {
     InventoryMainWidgetInstance = NewWidget;
+
+    if (InventoryMainWidgetInstance)
+    {
+        // 델리게이트에 바인딩 (동적 바인딩을 위해 UFUNCTION이어야 함)
+        InventoryMainWidgetInstance->OnInventoryFilterChanged.AddDynamic(this, &AInventoryManager::UpdateInventoryUI);
+    }
 }
 
 TArray<UInventoryItem*> AInventoryManager::GetDisplayInventoryItems() const
 {
-    TArray<UInventoryItem*> DisplayItems = EquipmentInventory->GetInventory();
-    // 만약 소모품 인벤토리도 있다면 추가
-    DisplayItems.Append(ConsumableInventory->GetInventory());
+    TArray<UInventoryItem*> DisplayItems;
 
-    // 이제 EquipmentSlotInventory에 있는 아이템을 제거
-    TArray<UInventoryItem*> EquippedItems = EquipmentSlotInventory->GetInventory();
-    for (UInventoryItem* EquippedItem : EquippedItems)
+    if (InventoryMainWidgetInstance->IsEquipmentFilter)
     {
-        DisplayItems.Remove(EquippedItem);
+        DisplayItems = EquipmentInventory->GetInventory();
+        UE_LOG(LogTemp, Warning, TEXT("Display Weapon"));
+
+        if (InventoryMainWidgetInstance->IsConsumableFilter)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Display All"));
+            DisplayItems.Append(ConsumableInventory->GetInventory());
+        }
     }
+    else if (InventoryMainWidgetInstance->IsConsumableFilter)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Display consumable"));
+
+        DisplayItems = ConsumableInventory->GetInventory();
+    }
+
     return DisplayItems;
 }
 
@@ -255,7 +271,7 @@ void AInventoryManager::UpdateInventoryUI()
 {
     if (InventoryMainWidgetInstance)
     {
-        // 장착되지 않은 아이템 리스트 갱신
+        // 필터링 된 인벤토리 갱신
         TArray<UInventoryItem*> DisplayItems = GetDisplayInventoryItems();
         InventoryMainWidgetInstance->UpdateInventoryList(DisplayItems);
 

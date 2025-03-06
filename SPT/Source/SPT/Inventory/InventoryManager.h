@@ -43,6 +43,7 @@ public:
 	// UI에서 표시될 인벤토리를 설정하는 함수(필터링)
 	TArray<UInventoryItem*> GetDisplayInventoryItems() const;
 	// UI를 업데이트 하는 함수
+	UFUNCTION()				// 동적 바인딩을 하려면 UFUNCTION을 해두어야함!
 	void UpdateInventoryUI();
 
 	UPROPERTY()

@@ -9,6 +9,7 @@
 #include "Components/ListView.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Components/Button.h"
 #include "EngineUtils.h"                    // TActorIterator 를 사용하기 위해 필요
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -29,6 +30,33 @@ void UInventoryMainWidget::UpdateEquipmentSlots(AEquipmentSlotInventory* Equipme
     {
         EquipmentPanel->UpdateEquipmentSlots(EquipmentSlotInventory);
     }
+}
+
+void UInventoryMainWidget::OnAllFilterClicked()
+{
+    UE_LOG(LogTemp, Warning, TEXT("OnAllFilterClicked"));
+    IsEquipmentFilter = true;
+    IsConsumableFilter = true;
+
+    OnInventoryFilterChanged.Broadcast();
+}
+
+void UInventoryMainWidget::OnEquipmentFilterClicked()
+{
+    UE_LOG(LogTemp, Warning, TEXT("OnEquipmentFilterClicked"));
+    IsEquipmentFilter = true;
+    IsConsumableFilter = false;
+
+    OnInventoryFilterChanged.Broadcast();
+}
+
+void UInventoryMainWidget::OnConsumableFilterClicked()
+{
+    UE_LOG(LogTemp, Warning, TEXT("OnConsumableFilterClicked"));
+    IsEquipmentFilter = false;
+    IsConsumableFilter = true;
+
+    OnInventoryFilterChanged.Broadcast();
 }
 
 void UInventoryMainWidget::FindPreviewCharacter()
@@ -98,4 +126,20 @@ void UInventoryMainWidget::NativeConstruct()
 	Super::NativeConstruct();
     // 위젯 생성 시 프리뷰 캐릭터도 함께 생성
     FindPreviewCharacter();
+
+    if (AllFilterButton)
+    {
+        AllFilterButton->OnClicked.AddDynamic(this, &UInventoryMainWidget::OnAllFilterClicked);
+    }
+    if (EquipmentFilterButton)
+    {
+        EquipmentFilterButton->OnClicked.AddDynamic(this, &UInventoryMainWidget::OnEquipmentFilterClicked);
+    }
+    if (ConsumableFilterButton)
+    {
+        ConsumableFilterButton->OnClicked.AddDynamic(this, &UInventoryMainWidget::OnConsumableFilterClicked);
+    }
+
+    // 위젯 생성 시 초기 상태는 ALL 필터로 설정
+    OnAllFilterClicked();
 }
